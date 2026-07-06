@@ -231,3 +231,47 @@ int radio_log_get_events(alert_event_t *events, size_t max_count, size_t *out_co
     pclose(list);
     return 0;
 }
+
+static const char *TRANSCRIPT_PATH = "/data/radio/transcript.txt";
+static FILE *g_transcript_fp = NULL;
+
+int radio_log_qso_text(float freq, const char *mode, const char *text) {
+    if (!text) return -1;
+    ensure_dir(TRANSCRIPT_PATH);
+    if (!g_transcript_fp) {
+        g_transcript_fp = fopen(TRANSCRIPT_PATH, "a");
+    }
+    if (!g_transcript_fp) return -1;
+    time_t now = time(NULL);
+    char tbuf[32];
+    struct tm *tm_info = localtime(&now);
+    strftime(tbuf, sizeof(tbuf), "%H:%M:%S", tm_info);
+    fprintf(g_transcript_fp, "[%s] %.3fMHz %s: %s\n", tbuf, freq / 1000000.0f, mode ? mode : "USB", text);
+    fflush(g_transcript_fp);
+    return 0;
+}
+
+int radio_log_get_transcript(char *buffer, size_t max_len, size_t *out_len) {
+    if (!buffer || max_len == 0) return -1;
+    if (g_transcript_fp) fflush(g_transcript_fp);
+    FILE *f = fopen(TRANSCRIPT_PATH, "r");
+    if (!f) { *out_len = 0; buffer[0] = '\0'; return 0; }
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    size_t to_read = (size_t)fsize < max_len - 1 ? (size_t)fsize : max_len - 1;
+    if (to_read > 0) {
+        fseek(f, fsize - (long)to_read, SEEK_SET);
+        *out_len = fread(buffer, 1, to_read, f);
+    } else {
+        *out_len = 0;
+    }
+    buffer[*out_len] = '\0';
+    fclose(f);
+    return 0;
+}
+
+int radio_log_clear_transcript(void) {
+    if (g_transcript_fp) { fclose(g_transcript_fp); g_transcript_fp = NULL; }
+    return remove(TRANSCRIPT_PATH);
+}

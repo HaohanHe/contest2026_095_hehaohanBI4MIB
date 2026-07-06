@@ -23,7 +23,8 @@ typedef struct _lv_obj_t lv_obj_t;
 typedef struct _lv_timer_t lv_timer_t;
 typedef void * lv_event_t;
 typedef void * lv_style_t;
-typedef void * lv_font_t;
+struct _lv_font_t { int dummy; };
+typedef struct _lv_font_t lv_font_t;
 typedef void (*lv_timer_cb_t)(lv_timer_t *);
 typedef void (*lv_event_cb_t)(lv_event_t *);
 
@@ -63,7 +64,11 @@ typedef enum {
 
 #define LV_EVENT_CLICKED     0x04
 #define LV_OBJ_FLAG_CLICKABLE 0x00001000
-#define LV_FONT_DEFAULT ((const void *)0)
+#define LV_FONT_DEFAULT        ((const lv_font_t *)0)
+static const lv_font_t lv_font_montserrat_10 = {0};
+static const lv_font_t lv_font_montserrat_12 = {0};
+static const lv_font_t lv_font_montserrat_14 = {0};
+static const lv_font_t lv_font_montserrat_16 = {0};
 
 #define MAX_LOCAL_OBJS 256
 #define MAX_LOCAL_TIMERS 8
@@ -221,7 +226,7 @@ static inline lv_timer_t * lv_timer_create(lv_timer_cb_t cb, uint32_t period, vo
 }
 static inline void lv_timer_del(lv_timer_t * t) { (void)t; }
 
-static inline void lv_timer_handler(void) {
+static inline uint32_t lv_timer_handler(void) {
     g_loop_count++;
     for(int i=0;i<g_timer_count;i++){
         if(g_timers[i].cb) g_timers[i].cb(&g_timers[i]);
@@ -232,10 +237,29 @@ static inline void lv_timer_handler(void) {
         exit(0);
     }
     usleep(10000);
+    return 5;
 }
 
 static inline void lv_tick_inc(uint32_t ms) { (void)ms; }
 static inline void lv_style_init(lv_style_t * style) { (void)style; }
+
+typedef struct {
+    const char *fb_path;
+    const char *input_path;
+    const char *utouch_path;
+} lv_nuttx_dsc_t;
+
+typedef struct {
+    void *disp;
+    void *indev;
+} lv_nuttx_result_t;
+
+static inline void lv_nuttx_dsc_init(lv_nuttx_dsc_t *dsc) { memset(dsc, 0, sizeof(*dsc)); }
+static inline void lv_nuttx_init(lv_nuttx_dsc_t *dsc, lv_nuttx_result_t *res) {
+    (void)dsc;
+    res->disp = (void*)1;
+    res->indev = (void*)1;
+}
 
 #ifdef __cplusplus
 }

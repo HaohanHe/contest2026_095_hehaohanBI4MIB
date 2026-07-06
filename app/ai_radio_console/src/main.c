@@ -19,6 +19,10 @@
 
 #include <lvgl.h>
 
+#include "agent_bridge.h"
+#include "radio_config.h"
+#include "radio_log.h"
+
 #define UI_REFRESH_MS       200
 #define LCD_W               320
 #define LCD_H               240
@@ -485,6 +489,10 @@ static void dsp_process_chunk(const int16_t *samples, int n)
             if (g_sos_count >= 3) g_sos_count = 0;
         }
     }
+
+    agent_bridge_send_audio(samples, n);
+    agent_bridge_set_frequency((float)g_freq_hz);
+    agent_bridge_set_mode(MODE_NAMES[g_mode_idx]);
 
     pthread_mutex_unlock(&g_dsp_mutex);
 }
@@ -1321,10 +1329,16 @@ int main(int argc, char *argv[])
     printf("  AI Radio Console v2.0 for openvela\n");
     printf("  REAL AUDIO DSP - Gemini-S1 (R528)\n");
     printf("  Landscape 320x240 - Contest 2026\n");
+    printf("  Voice AI powered by SiliconFlow ASR+LLM\n");
     printf("========================================\n");
 
     pthread_mutex_init(&g_dsp_mutex, NULL);
     snprintf(g_audio_status, sizeof(g_audio_status), "WAITING FOR AUDIO...");
+
+    radio_log_init(NULL);
+    agent_bridge_init();
+    agent_bridge_set_frequency((float)g_freq_hz);
+    agent_bridge_set_mode(MODE_NAMES[g_mode_idx]);
 
     printf("[INIT] Starting audio capture thread...\n");
     pthread_create(&g_audio_thread, NULL, audio_thread_func, NULL);
@@ -1373,6 +1387,8 @@ int main(int argc, char *argv[])
 
     if (g_btn_fd >= 0) close(g_btn_fd);
     pthread_join(g_audio_thread, NULL);
+    agent_bridge_deinit();
+    radio_log_deinit();
     pthread_mutex_destroy(&g_dsp_mutex);
     printf("[SHUTDOWN] AI Radio Console exiting.\n");
     return 0;

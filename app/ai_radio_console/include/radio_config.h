@@ -2,10 +2,11 @@
 #define __RADIO_CONFIG_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define RADIO_APP_NAME          "ai_radio_console"
-#define RADIO_APP_VERSION       "1.0.0"
-#define RADIO_APP_STACKSIZE     8192
+#define RADIO_APP_VERSION       "1.1.0"
+#define RADIO_APP_STACKSIZE     16384
 #define RADIO_APP_PRIORITY      100
 
 #define AUDIO_SAMPLE_RATE       16000
@@ -27,15 +28,48 @@
 #define AUDIO_CACHE_PATH        "/data/radio/cache/"
 #define SKILLS_PATH             "/data/agent/skills/"
 #define RECORD_PATH             "/data/radio/records/"
+#define CONFIG_PATH             "/data/radio/config.ini"
 
 #define MAX_CALLSIGN_LEN        16
 #define MAX_QTH_LEN             64
 #define MAX_RAPPORT_LEN         8
 #define MAX_FREQ_STR_LEN        16
 #define MAX_LANG_LEN            8
+#define MAX_API_KEY_LEN         128
+#define MAX_MODEL_NAME_LEN      64
+#define MAX_ENDPOINT_LEN        128
+#define MAX_TRANSCRIPT_LEN      4096
+#define MAX_LLM_RESPONSE_LEN    8192
 
 #define UI_REFRESH_MS           100
 #define AUDIO_ANALYSIS_INTERVAL 500
+#define ASR_CHUNK_SECONDS       5
+#define ASR_CHUNK_SAMPLES       (AUDIO_SAMPLE_RATE * ASR_CHUNK_SECONDS)
+
+#define SILICONFLOW_ASR_ENDPOINT  "https://api.siliconflow.cn/v1/audio/transcriptions"
+#define SILICONFLOW_CHAT_ENDPOINT "https://api.siliconflow.cn/v1/chat/completions"
+#define DEFAULT_ASR_MODEL         "FunAudioLLM/SenseVoiceSmall"
+#define DEFAULT_LLM_MODEL         "Qwen/Qwen2.5-7B-Instruct"
+
+typedef enum {
+    ASR_PROVIDER_SILICONFLOW = 0,
+    ASR_PROVIDER_NONE
+} asr_provider_t;
+
+typedef struct {
+    bool asr_enabled;
+    bool llm_enabled;
+    asr_provider_t provider;
+    char api_key[MAX_API_KEY_LEN];
+    char asr_model[MAX_MODEL_NAME_LEN];
+    char llm_model[MAX_MODEL_NAME_LEN];
+    char asr_endpoint[MAX_ENDPOINT_LEN];
+    char chat_endpoint[MAX_ENDPOINT_LEN];
+    bool mayday_detection_via_llm;
+    bool violation_detection;
+    bool auto_logging;
+    bool realtime_translation;
+} ai_config_t;
 
 #define BLE_NOTIFY_ALERT        1
 #define BLE_NOTIFY_LOG          2
@@ -106,5 +140,9 @@ typedef enum {
     TRANSLATE_RU,
     TRANSLATE_MAX
 } translate_lang_t;
+
+int config_store_load(ai_config_t *config);
+int config_store_save(const ai_config_t *config);
+void config_set_defaults(ai_config_t *config);
 
 #endif

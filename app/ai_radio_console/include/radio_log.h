@@ -26,4 +26,8 @@ int radio_log_get_net_summary(char *summary, size_t max_len);
 int radio_log_add_event(const alert_event_t *event);
 int radio_log_get_events(alert_event_t *events, size_t max_count, size_t *out_count);
 
+int radio_log_qso_text(float freq, const char *mode, const char *text);
+int radio_log_get_transcript(char *buffer, size_t max_len, size_t *out_len);
+int radio_log_clear_transcript(void);
+
 #endif
