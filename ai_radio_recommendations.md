@@ -1,133 +1,119 @@
-# AI 电台控制台项目 —— 结构化建议文档
+# AI 电台控制台（openvela/R528 Gemini-S1）结构化建议
 
 > 生成时间：2026-07-06
-> 研究范围：
-> - 飞书文档：`/workspace/feishu_docs_full`（14 篇 Markdown）
-> - 项目现状：`/workspace/openvela_build`（openvela / NuttX 源码树，当前作为 `nuttx` 目录使用）
-> - 额外参考：`/workspace/openvela_frameworks`（frameworks 空壳仓库）
-> - 当前后台任务：`make` 编译任务正在运行，本文档仅做只读研究与记录。
+> 调研范围：
+> - `/workspace/feishu_docs_full` 飞书 Wiki 文档 14 篇
+> - `/workspace/openvela_build` 当前工程（只读，未触发新编译）
+> - `/workspace/openvela_frameworks` 顶层仓库与子仓库列表
 
 ---
 
-## 1. 执行摘要
+## 1. 项目目标一句话
 
-AI 电台控制台项目基于 **Allwinner R528（Gemini-S1）** + **openvela（NuttX RTOS）**，目标是在 128 MB DDR3 的嵌入式平台上运行一个包含 LVGL UI、WiFi/蓝牙联网、传感器、音频和 AI 大模型交互能力的电台控制台。
+在 Allwinner R528 Gemini-S1 开发板上，基于 openvela（NuttX）构建一个带 SPI 屏+触摸的 AI 电台控制台：通过 WiFi 连接云端/本地 AI 服务，实现语音交互（麦克风采集 → ASR → LLM → TTS → 扬声器播放）、频道/模式/PTT 触控 UI，并支持 JS/QuickApp 类小程序扩展。
 
-**当前关键状态：**
+---
 
-- 已存在 `vendor/allwinnertech/apps/airadio/` 自定义 AI 电台 LVGL 应用，代码结构清晰，包含频率、模式、PTT 按钮和 ASR/LLM 状态占位。
-- 当前 `.config` 基于 `nsh_minidisplay` 配置，已启用 `CONFIG_AIRADIO_APP=y`、`CONFIG_LUNCHER_MINI_APP=y`。
-- 最近一次完整 `make` 链接**已成功**（`build2.log`、`build3.log` 末尾显示 `LD: nuttx` 成功，生成 `vela.bin`）。
-- 当前 `nuttx` 目录（即 `/workspace/openvela_build`）下存在 `vela.bin`（约 1 MB），但**不存在** `nuttx.bin` / `nuttx.elf`。
-- 打包脚本 `pack.sh` 原生仅支持 `r528s3-evb4` 和 `r528s3-x4b`，不支持 `r528s3-gemini-s1`；`pack.log` 显示实际是直接调用了 `pack_img.sh` 对 `gemini-s1_nand` 进行打包。
-- 最近一次打包（`pack.log`）出现：
-  - `busybox: command not found`（3 处）
+## 2. 必须保留/启用的功能清单及理由
+
+| 功能域 | 当前状态 | 是否必须保留/启用 | 理由 |
+|--------|----------|-------------------|------|
+| **WiFi STA** | `CONFIG_IEEE80211_REALTEK_WIFI=y`、`CONFIG_IEEE80211_REALTEK_WIFI_RTL8733BS=y`、`CONFIG_WIRELESS_WAPI=y` | ✅ 保留 | AI 电台需联网调用 ASR/LLM/TTS API，Realtek RTL8733BS 是板载 WiFi。 |
+| **蓝牙 BLE** | `CONFIG_BLUETOOTH=y`、`CONFIG_BLUETOOTH_BLE_SUPPORT=y`、`CONFIG_BT=y`、`CONFIG_BT_SAMPLE=y` | ✅ 保留 | 可用于遥控器、耳机、Beacon 或未来扩展；ZBlue 协议栈已启用。 |
+| **LRADC 按键** | `CONFIG_DRIVERS_LRADC=y`、`CONFIG_INPUT_BUTTONS=y` | ✅ 保留 | 板载物理按键输入通道，PTT/频道切换的硬件入口。 |
+| **Audio 录放** | `CONFIG_AUDIO=y`、`CONFIG_R528_AUDIO=y`、`CONFIG_AW_DRIVERS_AUDIO=y`、`CONFIG_SYSTEM_NXRECORDER=y`、`CONFIG_SYSTEM_NXPLAYER=y` | ✅ 保留 | AI 语音交互核心：麦克风采集 + 扬声器/耳机播放。 |
+| **SHTC3 温湿度** | `CONFIG_SENSORS_SHTC3=y` | ✅ 保留 | 板载 I2C 0x70，桌面可展示环境信息。 |
+| **LTR553 光感/接近** | `CONFIG_SENSORS_LTR553=y` | ✅ 保留 | 板载 I2C 0x23，支持自动亮度、接近感应。 |
+| **WS2812 RGB LED** | `CONFIG_WS2812=y`、`CONFIG_LED_RGB_WS2812=y`、`CONFIG_LED_RGB_TEST=y` | ✅ 保留 | 状态指示（PTT/AI 状态/告警）。 |
+| **LCD + 触摸** | `CONFIG_LCD=y`、`CONFIG_LCD_ILI9341=y`、`CONFIG_GT911_IIC_TOUCH=y`、`CONFIG_INPUT_TOUCHSCREEN=y`、`CONFIG_GRAPHICS_LVGL=y` | ✅ 保留 | AI 电台控制台的显示与触控交互基础。 |
+| **LVGL 桌面 luncher_mini** | `CONFIG_LUNCHER_MINI_APP=y` | ⚠️ 按需保留 | 当前桌面自动启动，展示时间/传感器/LED 控制；若 AI 电台为单应用形态，可禁用以节省资源，或保留作为系统桌面入口。 |
+| **AI Radio 应用 airadio** | `CONFIG_AIRADIO_APP=y` | ✅ 必须启用 | 项目核心 UI（频率/模式/PTT/ASR/LLM 状态）。 |
+| **网络协议栈** | `CONFIG_NET=y`、TCP/UDP/ICMP/DNS/DHCP 已启用 | ✅ 保留 | HTTP/HTTPS API 调用基础。 |
+| **HTTP/HTTPS 客户端** | `CONFIG_UTILS_CURL=y`、`CONFIG_MBEDTLS_THREADING_*=y`、`CONFIG_LIB_CARES=y` | ✅ 保留 | 调用云端 LLM/TTS/ASR API。 |
+| **JSON 解析** | `CONFIG_NETUTILS_CJSON=y` | ✅ 保留 | 解析 LLM API 请求/响应。 |
+| **异步 I/O** | `CONFIG_LIBUV=y`、`CONFIG_LIBUV_EXTENSION=y` | ✅ 保留 | 方便整合网络、音频、UI 事件循环。 |
+| **uORB** | `CONFIG_UORB=y` | ✅ 保留 | 传感器数据发布/订阅标准机制。 |
+| **ADB + 串口** | `CONFIG_SYSTEM_ADBD=y`、`CONFIG_UART2_SERIAL_CONSOLE=y`、波特率 1500000 | ✅ 保留 | 调试与日志必备。 |
+| **音频测试 audio_test** | `CONFIG_AUDIO_TEST is not set` | ⚠️ 建议启用 | 用于独立验证麦克风和扬声器通路，开发阶段强烈建议打开。 |
+| **JS/QuickApp 运行时** | `CONFIG_INTERPRETERS_QUICKJS is not set`、`CONFIG_INTERPRETERS_DUKTAPE is not set`、`CONFIG_INTERPRETERS_WAMR/WASM3/TOYWASM is not set` | ⚠️ 按需启用 | 若产品需要小程序扩展，需至少启用 QuickJS/WAMR；当前未启用。 |
+| **ASR/TTS/LLM 后端** | 当前仅有 UI 标签，无实际后端 | ❌ 当前缺失，必须补充 | 这是“AI 电台”的灵魂，需新增或集成。 |
+
+---
+
+## 3. 当前代码/配置的明显问题与修复建议
+
+### 3.1 编译与打包环境问题
+- **现象**：`ps` 显示当前仍有 `make -j32` 进程在运行，`build.log` 正在下载 mbedtls/speexdsp 等依赖；`pack.log` 出现多条错误：
+  - `busybox: command not found`（pack_img.sh 依赖）
   - `boot0 checksum fail`
-  - 缺少 `ap.fex`（`cp: cannot stat '.../ap.fex': No such file or directory`）
-  - `dragon: cannot execute binary file: Exec format error`
-  - 最终未生成可靠 IMG。
-- `openvela_build/frameworks/` 中 `multimedia/connectivity/graphics` 仅含空壳 Makefile/Kconfig，缺少 `frameworks_multimedia_media`、`frameworks_system_utils` 等实际子仓库代码。
+  - `cannot stat .../ap.fex`
+  - `/workspace/openvela_build/vendor/allwinnertech/lichee/tools/tool/dragon: cannot execute binary file: Exec format error`
+- **影响**：打包出的 `rtos_nsh_r528s3-gemini-s1_uart0_128Mnand.img` 可能不完整或无法启动。
+- **建议**：
+  1. 等待当前编译完成后再打包，**不要并行触发新编译**。
+  2. 在 Ubuntu 22.04 环境中安装 `busybox`：`sudo apt install busybox`。
+  3. 检查/替换 `vendor/allwinnertech/lichee/tools/tool/dragon` 为与宿主机架构匹配的二进制（当前为错误架构）。
+  4. 确认 `ap.fex` 来源：若无需 AP 分区，应在打包配置中关闭；若需要，需先生成并放置到 `board/r528s3/gemini-s1_nand/configs/ap.fex`。
+  5. 检查 boot0/uboot 是否已经预先编译：`mboot0` / `muboot`。
 
-**当前最紧迫任务：**
+### 3.2 AI Radio 应用未自动启动
+- **现象**：`vendor/allwinnertech/boards/r528/r528s3-gemini-s1/src/etc/init.d/rcS.nsh` 中通过 `#ifdef CONFIG_LUNCHER_MINI_APP` 自动启动 `luncher_mini &`，但**没有启动 `airadio`**。
+- **影响**：烧录后只会进入 luncher_mini 桌面，AI 电台 UI 需要手动在 NSH 输入 `airadio` 才能运行。
+- **建议**：
+  - 若 AI 电台是主应用：在 `rcS.nsh` 中增加 `#ifdef CONFIG_AIRADIO_APP` → `airadio &`；并考虑是否还需要自动启动 `luncher_mini`（二者都初始化 LVGL + 占 `/dev/input0`、`/dev/lcd0`，同时运行会冲突）。
+  - 若保留桌面：`luncher_mini` 应增加一个“AI 电台”图标入口，点击后启动 `airadio`。
 
-1. 修复打包环境（安装 `busybox`、准备正确架构的 `dragon` 工具、重新生成/校验 `boot0`）。
-2. 确保 `nuttx.bin` / `ap.fex` 被正确复制到打包目录。
-3. 决定是否引入 `open-vela/frameworks` 中的多媒体/系统能力。
+### 3.3 重复的 airadio 代码
+- **现象**：存在两份几乎相同的源码：
+  - `vendor/allwinnertech/apps/airadio/airadio.c`（当前启用，使用 `CONFIG_AIRADIO_APP_INPUT_DEVPATH`）
+  - `apps/examples/airadio/airadio.c`（未启用，使用 `CONFIG_EXAMPLES_AIRADIO_INPUT_DEVPATH`）
+- **影响**：后续修改 UI 或修复 bug 时容易漏改一份，造成维护负担；`defconfig` 中同时出现 `CONFIG_EXAMPLES_AIRADIO is not set` 与 `CONFIG_AIRADIO_APP=y`，命名易混淆。
+- **建议**：删除 `apps/examples/airadio/`，统一维护 `vendor/allwinnertech/apps/airadio/`；如必须保留示例，应将其重构为调用 vendor 版本的薄包装。
 
----
+### 3.4 无实际 ASR/TTS/LLM 后端
+- **现象**：`airadio.c` 中仅有静态文本标签 `ASR: ready`、`LLM: standby`，PTT 按钮只有 UI 状态变化，未调用任何音频采集或网络 API。
+- **影响**：产品只能展示 UI，无法完成“按住说话 → 识别 → 推理 → 播报”闭环。
+- **建议**：
+  1. **音频采集**：使用 `nxrecorder` 或 `/dev/audio/pcmX` 录制 16kHz/16bit/单声道 PCM。
+  2. **ASR**：R528 算力有限（双核 A7 1.2GHz + 128MB DDR），建议走云端 ASR（百度/讯飞/阿里）；若必须离线，可评估 tinyML 模型（如 TensorFlow Lite Micro / onnxruntime）但需显著裁剪。
+  3. **LLM**：复用飞书文档提到的 `deepseek_demo` 思路——通过 `curl + cJSON + mbedtls` 调用 DeepSeek / OpenAI 兼容 API；当前 `curl/mbedtls/cjson` 已启用，具备基础条件。
+  4. **TTS**：云端 TTS 返回 PCM/MP3，通过 `nxplayer` 或 `aw-alsa-lib` 播放；离线 TTS 同样需要轻量模型。
+  5. **推荐参考路径**：`vendor/allwinnertech/apps/audio_test/` 可作为麦克风和播放器的封装参考。
 
-## 2. 必须保留 / 恢复的功能清单及理由
+### 3.5 JS/QuickApp 小程序未启用
+- **现象**：`.config` 中 `CONFIG_INTERPRETERS_QUICKJS`、`CONFIG_INTERPRETERS_WAMR`、`CONFIG_INTERPRETERS_WASM3`、`CONFIG_INTERPRETERS_TOYWASM`、`CONFIG_INTERPRETERS_DUKTAPE` 全部未设置；工程中没有现成的 QuickApp 框架。
+- **影响**：无法运行业界常见的 QuickApp/小程序形态应用。
+- **建议**：
+  - 若只需要简单脚本扩展：启用 `CONFIG_INTERPRETERS_QUICKJS=y`（QuickJS 体积小、ES2020 支持好）。
+  - 若需要完整小程序框架：从 openvela frameworks 的 `frameworks_runtimes_services_*`（am/pm/wm/system_server）入手构建多应用框架，并引入 JS/Wasm 运行时；但这是一个较大工程，需评估人力。
 
-| 功能 | 当前状态 | 必须保留/恢复理由 | 关键配置项 |
-|------|----------|-------------------|------------|
-| **WiFi（Realtek RTL8733BS）** | `CONFIG_IEEE80211_REALTEK_WIFI=y`、`CONFIG_IEEE80211_REALTEK_WIFI_RTL8733BS=y`、`CONFIG_WIFI_TEST=y`、`CONFIG_WIRELESS_WAPI=y` 已启用 | AI 电台需联网获取 AI 服务、OTA、电台流媒体等；Realtek SDIO WiFi 是 Gemini-S1 官方网络方案 | `CONFIG_DRIVERS_IEEE80211`、`CONFIG_IEEE80211_REALTEK_WIFI`、`CONFIG_IEEE80211_REALTEK_WIFI_RTL8733BS`、`CONFIG_WIRELESS_WAPI`、`CONFIG_WIFI_TEST` |
-| **蓝牙 BLE/Classic（Zblue）** | `CONFIG_BLUETOOTH=y`、`CONFIG_BT=y`、`CONFIG_BT_CLASSIC=y` 已启用；`CONFIG_BT_START` 未启用 | 文档明确蓝牙用于遥控器、耳机、低功耗外设；Zblue 协议栈已集成 | `CONFIG_BLUETOOTH`、`CONFIG_BT`、`CONFIG_BT_CLASSIC`、`CONFIG_BT_H4`、`CONFIG_BT_START`（如需要启动脚本） |
-| **luncher_mini（LVGL 示例桌面）** | `CONFIG_LUNCHER_MINI_APP=y` 已启用 | 可作为系统启动器或参考实现；与 airadio 共用 LVGL/Touch/LED 基础设施 | `CONFIG_LUNCHER_MINI_APP`、`CONFIG_GRAPHICS_LVGL` |
-| **airadio（AI 电台主应用）** | `CONFIG_AIRADIO_APP=y` 已启用 | 项目核心目标应用，提供 LVGL 电台 UI、PTT、模式切换 | `CONFIG_AIRADIO_APP`、`CONFIG_AIRADIO_APP_STACKSIZE=40960` |
-| **传感器（SHTC3 + LTR553）** | `CONFIG_SENSORS=y`、`CONFIG_SENSORS_SHTC3=y`、`CONFIG_SENSORS_LTR553=y` 已启用 | 温湿度/光感/接近数据是 luncher_mini 已有功能，也是 AI 电台环境感知输入 | `CONFIG_SENSORS_SHTC3`、`CONFIG_SENSORS_LTR553`、`CONFIG_R528_TWI0`/`TWI2`、`CONFIG_UORB` |
-| **LRADC 按键** | `CONFIG_DRIVERS_LRADC=y` 启用，但 `CONFIG_R528_LRADC` 未启用 | 文档指出 LRADC 是 Gemini-S1 唯一按键接口；PTT/频率调节等物理按键依赖它 | `CONFIG_DRIVERS_LRADC`、`CONFIG_R528_LRADC`、`CONFIG_INPUT_BUTTONS` |
-| **音频（Audio Codec + aw-alsa-lib）** | `CONFIG_AUDIO=y`、`CONFIG_R528_AUDIO=y`、`CONFIG_AW_AUDIO_CODEC=y` 已启用 | 电台必须播放/录制音频；R528 内置 Codec 已通过 ALSA 适配层接入 | `CONFIG_AUDIO`、`CONFIG_R528_AUDIO`、`CONFIG_AW_AUDIO_CODEC`、`CONFIG_SYSTEM_NXPLAYER`/`NXRECORDER` |
-| **显示（ILI9341 SPI LCD + GT911 触摸）** | `CONFIG_LCD_ILI9341=y`、`CONFIG_GT911_IIC_TOUCH=y`、`CONFIG_LV_USE_NUTTX_LCD=y` 已启用 | airadio / luncher_mini 的 UI 入口 | `CONFIG_LCD`、`CONFIG_LCD_ILI9341`、`CONFIG_GT911_IIC_TOUCH`、`CONFIG_INPUT_TOUCHSCREEN` |
-| **WS2812 RGB LED** | `CONFIG_WS2812=y`、`CONFIG_LED_RGB_WS2812=y`、`CONFIG_LED_RGB_TEST=y` 已启用 | luncher_mini 灯光控制示例，可作为电台状态指示灯 | `CONFIG_WS2812`、`CONFIG_LED_RGB_WS2812` |
-| **ADB / 串口调试** | `CONFIG_SYSTEM_ADBD=y`、`CONFIG_UART2_SERIAL_CONSOLE=y`、`CONFIG_UART2_BAUD=1500000` 已启用 | 官方推荐的调试手段（UART2 1500000 + adb logcat/adb shell） | `CONFIG_SYSTEM_ADBD`、`CONFIG_UART2_SERIAL_CONSOLE`、`CONFIG_UART2_BAUD=1500000` |
-| **Backtrace / Dumpstack** | `CONFIG_SCHED_BACKTRACE=y`、`CONFIG_SYSTEM_DUMPSTACK=y` 已启用 | 嵌入式崩溃调试必备；文档专门一章介绍 | `CONFIG_SCHED_BACKTRACE`、`CONFIG_SYSTEM_DUMPSTACK`、`CONFIG_DEBUG_SYMBOLS` |
-| **AI / LLM（DeepSeek 能力）** | `deepseek_demo` 目录**不存在**于 `vendor/allwinnertech/apps/` | 飞书文档明确存在 `deepseek_demo`；AI 电台的语音助手/LLM 交互需要恢复或重建 | 需新增/恢复 `CONFIG_DEEPSEEK_DEMO`（当前无） |
+### 3.6 WiFi 自动连接依赖预置配置文件
+- **现象**：`rcS.nsh` 中 `if [ -f /data/etc/wifi/wapi.conf ]` 才启动 `start_wifi.sh`；`defconfig` 中 `CONFIG_NETINIT_WAPI_SSID=""` 为空。
+- **影响**：首次开机不会自动联网，AI 服务不可用。
+- **建议**：
+  - 生产时在 `usrdata` 或 ROMFS 中预置 `wapi.conf`。
+  - 或增加配网流程（BLE/WiFi AP 配网）并在 UI 中提供 SSID/密码输入界面。
 
----
+### 3.7 蓝牙启动延迟
+- **现象**：`rcS.nsh` 中 `sleep 8` 后才启动 `bluetoothd`。
+- **影响**：拖慢开机到可用状态的时间。
+- **建议**：将蓝牙初始化改为事件驱动或缩短/移除硬编码 sleep，确保 WiFi/AI 应用优先启动。
 
-## 3. 当前代码 / 配置的明显问题与修复建议
-
-### 3.1 构建链接风险（历史失败记录，需持续关注）
-
-`/workspace/build.log` 早期曾出现链接失败，主要未定义符号：
-
-```text
-fs/yaffs/yaffs_vfs.c: undefined reference to `yaffsfs_GetLastError'
-apps/system/libuv/.../loop.c: undefined reference to `uv__process_init'
-apps/graphics/lvgl/lvgl/...: undefined reference to `ASSERT'
-vendor/allwinnertech/apps/factory_test/factory_test.c: undefined reference to `check_bt_valid'
-vendor/allwinnertech/apps/wifi_test/test_sdio_wifi.c: undefined reference to `wifi_on', `rltk_wlan_running', `wext_set_*'
-fatfs/fatfs_vfs.c: undefined reference to `SS'
-```
-
-最近 `build2.log` / `build3.log` 已成功链接并生成 `vela.bin`，说明部分问题可能已通过配置调整或源码修复解决，但以下风险点仍需在后续构建中监控：
-
-1. **LVGL `ASSERT` 未定义**
-   - 原因：LVGL 的断言宏默认映射到 `ASSERT()`，但当前 `.config` 中 `CONFIG_DEBUG_ASSERTIONS` **未启用**。
-   - 修复：在 `make menuconfig` 中启用 `CONFIG_DEBUG_ASSERTIONS=y`。
-
-2. **YAFFS `yaffsfs_GetLastError` 未定义**
-   - 原因：`fs/yaffs/yaffs_vfs.c` 被编译进镜像，但对应实现可能未完整参与编译或 LTO 剥离。
-   - 修复：检查 `File Systems -> YAFFS` 依赖是否完整；确认 `CONFIG_FS_YAFFS` 启用时，底层 `yaffsfs.c` 已正确加入构建。
-
-3. **libuv `uv__process_init` 未定义**
-   - 原因：NuttX 版 libuv 补丁中定义了该函数，但 patch 可能未应用或相关文件未编译。
-   - 修复：确认 `apps/system/libuv/0001-libuv-port-for-nuttx.patch` 已应用；检查 `CONFIG_LIBUV_EXTENSION=y` 是否启用。
-
-4. **WiFi 符号未定义**
-   - 原因：Realtek 预编译库 `librtl8733bs.a` 与当前 `CONFIG_LTO_FULL=y` / GCC 13 工具链可能存在兼容性问题，或驱动源码对象未正确链接。
-   - 修复：
-     - 临时关闭 `CONFIG_LTO_FULL`（改 `CONFIG_LTO_NONE=y`）验证是否为 LTO 导致。
-     - 检查 `librtl8733bs.a` 是否为 ARM thumb-2 / 当前 ABI 编译。
-
-5. **factory_test `check_bt_valid` 未定义**
-   - 原因：`factory_test.c` 引用 `check_bt_valid()`，但 `CONFIG_BT_START` 未设置，相关蓝牙启动工具未编译。
-   - 修复：要么启用 `CONFIG_BT_START` 并确保 `bt_instance` 应用参与编译，要么在 `factory_test.c` 中补充完整防护。
-
-6. **fatfs `SS` 未定义**
-   - 原因：FatFs 配置头 `ffconf.h` 与 `fatfs_vfs.c` 版本不匹配。
-   - 修复：确认 `CONFIG_FS_FATFS_SECTOR_RATIO=256` 与 `SS` 宏定义一致。
-
-### 3.2 配置一致性 / 板级支持问题
-
-| 问题 | 说明 | 建议 |
-|------|------|------|
-| `CONFIG_R528_LRADC` 未启用 | `CONFIG_DRIVERS_LRADC=y` 但 R528 具体 LRADC 驱动未打开 | 启用 `CONFIG_R528_LRADC=y`，否则物理按键无法工作 |
-| `CONFIG_DEBUG_ASSERTIONS` 未启用 | 当前 `# CONFIG_DEBUG_ASSERTIONS is not set` | 建议启用，避免 LVGL 等库出现 `ASSERT` 未定义 |
-| `CONFIG_LTO_FULL=y` | 链接时优化全开 | 可能导致预编译库符号被剥离；建议改为 `CONFIG_LTO_NONE=y` 或至少验证 WiFi/蓝牙库兼容性 |
-| `CONFIG_R528_TWI0`/`TWI2` 已启用 | 传感器和触摸依赖 I2C | 保持启用；确认设备树/板级 bringup 中正确注册 I2C 总线 |
-| `deepseek_demo` 缺失 | 飞书文档列出的示例应用不存在 | 从官方仓库恢复或新建；若不需要，应在文档中标注废弃 |
-| `luncher_mini` 与 `airadio` 同时启用 | 两个 LVGL 应用都会初始化显示/触摸 | 确认启动策略：NSH 启动脚本中只启动一个，或一个作为系统应用、一个作为命令行演示 |
-| `CONFIG_LCD_ILI9341` 与 MIPI 大面板配置混用 | `nsh` 默认配置使用 `T070S140B` MIPI；`nsh_minidisplay` 使用 ILI9341 | AI 电台硬件接的是 SPI LCD，应继续使用 `nsh_minidisplay` 基础，不要切回 `nsh` 大面板配置 |
-
-### 3.3 打包 / 刷机问题
-
-| 问题 | 来源 | 修复建议 |
-|------|------|----------|
-| `busybox: command not found` | `pack.log` 第 7/8/912 行 | 在构建环境中安装 `busybox`（`sudo apt install busybox`）或准备同名兼容脚本 |
-| `boot0 checksum fail` | `pack.log` 第 20 行 | 重新生成 boot0（执行 `mboot0`）并确认使用的 board 参数为 `r528s3-gemini-s1` |
-| 缺少 `ap.fex` | `pack.log` 第 40 行 | 确保编译后 `nuttx.bin` 被复制到 `vendor/allwinnertech/lichee/board/r528s3/gemini-s1_nand/configs/ap.fex`，或修正打包脚本中的复制逻辑 |
-| `dragon: cannot execute binary file: Exec format error` | `pack.log` 第 1001 行 | `lichee/tools/tool/dragon` 为错误架构的可执行文件；需替换为 x86_64 Linux 版本或重新编译 |
-| `pack.sh` 不支持 gemini-s1 | `vendor/allwinnertech/lichee/pack.sh` 仅支持 `r528s3-evb4` / `r528s3-x4b` | 直接调用 `tools/scripts/pack_img.sh` 并传入正确的 `-b r528s3-gemini-s1 -f r528s3/gemini-s1_nand -g r528s3/gemini-s1_nand` |
+### 3.8 栈大小与稳定性
+- **现象**：`AIRADIO_APP_STACKSIZE=40960`、`LUNCHER_MINI_APP_STACKSIZE=102400`、系统 `dumpstack` 已启用。
+- **影响**：若后续在 airadio 中增加网络 + 音频 + JSON 解析，40KB 栈可能吃紧；飞书文档也提到“默认 stacksize 较小会导致运行崩溃”。
+- **建议**：
+  - AI 电台任务栈建议预留 **64KB ~ 128KB**。
+  - 保持 `CONFIG_SCHED_BACKTRACE=y`、`CONFIG_SYSTEM_DUMPSTACK=y`、`CONFIG_ALLSYMS=y` 以便于崩溃定位。
 
 ---
 
-## 4. 从源码到刷机 IMG 的完整命令流程
+## 4. 完整构建 → 打包 → 刷机命令流
 
-### 4.1 环境准备
+> ⚠️ **注意**：截至调研时，`/workspace/openvela_build` 中仍有 `make -j32` 编译进程在运行。请等待其完成或确认失败后，再执行新的构建/打包命令，避免资源冲突。
 
+### 4.1 前置环境（Ubuntu 22.04）
 ```bash
-# 1. 安装依赖（Ubuntu 22.04）
 sudo apt install \
   bison flex gettext texinfo libncurses5-dev libncursesw5-dev xxd \
   git gperf automake libtool build-essential gperf genromfs \
@@ -137,260 +123,153 @@ sudo apt install \
   libusb-1.0-0-dev libv4l-dev libuv1-dev npm nodejs nasm yasm libdivsufsort-dev \
   libc++-dev libc++abi-dev libprotobuf-dev protobuf-compiler protobuf-c-compiler mtools \
   busybox
-
-# 2. 进入 SDK 根目录并设置环境
-# 注意：/workspace/openvela_build 实际为 nuttx 源码树，SDK 根目录应为 /workspace
-cd /workspace/openvela_build/vendor/allwinnertech/lichee
-source envsetup.sh
-envsetup
-lunch_nuttx   # 选择 r528s3-gemini-s1 / nsh_minidisplay
 ```
 
-### 4.2 编译 NuttX（AP 镜像）
-
+### 4.2 构建 NuttX 主系统
 ```bash
-# 方式 A：使用顶层 build.sh（推荐）
 cd /workspace
 ./openvela_build/tools/build.sh \
   vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay \
-  -j$(nproc) -e -Wno-error
-
-# 方式 B：使用 vela_env.sh 中的快捷命令
-# source /workspace/openvela_build/vendor/allwinnertech/lichee/vela_env.sh
-# map -j$(nproc)
-
-# 编译产物（若成功）应位于：
-# /workspace/openvela_build/vela.bin
-# /workspace/openvela_build/nuttx.bin（打包需要）
-# /workspace/openvela_build/nuttx.elf
+  -j$(nproc)
 ```
 
-### 4.3 打包成 IMG
-
+- 若需调整配置：
 ```bash
-# 由于 pack.sh 不直接支持 gemini-s1，建议直接调用 pack_img.sh
-cd /workspace/openvela_build/vendor/allwinnertech/lichee
-
-# 确保 nuttx.bin 已复制为 ap.fex
-mkdir -p board/r528s3/gemini-s1_nand/configs
-cp /workspace/openvela_build/nuttx.bin board/r528s3/gemini-s1_nand/configs/ap.fex
-
-# 执行打包
-./tools/scripts/pack_img.sh \
-  -c sun8iw20p1 \
-  -p rtos \
-  -b r528s3-gemini-s1 \
-  -o nuttx \
-  -d uart0 \
-  -s none \
-  -m normal \
-  -w none \
-  -v none \
-  -i none \
-  -t $(pwd) \
-  -f r528s3/gemini-s1_nand \
-  -g r528s3/gemini-s1_nand
-
-# 输出 IMG 路径示例：
-# /workspace/openvela_build/vendor/allwinnertech/lichee/out/r528s3/gemini-s1_nand/rtos_nuttx_r528s3-gemini-s1_uart0_128Mnand.img
-```
-
-### 4.4 刷机
-
-```bash
-# 使用 PhoenixSuit / LiveSuit / 全志官方烧录工具
-# 或命令行（视工具 availability）：
-sudo phoenixsuit -i /workspace/openvela_build/vendor/allwinnertech/lichee/out/r528s3/gemini-s1_nand/rtos_nuttx_r528s3-gemini-s1_uart0_128Mnand.img
-```
-
----
-
-## 5. 是否需要 / 如何从 `https://gitee.com/open-vela/frameworks` 引入额外能力
-
-### 5.1 当前 `frameworks` 子仓库状态
-
-`/workspace/openvela_build/frameworks/` 当前为稀疏检出（sparse checkout），实际有代码的子仓库只有：
-
-- `frameworks/system/utils/`（包含 kvdb、log、trace、gdbus）
-- `frameworks/runtimes/services/`（仅含少量头文件）
-
-其余子目录如 `multimedia/`、`connectivity/`、`graphics/` 仅有空壳 `Makefile` / `Kconfig`，**没有实际源码**。
-
-### 5.2 AI 电台项目建议引入的子仓库
-
-| 子仓库 | 是否建议引入 | 理由 | 引入方式 |
-|--------|--------------|------|----------|
-| `frameworks_multimedia_media` | **建议** | 提供音频播放/录制、音频焦点、策略管理；可简化电台音频流程 | 通过 `repo` / `git submodule` 克隆到 `openvela_build/frameworks/multimedia/media/` |
-| `frameworks_system_utils` | **建议** | 提供 kvdb、trace、uv 等基础组件；当前 `system/utils` 已有部分代码，但完整仓库更稳定 | 克隆到 `openvela_build/frameworks/system/utils/` |
-| `frameworks_system_topics` | 可选 | 提供标准 uORB topic 定义；若已有自定义 topic 可暂不引入 | 克隆到 `openvela_build/frameworks/system/topics/` |
-| `frameworks_graphics_uikit` | 可选 | 基于 LVGL 的 UI 组件扩展；若 airadio 已自足可暂缓 | 克隆到 `openvela_build/frameworks/graphics/uikit/` |
-| `frameworks_bluetooth` | 可选 | 更上层蓝牙 API；当前 Zblue 已满足基本需求 | 视蓝牙功能复杂度决定 |
-
-### 5.3 引入步骤示例
-
-```bash
-# 以 frameworks_multimedia_media 为例
-cd /workspace/openvela_build/frameworks/multimedia
-git clone https://gitee.com/open-vela/frameworks_multimedia_media.git media
-
-# 确认 Kconfig 已包含 media 子目录
-# 编辑 /workspace/openvela_build/frameworks/multimedia/Kconfig
-# 添加：source "/workspace/openvela_build/frameworks/multimedia/media/Kconfig"
-
-# 重新配置并编译
-cd /workspace
 ./openvela_build/tools/build.sh \
   vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay \
   menuconfig
-
-# 在 menuconfig 中启用对应多媒体组件，然后重新编译
 ```
 
-### 5.4 注意事项
+### 4.3 打包生成固件镜像
+```bash
+cd /workspace/openvela_build/vendor/allwinnertech/lichee
+source envsetup.sh
+lunch_nuttx   # 按提示选择 r528s3-gemini-s1（或直接用 lunch_nuttx r528s3-gemini-s1）
+pack
+```
 
-- 引入新子仓库会增加镜像体积，R528 仅有 128 MB DDR3，需谨慎评估内存占用。
-- 每个子仓库通常依赖 `frameworks_system_utils`，建议优先引入 `utils`。
-- 若使用 `repo` 管理，应在 SDK 根目录的 manifest 中声明，避免后续 `repo sync` 丢失。
+- 正常输出镜像示例：`rtos_nsh_r528s3-gemini-s1_uart0_128Mnand.img`
+- 输出目录：`/workspace/openvela_build/vendor/allwinnertech/lichee/out/r528s3/gemini-s1_nand/image/`
+- 若需要安全签名：
+```bash
+pack -s
+```
+
+### 4.4 刷机
+当前飞书文档未公开详细软件烧录指南。按全志 R528 常规流程：
+1. 使用 USB 线连接开发板与 PC。
+2. 让开发板进入烧录模式（通常按住特定 BOOT/RECOVERY 键上电，具体以硬件手册为准）。
+3. 使用全志烧录工具（如 **PhoenixSuit / Livesuit**）加载上一步生成的 `.img` 文件烧录。
+4. 烧录完成后重启，使用串口工具连接 UART2，波特率 **1500000**；或使用 `adb logcat` / `adb shell` 调试。
 
 ---
 
-## 6. 关键文件路径 / 配置项 / 命令速查
+## 5. 可从 openvela_frameworks 引入的能力建议
+
+`/workspace/openvela_frameworks` 是一个顶层超级仓库（super repository），通过子仓库方式组织；**当前子仓库未克隆到本地**，仅包含 README 与 CMake 入口。若需引入，应通过 `git submodule` 或手动克隆对应 `frameworks_*` 仓库。
+
+| 子仓库 | 对 AI 电台的价值 | 建议引入优先级 |
+|--------|------------------|----------------|
+| **frameworks_bluetooth** | 提供更高层 BLE/GATT API，便于做遥控器、耳机、Beacon 配网。 | 中 |
+| **frameworks_graphics_uikit** | 基于 LVGL 的 video、扩展字体管理、demo，可提升 UI 组件化能力。 | 中 |
+| **frameworks_multimedia_media** | 多媒体播放/录制、音频焦点管理、音频策略；适合整合 ASR/TTS 语音流。 | **高** |
+| **frameworks_multimedia_media_pfw** | 通用状态机框架，可用于音频状态机（录音中/播放中/空闲）。 | 中 |
+| **frameworks_runtimes_services_am** | 多应用框架下的 Activity 生命周期管理。 | 低（需配合 pm/wm） |
+| **frameworks_runtimes_services_pm** | 应用包管理（安装/卸载/查询），是小程序生态基础。 | 低 |
+| **frameworks_runtimes_services_wm** | 窗口管理，支持多窗口/多应用显示。 | 低 |
+| **frameworks_runtimes_services_system_server** | 启动/管理多媒体、亮度、包管理等服务。 | 中 |
+| **frameworks_runtimes_typescript_ts2native** | 若小程序使用 TypeScript，可转 Native。 | 低 |
+| **frameworks_runtimes_typescript_ts2wasm** | TypeScript 转 Wasm，提升脚本性能。 | 低 |
+| **frameworks_runtimes_wasm** | Wasm 运行时扩展 API，便于把现有 C/C++ 算法封装给脚本调用。 | 中 |
+| **frameworks_system_utils** / **frameworks_system_utils_uv** | kvdb、trace、libuv 风格的数据库/网络接口；可替换或增强当前直接调用 POSIX API 的方式。 | 中 |
+| **frameworks_system_topics** | 标准化 uORB topic 定义，便于传感器/系统事件统一发布。 | 中 |
+| **frameworks_system_ota** | OTA 升级与 AVB 验签，产品化必备。 | 中 |
+| **frameworks_security** / **frameworks_security_optee_vela** | 安全存储 WiFi 密码、API Key 等敏感信息。 | 中 |
+| **frameworks_system_vibrator** | 震动反馈，增强交互体验。 | 低 |
+
+**落地建议**：
+1. **短期**：优先引入 `frameworks_multimedia_media` 规范语音流管理；用 `frameworks_system_utils` 的 kvdb 保存配网信息。
+2. **中期**：若要做小程序生态，再整体引入 `frameworks_runtimes_services_*` + QuickJS/WAMR。
+3. **注意**：引入 frameworks 通常需要在 `nuttx/.config` 中开启对应 Kconfig，并在 `CMakeLists.txt` 中将其加入构建；需确认与现有 `vendor/allwinnertech` 驱动无符号冲突。
+
+---
+
+## 6. 关键文件路径、配置项、命令速查表
 
 ### 6.1 关键文件路径
 
 | 用途 | 路径 |
 |------|------|
-| AI 电台主应用 | `/workspace/openvela_build/vendor/allwinnertech/apps/airadio/airadio.c` |
-| AI 电台 Kconfig | `/workspace/openvela_build/vendor/allwinnertech/apps/airadio/Kconfig` |
-| luncher_mini 应用 | `/workspace/openvela_build/vendor/allwinnertech/apps/luncher_mini/luncher_mini.c` |
-| 推荐 defconfig | `/workspace/openvela_build/vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay/defconfig` |
-| 当前有效配置 | `/workspace/openvela_build/.config` |
-| 编译产物 | `/workspace/openvela_build/vela.bin` |
-| 打包所需 AP 镜像 | `/workspace/openvela_build/nuttx.bin`（需复制为 `ap.fex`） |
-| 顶层构建脚本 | `/workspace/openvela_build/tools/build.sh` |
-| 环境设置脚本 | `/workspace/openvela_build/vendor/allwinnertech/lichee/envsetup.sh` |
-| 环境设置实际实现 | `/workspace/openvela_build/vendor/allwinnertech/lichee/tools/scripts/envsetup.sh` |
-| 打包入口脚本 | `/workspace/openvela_build/vendor/allwinnertech/lichee/pack.sh` |
-| 实际打包脚本 | `/workspace/openvela_build/vendor/allwinnertech/lichee/tools/scripts/pack_img.sh` |
-| 快捷命令定义 | `/workspace/openvela_build/vendor/allwinnertech/lichee/vela_env.sh` |
-| 板级打包/OTA 脚本 | `/workspace/openvela_build/vendor/allwinnertech/boards/r528/r528s3-gemini-s1/build/` |
-| 分区/打包配置 | `/workspace/openvela_build/vendor/allwinnertech/lichee/board/r528s3/gemini-s1_nand/configs/` |
-| WiFi 驱动目录 | `/workspace/openvela_build/vendor/allwinnertech/boards/r528/drivers/realtek_ieee80211` |
-| 传感器驱动目录 | `/workspace/openvela_build/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/source/sensor/` |
-| 音频驱动目录 | `/workspace/openvela_build/vendor/allwinnertech/chips/r528/components/audio` |
-| LRADC 按键文档 | `/workspace/feishu_docs_full/03_驱动开发/005_OpenVela (R528) 按键驱动实现概要.md` |
-| frameworks 空壳 | `/workspace/openvela_build/frameworks/` |
-| frameworks 完整仓库 | `/workspace/openvela_frameworks/` |
+| AI 电台应用源码 | `/workspace/openvela_build/vendor/allwinnertech/apps/airadio/airadio.c` |
+| AI 电台应用构建配置 | `/workspace/openvela_build/vendor/allwinnertech/apps/airadio/Kconfig` |
+| 重复示例应用源码 | `/workspace/openvela_build/apps/examples/airadio/airadio.c` |
+| LVGL 桌面源码 | `/workspace/openvela_build/vendor/allwinnertech/apps/luncher_mini/luncher_mini.c` |
+| LVGL 桌面 RGB LED 控制 | `/workspace/openvela_build/vendor/allwinnertech/apps/luncher_mini/lv_demo_panel_rgb_control.c` |
+| 音频测试应用 | `/workspace/openvela_build/vendor/allwinnertech/apps/audio_test/main.c` |
+| 板级 defconfig | `/workspace/openvela_build/vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay/defconfig` |
+| 当前生效 .config | `/workspace/openvela_build/.config` |
+| 开机脚本 | `/workspace/openvela_build/vendor/allwinnertech/boards/r528/r528s3-gemini-s1/src/etc/init.d/rcS.nsh` |
+| 传感器驱动（SHTC3） | `/workspace/openvela_build/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/source/sensor/temperature/shtc3.c` |
+| 传感器驱动（LTR553） | `/workspace/openvela_build/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/source/sensor/als/ltr553.c` |
+| 音频 HAL | `/workspace/openvela_build/vendor/allwinnertech/chips/r528/components/audio/` |
+| WiFi 驱动 | `/workspace/openvela_build/vendor/allwinnertech/boards/r528/drivers/realtek_ieee80211/` |
+| 构建脚本 | `/workspace/openvela_build/tools/build.sh` |
+| 环境设置脚本 | `/workspace/openvela_build/vendor/allwinnertech/lichee/tools/scripts/envsetup.sh` |
+| 一键 source 入口 | `/workspace/openvela_build/vendor/allwinnertech/lichee/envsetup.sh` |
+| 打包脚本（函数） | `/workspace/openvela_build/vendor/allwinnertech/lichee/tools/scripts/envsetup.sh` 中的 `pack()` |
+| 打包输出目录 | `/workspace/openvela_build/vendor/allwinnertech/lichee/out/r528s3/gemini-s1_nand/image/` |
+| 顶层 frameworks 索引 | `/workspace/openvela_frameworks/README.md` / `README_zh-cn.md` |
 
-### 6.2 关键配置项
+### 6.2 关键 Kconfig / 配置项
 
-```text
-# 板级 / 架构
-CONFIG_ARCH_BOARD_R528S3_GEMINI_S1=y
-CONFIG_ARCH_CHIP_R528=y
-CONFIG_ARCH_BOARD_CUSTOM_DIR="../vendor/allwinnertech/boards/r528/r528s3-gemini-s1"
+| 配置项 | 当前值 | 说明 |
+|--------|--------|------|
+| `CONFIG_AIRADIO_APP` | `y` | 启用 AI 电台应用 |
+| `CONFIG_AIRADIO_APP_PROGNAME` | `"airadio"` | NSH 命令名 |
+| `CONFIG_AIRADIO_APP_STACKSIZE` | `40960` | 建议视音频+网络需求加大 |
+| `CONFIG_LUNCHER_MINI_APP` | `y` | 启用 LVGL 桌面 |
+| `CONFIG_LUNCHER_MINI_APP_STACKSIZE` | `102400` | 桌面任务栈 |
+| `CONFIG_GRAPHICS_LVGL` | `y` | LVGL 图形库 |
+| `CONFIG_INPUT_TOUCHSCREEN` | `y` | 触摸屏输入 |
+| `CONFIG_LCD_ILI9341` | `y` | SPI LCD 驱动 |
+| `CONFIG_GT911_IIC_TOUCH` | `y` | 触控 IC 驱动 |
+| `CONFIG_IEEE80211_REALTEK_WIFI_RTL8733BS` | `y` | 板载 WiFi |
+| `CONFIG_BLUETOOTH` / `CONFIG_BT` | `y` | 蓝牙协议栈 |
+| `CONFIG_AUDIO` / `CONFIG_R528_AUDIO` | `y` | 音频子系统 |
+| `CONFIG_SENSORS_SHTC3` | `y` | 温湿度传感器 |
+| `CONFIG_SENSORS_LTR553` | `y` | 光感/接近传感器 |
+| `CONFIG_WS2812` / `CONFIG_LED_RGB_WS2812` | `y` | RGB LED |
+| `CONFIG_UTILS_CURL` | `y` | HTTP 客户端 |
+| `CONFIG_NETUTILS_CJSON` | `y` | JSON 解析 |
+| `CONFIG_LIBUV` | `y` | 异步 IO |
+| `CONFIG_INTERPRETERS_QUICKJS` | 未设置 | 需要 JS 时启用 |
+| `CONFIG_INTERPRETERS_WAMR` | 未设置 | 需要 Wasm 时启用 |
+| `CONFIG_AUDIO_TEST` | 未设置 | 建议开发阶段启用 |
+| `CONFIG_GEMINI_S1_NSH` | `y` | 使用 NSH 启动脚本 |
 
-# 显示 / 触摸
-CONFIG_LCD_ILI9341=y
-CONFIG_GT911_IIC_TOUCH=y
-CONFIG_LV_USE_NUTTX_LCD=y
-CONFIG_LV_USE_NUTTX_TOUCHSCREEN=y
-CONFIG_INPUT_TOUCHSCREEN=y
+### 6.3 调试与运行命令速查
 
-# WiFi / 蓝牙
-CONFIG_IEEE80211_REALTEK_WIFI=y
-CONFIG_IEEE80211_REALTEK_WIFI_RTL8733BS=y
-CONFIG_BLUETOOTH=y
-CONFIG_BT=y
-CONFIG_BT_CLASSIC=y
-
-# 传感器
-CONFIG_SENSORS=y
-CONFIG_SENSORS_SHTC3=y
-CONFIG_SENSORS_LTR553=y
-
-# 按键（注意 R528_LRADC 未启用，需修复）
-CONFIG_DRIVERS_LRADC=y
-# CONFIG_R528_LRADC is not set  <-- 应改为 y
-
-# 音频
-CONFIG_AUDIO=y
-CONFIG_R528_AUDIO=y
-CONFIG_AW_AUDIO_CODEC=y
-
-# 应用
-CONFIG_AIRADIO_APP=y
-CONFIG_LUNCHER_MINI_APP=y
-
-# 调试
-CONFIG_SYSTEM_ADBD=y
-CONFIG_UART2_SERIAL_CONSOLE=y
-CONFIG_UART2_BAUD=1500000
-CONFIG_SCHED_BACKTRACE=y
-CONFIG_SYSTEM_DUMPSTACK=y
-
-# 需要调整的配置
-# CONFIG_DEBUG_ASSERTIONS is not set  <-- 建议启用
-CONFIG_LTO_FULL=y                   <-- 建议改为 LTO_NONE
-```
-
-### 6.3 常用命令
-
-```bash
-# 配置
-cd /workspace
-./openvela_build/tools/build.sh \
-  vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay \
-  menuconfig
-
-# 编译
-cd /workspace
-./openvela_build/tools/build.sh \
-  vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay \
-  -j$(nproc) -e -Wno-error
-
-# 保存 defconfig
-cd /workspace/openvela_build
-make savedefconfig
-
-# 设置环境
-cd /workspace/openvela_build/vendor/allwinnertech/lichee
-source envsetup.sh
-envsetup
-lunch_nuttx
-
-# 编译 boot0/uboot（如需重新生成 boot0）
-mboot0
-muboot
-
-# 打包（直接调用 pack_img.sh）
-cd /workspace/openvela_build/vendor/allwinnertech/lichee
-cp /workspace/openvela_build/nuttx.bin board/r528s3/gemini-s1_nand/configs/ap.fex
-./tools/scripts/pack_img.sh \
-  -c sun8iw20p1 -p rtos -b r528s3-gemini-s1 -o nuttx -d uart0 \
-  -s none -m normal -w none -v none -i none \
-  -t $(pwd) -f r528s3/gemini-s1_nand -g r528s3/gemini-s1_nand
-
-# 串口调试
-picocom -b 1500000 /dev/ttyUSB0
-
-# ADB 调试
-adb logcat
-adb shell
-```
+| 操作 | 命令 |
+|------|------|
+| 启动 AI 电台 UI | `nsh> airadio &` |
+| 启动桌面 | `nsh> luncher_mini &` |
+| 连接 WiFi | `wapi mode wlan0 2`、`wapi scan wlan0`、`wapi psk wlan0 "密码" 3`、`wapi essid wlan0 "SSID" 1`、`renew wlan0` |
+| 查看 IP | `ipconfig` |
+| ADB 日志 | `adb logcat` |
+| ADB 进入 shell | `adb shell` |
+| 串口参数 | UART2、1500000 baud、8N1 |
+| 查看 backtrace | `nsh> ps` → `nsh> backtrace <pid>` |
+| 音频录制测试 | `nsh> audio_test record 5`（需先启用 `CONFIG_AUDIO_TEST`） |
+| 音频回环测试 | `nsh> audio_test loopback 10 16000 16 1 1` |
 
 ---
 
-## 7. 后续行动建议
+## 7. 下一步行动建议（按优先级）
 
-1. **立即修复配置：** 启用 `CONFIG_R528_LRADC`、`CONFIG_DEBUG_ASSERTIONS`，关闭 `CONFIG_LTO_FULL`。
-2. **重新完整编译一次：** 在后台 `make` 任务完成后，检查 `nuttx.bin` / `nuttx.elf` 是否生成。
-3. **修复打包环境：** 安装 `busybox`、校验/替换 `dragon` 工具、重新生成 `boot0`。
-4. **确保 ap.fex 路径正确：** 将 `nuttx.bin` 复制到 `board/r528s3/gemini-s1_nand/configs/ap.fex`。
-5. **验证 IMG：** 成功打包后使用全志工具刷机，确认串口输出正常。
-6. **恢复/引入 AI 能力：** 决定是恢复 `deepseek_demo` 还是基于现有 `airadio` 直接集成 LLM API。
-7. **按需引入 frameworks：** 优先引入 `frameworks_multimedia_media` 和 `frameworks_system_utils`。
-
----
-
-*本文档为只读研究成果，未修改任何源码或配置。*
+1. **完成并稳定当前编译**：确认 `make` 进程结束后再打包；解决 `busybox` / `dragon` / `boot0 checksum` 等打包环境问题。
+2. **确定产品形态**：单应用（airadio 自启动）还是桌面入口（luncher_mini + airadio）？相应修改 `rcS.nsh`。
+3. **清理重复代码**：移除 `apps/examples/airadio/`，统一 vendor 版本。
+4. **补齐 AI 后端**：在 `airadio.c` 中接入 `nxrecorder`/`nxplayer` + `curl` + `cJSON`，走云端 ASR/LLM/TTS；可先复用 `vendor/allwinnertech/apps/audio_test` 的音频封装。
+5. **启用开发辅助功能**：打开 `CONFIG_AUDIO_TEST`，方便验证麦克风/扬声器。
+6. **评估 JS/QuickApp 需求**：若需要，启用 QuickJS/WAMR 并规划多应用框架；若暂不需要，明确在产品路线图中标注。
+7. **引入 frameworks**：短期优先 `frameworks_multimedia_media` 与 `frameworks_system_utils`；长期按需引入 runtimes/ota/security。
