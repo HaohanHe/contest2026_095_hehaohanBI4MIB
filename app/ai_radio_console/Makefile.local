@@ -1,0 +1,39 @@
+# Local Linux build Makefile for AI Radio Console
+# No openvela SDK or cross-compiler needed - builds native x86 binary
+
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -g -I include -I local_lvgl -DLOCAL_BUILD
+LDFLAGS = -lm -lpthread
+
+SRCDIR = src
+BUILDDIR = build
+TARGET = $(BUILDDIR)/ai_radio
+
+SRCS = $(wildcard $(SRCDIR)/*.c)
+OBJS = $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRCS))
+
+.PHONY: all clean run
+
+all: $(TARGET)
+	@echo ""
+	@echo "=== Build complete ==="
+	@ls -la $(TARGET)
+
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
+	@echo "CC $<"
+	@$(CC) $(CFLAGS) -c -o $@ $<
+
+$(TARGET): $(OBJS)
+	@echo "LINK $@"
+	@$(CC) -o $@ $^ $(LDFLAGS)
+
+run: $(TARGET)
+	@echo ""
+	@echo "=== Running AI Radio Console ==="
+	@./$(TARGET)
+
+clean:
+	rm -rf $(BUILDDIR)
