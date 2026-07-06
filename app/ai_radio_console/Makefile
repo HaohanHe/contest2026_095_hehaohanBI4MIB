@@ -9,17 +9,11 @@ PRIORITY  = 100
 STACKSIZE = 16384
 MODULE    = $(CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE)
 
-CSRCS = src/agent_bridge.c \
-        src/audio_capture.c \
-        src/cw_decoder.c \
-        src/freq_recommender.c \
-        src/mayday_detector.c \
-        src/radio_log.c \
-        src/signal_analyzer.c \
-        src/translator.c
+CSRCS =
 
 MAINSRC = src/main.c
 
 CFLAGS += -I$(CURDIR)/include
+LDLIBS += -lm
 
 include $(APPDIR)/Application.mk

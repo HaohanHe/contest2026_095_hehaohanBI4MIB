@@ -1,10 +1,3 @@
-/****************************************************************************
- * AI Radio Console for openvela - Contest 2026 Team 095
- *
- * An AI-powered amateur radio controller running on Gemini-S1 (R528)
- * Landscape 320x240 ILI9341 SPI LCD + TPADC resistive touch + 5 LRADC buttons
- ****************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,45 +9,38 @@
 #include <errno.h>
 #include <syslog.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+#include <pthread.h>
+#include <math.h>
+#include <mqueue.h>
 
 #include <nuttx/input/buttons.h>
-
-#include "radio_config.h"
-#include "cw_decoder.h"
-#include "mayday_detector.h"
-#include "signal_analyzer.h"
-#include "freq_recommender.h"
-#include "radio_log.h"
-#include "audio_capture.h"
-#include "translator.h"
-#include "agent_bridge.h"
+#include <nuttx/audio/audio.h>
 
 #include <lvgl.h>
 
-#undef UI_REFRESH_MS
-#define UI_REFRESH_MS       500
-
+#define UI_REFRESH_MS       200
 #define LCD_W               320
 #define LCD_H               240
 
 #define TOPBAR_H            26
-#define SPECTRUM_H          80
-#define CONTENT_H           104
-#define BOTTOMBAR_H         24
+#define SPECTRUM_H          76
+#define CONTENT_H           106
+#define BOTTOMBAR_H         32
 
 #define SPECTRUM_Y          TOPBAR_H
 #define CONTENT_Y           (TOPBAR_H + SPECTRUM_H)
 #define BOTTOMBAR_Y         (CONTENT_Y + CONTENT_H)
 
-#define CARDS_START_X       160
-#define CARDS_W             160
+#define CW_PANEL_W          155
+#define CARD_START_X        160
 #define CARD_COLS           2
 #define CARD_ROWS           3
 #define CARD_W              77
 #define CARD_H              50
 #define CARD_GAP_X          3
-#define CARD_GAP_Y          2
-#define CARD_PAD            4
+#define CARD_GAP_Y          3
+#define CARD_PAD            2
 
 #define COLOR_BG            lv_color_hex(0x0a0e1a)
 #define COLOR_BAR           lv_color_hex(0x0d1220)
@@ -68,9 +54,11 @@
 #define COLOR_MAGENTA       lv_color_hex(0xdd55ff)
 #define COLOR_TEXT          lv_color_hex(0xe0e8f0)
 #define COLOR_TEXT_DIM      lv_color_hex(0x8899aa)
-#define COLOR_CYAN          lv_color_hex(0x00d4ff)
+#define COLOR_CYAN          lv_color_hex(0x00ffff)
 #define COLOR_YELLOW        lv_color_hex(0xffdd33)
 #define COLOR_SPEC_BG       lv_color_hex(0x060912)
+#define COLOR_NOISE         lv_color_hex(0x405060)
+#define COLOR_PEAK          lv_color_hex(0x00ffff)
 
 #define BTN_VOL_DOWN        0x01
 #define BTN_VOL_UP          0x02
@@ -80,20 +68,35 @@
 
 #define BTN_POLL_MS         50
 #define BTN_DEBOUNCE_MS     200
+#define BTN_LONGPRESS_MS    800
 
 #define NUM_CARDS           (CARD_COLS * CARD_ROWS)
-#define NUM_STEPS           7
 #define NUM_DEMOD_MODES     5
-#define NUM_BANDS           10
 #define CW_LINES            4
 #define SPEC_BARS           60
 
+#define AUDIO_SAMPLE_RATE   8000
+#define AUDIO_CHANNELS      1
+#define AUDIO_BPS           16
+#define AUDIO_CHUNK_SAMPLES 160
+#define AUDIO_RING_SIZE     512
+
+#define FFT_SIZE            128
+#define NUM_GOERTZEL        SPEC_BARS
+#define CW_TONE_DEFAULT     700
+#define CW_WPM_DEFAULT      15
+
+#define SMOOTH_ALPHA_S      0.3f
+#define SMOOTH_ALPHA_SPEC   0.5f
+#define NOISE_FLOOR_ALPHA   0.05f
+#define THRESHOLD_MULT      3.0f
+
 typedef enum {
-    CARD_MAYDAY = 0,
-    CARD_QSO,
-    CARD_AI_FREQ,
-    CARD_XVERSE,
-    CARD_SAT,
+    CARD_SIG = 0,
+    CARD_MAYDAY,
+    CARD_AFC,
+    CARD_FILTER,
+    CARD_PTT,
     CARD_SETUP,
 } card_idx_t;
 
@@ -105,35 +108,38 @@ typedef enum {
     DEMOD_FM
 } demod_mode_t;
 
-static const uint32_t STEP_SIZES[NUM_STEPS] = {100, 500, 1000, 5000, 10000, 100000, 1000000};
-static const char *STEP_NAMES[NUM_STEPS] = {"100Hz", "500Hz", "1kHz", "5kHz", "10kHz", "100kHz", "1MHz"};
-static const char *MODE_NAMES[NUM_DEMOD_MODES] = {"USB", "LSB", "CW", "AM", "FM"};
-static const char *BAND_NAMES[NUM_BANDS] = {"160m", "80m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m"};
-static const uint32_t BAND_EDGES[NUM_BANDS][2] = {
-    {1800000, 2000000},
-    {3500000, 4000000},
-    {7000000, 7300000},
-    {10100000, 10150000},
-    {14000000, 14350000},
-    {18068000, 18168000},
-    {21000000, 21450000},
-    {24890000, 24990000},
-    {28000000, 29700000},
-    {50000000, 54000000}
-};
+typedef struct {
+    const char *code;
+    char ch;
+} morse_char_t;
 
-static const char *CARD_TITLES[NUM_CARDS] = {"MAYDAY", "QSO", "AI FREQ", "X-VERSE", "SAT", "SETUP"};
+static const char *MODE_NAMES[NUM_DEMOD_MODES] = {"USB", "LSB", "CW", "AM", "FM"};
+static const char *MODE_FILTERS[NUM_DEMOD_MODES] = {"SSB 2.4k", "SSB 2.4k", "CW 700Hz", "AM 3.0k", "FM WIDE"};
+
+static const morse_char_t MORSE_TABLE[] = {
+    {".-", 'A'}, {"-...", 'B'}, {"-.-.", 'C'}, {"-..", 'D'}, {".", 'E'},
+    {"..-.", 'F'}, {"--.", 'G'}, {"....", 'H'}, {"..", 'I'}, {".---", 'J'},
+    {"-.-", 'K'}, {".-..", 'L'}, {"--", 'M'}, {"-.", 'N'}, {"---", 'O'},
+    {".--.", 'P'}, {"--.-", 'Q'}, {".-.", 'R'}, {"...", 'S'}, {"-", 'T'},
+    {"..-", 'U'}, {"...-", 'V'}, {".--", 'W'}, {"-..-", 'X'}, {"-.--", 'Y'},
+    {"--..", 'Z'}, {".----", '1'}, {"..---", '2'}, {"...--", '3'}, {"....-", '4'},
+    {".....", '5'}, {"-....", '6'}, {"--...", '7'}, {"---..", '8'}, {"----.", '9'},
+    {"-----", '0'}, {"...---...", '!'}, {".-.-.", '+'}, {"-...-", '='},
+    {"-..-.", '/'}, {"-.--.", '('}, {"-.--.-", ')'}, {".-.-.", '>'},
+    {"...-.-", 'V'}, {NULL, 0}
+};
 
 static lv_obj_t *g_scr = NULL;
 static lv_obj_t *g_time_label = NULL;
 static lv_obj_t *g_freq_label = NULL;
 static lv_obj_t *g_mode_label = NULL;
-static lv_obj_t *g_step_label = NULL;
-static lv_obj_t *g_wifi_dot = NULL;
-static lv_obj_t *g_bt_dot = NULL;
 static lv_obj_t *g_s_meter_label = NULL;
 static lv_obj_t *g_spec_bars[SPEC_BARS];
 static lv_obj_t *g_noise_line = NULL;
+static lv_obj_t *g_peak_line = NULL;
+static lv_obj_t *g_spec_status_label = NULL;
+static lv_obj_t *g_cw_status_label = NULL;
+static lv_obj_t *g_cw_signal_dot = NULL;
 static lv_obj_t *g_cw_labels[CW_LINES];
 static lv_obj_t *g_cards[NUM_CARDS];
 static lv_obj_t *g_card_val_labels[NUM_CARDS];
@@ -143,26 +149,67 @@ static lv_obj_t *g_overlay_text = NULL;
 static lv_obj_t *g_border_flash = NULL;
 
 static uint32_t g_freq_hz = 14250000;
-static int g_step_idx = 2;
 static int g_mode_idx = DEMOD_USB;
 static int g_selected_card = 0;
 static bool g_mayday_active = false;
 static bool g_mayday_flash_on = false;
-static int g_s_meter = 6;
-static float g_noise_floor = -76.0f;
-static int g_qso_count = 27;
+static bool g_ptt_active = false;
+static int g_cw_tone_freq = CW_TONE_DEFAULT;
+static int g_cw_wpm = CW_WPM_DEFAULT;
+static float g_s_meter_db = -60.0f;
+static int g_s_units = 0;
+static int g_s_plus_db = 0;
+static float g_noise_floor_mag = 100.0f;
+static float g_spec_mag[SPEC_BARS];
+static float g_spec_smooth[SPEC_BARS];
+static int g_spec_peak_bin = 0;
+static float g_spec_peak_mag = 0;
 static int g_cw_line_idx = 0;
 static char g_cw_lines[CW_LINES][48];
-static bool g_wifi_on = true;
-static bool g_bt_on = false;
+static bool g_cw_signal_present = false;
+static float g_cw_afc_offset = 0;
 static bool g_overlay_open = false;
+static bool g_audio_ready = false;
+static char g_audio_status[32];
 
+static int g_audio_fd = -1;
 static int g_btn_fd = -1;
 static btn_buttonset_t g_btn_last = 0;
 static uint32_t g_btn_last_time = 0;
-static uint32_t g_sim_time_sec = 8 * 3600 + 1 * 60 + 15;
-static int g_spec_values[SPEC_BARS];
+static uint32_t g_btn_press_time = 0;
+static btn_buttonset_t g_btn_current = 0;
 static volatile bool g_running = true;
+static pthread_t g_audio_thread;
+static pthread_mutex_t g_dsp_mutex;
+
+static int16_t g_ring_buffer[AUDIO_RING_SIZE];
+static volatile int g_ring_head = 0;
+static volatile int g_ring_tail = 0;
+static volatile int g_ring_count = 0;
+
+typedef struct {
+    float coeff;
+    float s1;
+    float s2;
+} goertzel_state_t;
+
+static goertzel_state_t g_goertzel[SPEC_BARS + 1];
+static goertzel_state_t g_goertzel_cw;
+
+typedef enum {
+    CW_STATE_IDLE = 0,
+    CW_STATE_MARK,
+    CW_STATE_SPACE,
+    CW_STATE_INTER_CHAR,
+    CW_STATE_INTER_WORD
+} cw_state_t;
+
+static cw_state_t g_cw_state = CW_STATE_IDLE;
+static char g_cw_symbol_buf[16];
+static int g_cw_symbol_len = 0;
+static uint32_t g_cw_last_edge_time = 0;
+static uint32_t g_cw_dit_ms = 80;
+static int g_sos_count = 0;
 
 static uint32_t get_ms(void)
 {
@@ -180,7 +227,7 @@ static void freq_to_string(uint32_t hz, char *buf, size_t len)
              (unsigned long)mhz, (unsigned long)khz, (unsigned long)hz_part);
 }
 
-static lv_color_t s_meter_color(int s)
+static lv_color_t s_meter_color(int s, int plus)
 {
     if (s <= 3) return COLOR_TEXT_DIM;
     if (s <= 5) return COLOR_GREEN;
@@ -189,22 +236,559 @@ static lv_color_t s_meter_color(int s)
     return COLOR_RED;
 }
 
-static lv_color_t spec_bar_color(int height_pct)
+static lv_color_t spec_bar_color(float mag_norm)
 {
-    if (height_pct < 25) return lv_color_hex(0x103060);
-    if (height_pct < 50) return COLOR_ACCENT;
-    if (height_pct < 70) return COLOR_GREEN;
-    if (height_pct < 88) return COLOR_YELLOW;
+    if (mag_norm < 0.15f) return lv_color_hex(0x103060);
+    if (mag_norm < 0.35f) return COLOR_ACCENT;
+    if (mag_norm < 0.55f) return COLOR_GREEN;
+    if (mag_norm < 0.78f) return COLOR_YELLOW;
     return COLOR_RED;
 }
 
-static int get_current_band(uint32_t hz)
+static int dbfs_to_sunits(float dbfs)
 {
-    for (int i = 0; i < NUM_BANDS; i++) {
-        if (hz >= BAND_EDGES[i][0] && hz <= BAND_EDGES[i][1])
-            return i;
+    float s0 = -54.0f;
+    float s9 = -27.0f;
+    float s9p20 = -7.0f;
+
+    if (dbfs < s0) return 0;
+    if (dbfs >= s9p20) return 9 + 20;
+
+    if (dbfs < s9) {
+        return (int)((dbfs - s0) / 3.0f) + 1;
+    } else {
+        return 9 + (int)((dbfs - s9) / 1.0f);
     }
-    return -1;
+}
+
+static void s_units_to_str(int s_total, char *buf, size_t len)
+{
+    if (s_total <= 0) {
+        snprintf(buf, len, "S0");
+    } else if (s_total <= 9) {
+        snprintf(buf, len, "S%d", s_total);
+    } else {
+        snprintf(buf, len, "S9+%d", s_total - 9);
+    }
+}
+
+static void goertzel_init(goertzel_state_t *g, float freq_hz, int sample_rate, int n)
+{
+    float k = (int)(0.5f + (float)n * freq_hz / (float)sample_rate);
+    float omega = 2.0f * (float)M_PI * k / (float)n;
+    g->coeff = 2.0f * cosf(omega);
+    g->s1 = 0.0f;
+    g->s2 = 0.0f;
+}
+
+static float goertzel_mag(goertzel_state_t *g, const int16_t *samples, int n)
+{
+    g->s1 = 0.0f;
+    g->s2 = 0.0f;
+    for (int i = 0; i < n; i++) {
+        float s0 = (float)samples[i] + g->coeff * g->s1 - g->s2;
+        g->s2 = g->s1;
+        g->s1 = s0;
+    }
+    float power = g->s1 * g->s1 + g->s2 * g->s2 - g->coeff * g->s1 * g->s2;
+    if (power < 0) power = 0;
+    return sqrtf(power) / (float)n;
+}
+
+static void ring_buffer_write(const int16_t *data, int count)
+{
+    for (int i = 0; i < count; i++) {
+        g_ring_buffer[g_ring_head] = data[i];
+        g_ring_head = (g_ring_head + 1) % AUDIO_RING_SIZE;
+        if (g_ring_count < AUDIO_RING_SIZE) {
+            g_ring_count++;
+        } else {
+            g_ring_tail = (g_ring_tail + 1) % AUDIO_RING_SIZE;
+        }
+    }
+}
+
+static int ring_buffer_read(int16_t *data, int count)
+{
+    int available = g_ring_count;
+    int to_read = count < available ? count : available;
+    for (int i = 0; i < to_read; i++) {
+        data[i] = g_ring_buffer[g_ring_tail];
+        g_ring_tail = (g_ring_tail + 1) % AUDIO_RING_SIZE;
+    }
+    g_ring_count -= to_read;
+    return to_read;
+}
+
+static char morse_lookup(const char *symbol)
+{
+    if (strcmp(symbol, "...---...") == 0) return '!';
+    for (int i = 0; MORSE_TABLE[i].code != NULL; i++) {
+        if (strcmp(MORSE_TABLE[i].code, symbol) == 0) {
+            return MORSE_TABLE[i].ch;
+        }
+    }
+    return '?';
+}
+
+static void cw_append_char(char c)
+{
+    if (c == '!') {
+        g_mayday_active = true;
+        c = '!';
+    }
+
+    int len = strlen(g_cw_lines[g_cw_line_idx]);
+    if (len >= 44 || c == '\n' || c == ' ') {
+        g_cw_line_idx = (g_cw_line_idx + 1) % CW_LINES;
+        memset(g_cw_lines[g_cw_line_idx], 0, sizeof(g_cw_lines[g_cw_line_idx]));
+        for (int i = 0; i < CW_LINES; i++) {
+            int li = (g_cw_line_idx - i + CW_LINES) % CW_LINES;
+            lv_label_set_text(g_cw_labels[i], g_cw_lines[li]);
+        }
+        if (c == '\n' || c == ' ') return;
+    }
+    len = strlen(g_cw_lines[g_cw_line_idx]);
+    if (len < 44) {
+        g_cw_lines[g_cw_line_idx][len] = c;
+        g_cw_lines[g_cw_line_idx][len + 1] = '\0';
+        lv_label_set_text(g_cw_labels[0], g_cw_lines[g_cw_line_idx]);
+    }
+}
+
+static void cw_process_symbol(void)
+{
+    if (g_cw_symbol_len == 0) return;
+    g_cw_symbol_buf[g_cw_symbol_len] = '\0';
+    char ch = morse_lookup(g_cw_symbol_buf);
+    cw_append_char(ch);
+    g_cw_symbol_len = 0;
+}
+
+static void dsp_process_chunk(const int16_t *samples, int n)
+{
+    pthread_mutex_lock(&g_dsp_mutex);
+
+    double sum_sq = 0.0;
+
+    for (int i = 0; i < n; i++) {
+        float s = (float)samples[i] / 32768.0f;
+        sum_sq += (double)s * (double)s;
+    }
+
+    float rms = sqrtf((float)(sum_sq / (double)n));
+    float dbfs = 20.0f * log10f(rms + 1e-10f);
+
+    float new_s = SMOOTH_ALPHA_S * dbfs + (1.0f - SMOOTH_ALPHA_S) * g_s_meter_db;
+    g_s_meter_db = new_s;
+    int s_total = dbfs_to_sunits(g_s_meter_db);
+    if (s_total > 9) {
+        g_s_units = 9;
+        g_s_plus_db = s_total - 9;
+    } else {
+        g_s_units = s_total;
+        g_s_plus_db = 0;
+    }
+
+    float max_mag = 0;
+    int peak_bin = 0;
+    for (int b = 0; b < SPEC_BARS; b++) {
+        float freq = (float)b * (4000.0f / (float)(SPEC_BARS - 1));
+        goertzel_init(&g_goertzel[b], freq, AUDIO_SAMPLE_RATE, n);
+        float mag = goertzel_mag(&g_goertzel[b], samples, n);
+        g_spec_mag[b] = mag;
+        if (mag > max_mag) {
+            max_mag = mag;
+            peak_bin = b;
+        }
+    }
+
+    if (max_mag > g_noise_floor_mag * 1.5f) {
+        g_spec_peak_mag = max_mag;
+        g_spec_peak_bin = peak_bin;
+        g_cw_afc_offset = (float)peak_bin * (4000.0f / (float)(SPEC_BARS - 1)) - (float)g_cw_tone_freq;
+    }
+
+    g_noise_floor_mag = (1.0f - NOISE_FLOOR_ALPHA) * g_noise_floor_mag + NOISE_FLOOR_ALPHA * max_mag * 0.5f;
+
+    for (int b = 0; b < SPEC_BARS; b++) {
+        g_spec_smooth[b] = SMOOTH_ALPHA_SPEC * g_spec_mag[b] + (1.0f - SMOOTH_ALPHA_SPEC) * g_spec_smooth[b];
+    }
+
+    goertzel_init(&g_goertzel_cw, (float)g_cw_tone_freq, AUDIO_SAMPLE_RATE, n);
+    float cw_mag = goertzel_mag(&g_goertzel_cw, samples, n);
+    float cw_threshold = g_noise_floor_mag * THRESHOLD_MULT;
+
+    uint32_t now = get_ms();
+    bool cw_on = (cw_mag > cw_threshold);
+    g_cw_signal_present = cw_on;
+
+    if (g_cw_state == CW_STATE_IDLE) {
+        if (cw_on) {
+            g_cw_state = CW_STATE_MARK;
+            g_cw_last_edge_time = now;
+        }
+    } else if (g_cw_state == CW_STATE_MARK) {
+        if (!cw_on) {
+            uint32_t dur = now - g_cw_last_edge_time;
+            if (dur < g_cw_dit_ms * 2) {
+                if (g_cw_symbol_len < 15) g_cw_symbol_buf[g_cw_symbol_len++] = '.';
+            } else {
+                if (g_cw_symbol_len < 15) g_cw_symbol_buf[g_cw_symbol_len++] = '-';
+            }
+            g_cw_state = CW_STATE_SPACE;
+            g_cw_last_edge_time = now;
+        }
+    } else if (g_cw_state == CW_STATE_SPACE) {
+        if (cw_on) {
+            uint32_t gap = now - g_cw_last_edge_time;
+            if (gap > g_cw_dit_ms * 5) {
+                cw_process_symbol();
+                cw_append_char(' ');
+                g_cw_state = CW_STATE_MARK;
+            } else if (gap > g_cw_dit_ms * 2) {
+                cw_process_symbol();
+                g_cw_state = CW_STATE_MARK;
+            } else {
+                g_cw_state = CW_STATE_MARK;
+            }
+            g_cw_last_edge_time = now;
+        } else {
+            uint32_t gap = now - g_cw_last_edge_time;
+            if (gap > g_cw_dit_ms * 5) {
+                cw_process_symbol();
+                cw_append_char(' ');
+                g_cw_state = CW_STATE_IDLE;
+            } else if (gap > g_cw_dit_ms * 2) {
+                cw_process_symbol();
+                g_cw_state = CW_STATE_INTER_CHAR;
+                g_cw_last_edge_time = now;
+            }
+        }
+    } else if (g_cw_state == CW_STATE_INTER_CHAR) {
+        if (cw_on) {
+            g_cw_state = CW_STATE_MARK;
+            g_cw_last_edge_time = now;
+        } else {
+            uint32_t gap = now - g_cw_last_edge_time;
+            if (gap > g_cw_dit_ms * 5) {
+                cw_append_char(' ');
+                g_cw_state = CW_STATE_IDLE;
+            }
+        }
+    }
+
+    if (g_cw_symbol_len >= 3) {
+        g_cw_symbol_buf[g_cw_symbol_len] = '\0';
+        if (strcmp(g_cw_symbol_buf, "...") == 0) {
+            g_sos_count++;
+            if (g_sos_count >= 3) g_sos_count = 0;
+        }
+    }
+
+    pthread_mutex_unlock(&g_dsp_mutex);
+}
+
+static void *audio_thread_func(void *arg)
+{
+    (void)arg;
+    int ret;
+    int retries = 0;
+    bool audio_failed = false;
+    mqd_t mq = (mqd_t)-1;
+    struct ap_buffer_s *buffers[8] = {NULL};
+    int num_bufs = 0;
+
+    while (g_running) {
+        if (audio_failed) {
+            usleep(100000);
+            int16_t proc_buf[FFT_SIZE];
+            while (g_ring_count >= FFT_SIZE) {
+                int got = ring_buffer_read(proc_buf, FFT_SIZE);
+                if (got == FFT_SIZE) {
+                    dsp_process_chunk(proc_buf, FFT_SIZE);
+                }
+            }
+            continue;
+        }
+
+        if (g_audio_fd < 0) {
+            snprintf(g_audio_status, sizeof(g_audio_status), "WAITING FOR AUDIO...");
+            g_audio_ready = false;
+            sleep(2);
+
+            g_audio_fd = open("/dev/audio/pcm0c", O_RDWR);
+            if (g_audio_fd < 0) {
+                g_audio_fd = open("/dev/pcmC0D0c", O_RDWR);
+            }
+            if (g_audio_fd < 0) {
+                g_audio_fd = open("/dev/audio_in", O_RDWR);
+            }
+            if (g_audio_fd < 0) {
+                retries++;
+                printf("[AUDIO] Failed to open device, retries=%d\n", retries);
+                if (retries >= 3) {
+                    audio_failed = true;
+                    snprintf(g_audio_status, sizeof(g_audio_status), "NO AUDIO HW");
+                    g_audio_ready = false;
+                    printf("[AUDIO] No audio hardware, disabling\n");
+                }
+                continue;
+            }
+            retries = 0;
+
+            ret = ioctl(g_audio_fd, AUDIOIOC_RESERVE, 0);
+            if (ret < 0) {
+                printf("[AUDIO] AUDIOIOC_RESERVE failed: %d\n", errno);
+                close(g_audio_fd);
+                g_audio_fd = -1;
+                continue;
+            }
+
+            struct audio_caps_desc_s cap_desc;
+            memset(&cap_desc, 0, sizeof(cap_desc));
+            cap_desc.caps.ac_len = sizeof(struct audio_caps_s);
+            cap_desc.caps.ac_type = AUDIO_TYPE_INPUT;
+            cap_desc.caps.ac_channels = AUDIO_CHANNELS;
+            cap_desc.caps.ac_chmap = 0;
+            cap_desc.caps.ac_controls.hw[0] = AUDIO_SAMPLE_RATE;
+            cap_desc.caps.ac_controls.b[3] = (AUDIO_SAMPLE_RATE >> 16) & 0xff;
+            cap_desc.caps.ac_controls.b[2] = AUDIO_BPS;
+            cap_desc.caps.ac_subtype = AUDIO_FMT_PCM;
+
+            ret = ioctl(g_audio_fd, AUDIOIOC_CONFIGURE, (unsigned long)&cap_desc);
+            if (ret < 0) {
+                printf("[AUDIO] AUDIOIOC_CONFIGURE failed: %d\n", errno);
+                ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+                close(g_audio_fd);
+                g_audio_fd = -1;
+                continue;
+            }
+
+            struct ap_buffer_info_s buf_info;
+            if (ioctl(g_audio_fd, AUDIOIOC_GETBUFFERINFO, (unsigned long)&buf_info) != 0) {
+                buf_info.nbuffers = 4;
+                buf_info.buffer_size = 1024;
+            }
+            if (buf_info.nbuffers > 8) buf_info.nbuffers = 8;
+
+            char mq_name[32];
+            snprintf(mq_name, sizeof(mq_name), "/ai_radio_mq_%d", g_audio_fd);
+            mq_unlink(mq_name);
+            struct mq_attr attr;
+            attr.mq_maxmsg = buf_info.nbuffers + 8;
+            attr.mq_msgsize = sizeof(struct audio_msg_s);
+            attr.mq_curmsgs = 0;
+            attr.mq_flags = 0;
+            mq = mq_open(mq_name, O_RDWR | O_CREAT, 0644, &attr);
+            if (mq == (mqd_t)-1) {
+                printf("[AUDIO] mq_open failed: %d\n", errno);
+                ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+                close(g_audio_fd);
+                g_audio_fd = -1;
+                continue;
+            }
+
+            ret = ioctl(g_audio_fd, AUDIOIOC_REGISTERMQ, (unsigned long)mq);
+            if (ret < 0) {
+                printf("[AUDIO] AUDIOIOC_REGISTERMQ failed: %d\n", errno);
+                mq_close(mq);
+                mq_unlink(mq_name);
+                mq = (mqd_t)-1;
+                ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+                close(g_audio_fd);
+                g_audio_fd = -1;
+                continue;
+            }
+
+            num_bufs = 0;
+            for (int i = 0; i < buf_info.nbuffers; i++) {
+                struct audio_buf_desc_s bufdesc;
+                memset(&bufdesc, 0, sizeof(bufdesc));
+                bufdesc.numbytes = buf_info.buffer_size;
+                bufdesc.u.pbuffer = &buffers[i];
+                ret = ioctl(g_audio_fd, AUDIOIOC_ALLOCBUFFER, (unsigned long)&bufdesc);
+                if (ret != sizeof(bufdesc) || buffers[i] == NULL) {
+                    printf("[AUDIO] AUDIOIOC_ALLOCBUFFER %d failed: %d\n", i, errno);
+                    break;
+                }
+                num_bufs++;
+            }
+            if (num_bufs < 2) {
+                printf("[AUDIO] Not enough buffers allocated\n");
+                for (int i = 0; i < num_bufs; i++) {
+                    struct audio_buf_desc_s bufdesc;
+                    memset(&bufdesc, 0, sizeof(bufdesc));
+                    bufdesc.u.buffer = buffers[i];
+                    ioctl(g_audio_fd, AUDIOIOC_FREEBUFFER, (unsigned long)&bufdesc);
+                    buffers[i] = NULL;
+                }
+                num_bufs = 0;
+                ioctl(g_audio_fd, AUDIOIOC_UNREGISTERMQ, (unsigned long)mq);
+                mq_close(mq);
+                mq_unlink(mq_name);
+                mq = (mqd_t)-1;
+                ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+                close(g_audio_fd);
+                g_audio_fd = -1;
+                continue;
+            }
+
+            for (int i = 0; i < num_bufs; i++) {
+                buffers[i]->curbyte = 0;
+                buffers[i]->flags = 0;
+                buffers[i]->nbytes = buffers[i]->nmaxbytes;
+                struct audio_buf_desc_s bufdesc;
+                memset(&bufdesc, 0, sizeof(bufdesc));
+                bufdesc.numbytes = buffers[i]->nbytes;
+                bufdesc.u.buffer = buffers[i];
+                ret = ioctl(g_audio_fd, AUDIOIOC_ENQUEUEBUFFER, (unsigned long)&bufdesc);
+                if (ret < 0) {
+                    printf("[AUDIO] AUDIOIOC_ENQUEUEBUFFER %d failed: %d\n", i, errno);
+                }
+            }
+
+            ret = ioctl(g_audio_fd, AUDIOIOC_START, 0);
+            if (ret < 0) {
+                printf("[AUDIO] AUDIOIOC_START failed: %d\n", errno);
+                ioctl(g_audio_fd, AUDIOIOC_STOP, 0);
+                for (int i = 0; i < num_bufs; i++) {
+                    struct audio_buf_desc_s bufdesc;
+                    memset(&bufdesc, 0, sizeof(bufdesc));
+                    bufdesc.u.buffer = buffers[i];
+                    ioctl(g_audio_fd, AUDIOIOC_FREEBUFFER, (unsigned long)&bufdesc);
+                    buffers[i] = NULL;
+                }
+                num_bufs = 0;
+                ioctl(g_audio_fd, AUDIOIOC_UNREGISTERMQ, (unsigned long)mq);
+                mq_close(mq);
+                mq_unlink(mq_name);
+                mq = (mqd_t)-1;
+                ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+                close(g_audio_fd);
+                g_audio_fd = -1;
+                continue;
+            }
+
+            g_audio_ready = true;
+            snprintf(g_audio_status, sizeof(g_audio_status), "AUDIO OK");
+            printf("[AUDIO] Capture started fd=%d, bufs=%d, size=%d, rate=%d\n",
+                   g_audio_fd, num_bufs, buf_info.buffer_size, AUDIO_SAMPLE_RATE);
+            continue;
+        }
+
+        struct audio_msg_s msg;
+        unsigned int prio;
+        ssize_t n = mq_receive(mq, (char *)&msg, sizeof(msg), &prio);
+        if (n != sizeof(msg)) {
+            if (errno == EINTR) continue;
+            printf("[AUDIO] mq_receive failed: %d\n", errno);
+            ioctl(g_audio_fd, AUDIOIOC_STOP, 0);
+            for (int i = 0; i < num_bufs; i++) {
+                struct audio_buf_desc_s bufdesc;
+                memset(&bufdesc, 0, sizeof(bufdesc));
+                bufdesc.u.buffer = buffers[i];
+                ioctl(g_audio_fd, AUDIOIOC_FREEBUFFER, (unsigned long)&bufdesc);
+                buffers[i] = NULL;
+            }
+            num_bufs = 0;
+            char mq_name[32];
+            snprintf(mq_name, sizeof(mq_name), "/ai_radio_mq_%d", g_audio_fd);
+            ioctl(g_audio_fd, AUDIOIOC_UNREGISTERMQ, (unsigned long)mq);
+            mq_close(mq);
+            mq_unlink(mq_name);
+            mq = (mqd_t)-1;
+            ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+            close(g_audio_fd);
+            g_audio_fd = -1;
+            g_audio_ready = false;
+            continue;
+        }
+
+        switch (msg.msg_id) {
+        case AUDIO_MSG_DEQUEUE: {
+            struct ap_buffer_s *apb = (struct ap_buffer_s *)msg.u.ptr;
+            if (apb && apb->nbytes > 0) {
+                int samples = apb->nbytes / sizeof(int16_t);
+                int16_t *samps = (int16_t *)apb->samp;
+                ring_buffer_write(samps, samples);
+
+                int16_t proc_buf[FFT_SIZE];
+                while (g_ring_count >= FFT_SIZE) {
+                    int got = ring_buffer_read(proc_buf, FFT_SIZE);
+                    if (got == FFT_SIZE) {
+                        dsp_process_chunk(proc_buf, FFT_SIZE);
+                    }
+                }
+            }
+
+            if (apb) {
+                apb->curbyte = 0;
+                apb->flags = 0;
+                apb->nbytes = apb->nmaxbytes;
+                struct audio_buf_desc_s bufdesc;
+                memset(&bufdesc, 0, sizeof(bufdesc));
+                bufdesc.numbytes = apb->nbytes;
+                bufdesc.u.buffer = apb;
+                ioctl(g_audio_fd, AUDIOIOC_ENQUEUEBUFFER, (unsigned long)&bufdesc);
+            }
+            break;
+        }
+
+        case AUDIO_MSG_STOP:
+        case AUDIO_MSG_COMPLETE:
+        case AUDIO_MSG_IOERR:
+            printf("[AUDIO] Received stop/complete/ioerr message: %d\n", msg.msg_id);
+            ioctl(g_audio_fd, AUDIOIOC_STOP, 0);
+            for (int i = 0; i < num_bufs; i++) {
+                struct audio_buf_desc_s bufdesc;
+                memset(&bufdesc, 0, sizeof(bufdesc));
+                bufdesc.u.buffer = buffers[i];
+                ioctl(g_audio_fd, AUDIOIOC_FREEBUFFER, (unsigned long)&bufdesc);
+                buffers[i] = NULL;
+            }
+            num_bufs = 0;
+            {
+                char mq_name[32];
+                snprintf(mq_name, sizeof(mq_name), "/ai_radio_mq_%d", g_audio_fd);
+                ioctl(g_audio_fd, AUDIOIOC_UNREGISTERMQ, (unsigned long)mq);
+                mq_close(mq);
+                mq_unlink(mq_name);
+            }
+            mq = (mqd_t)-1;
+            ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+            close(g_audio_fd);
+            g_audio_fd = -1;
+            g_audio_ready = false;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    if (g_audio_fd >= 0) {
+        ioctl(g_audio_fd, AUDIOIOC_STOP, 0);
+        for (int i = 0; i < num_bufs; i++) {
+            if (buffers[i]) {
+                struct audio_buf_desc_s bufdesc;
+                memset(&bufdesc, 0, sizeof(bufdesc));
+                bufdesc.u.buffer = buffers[i];
+                ioctl(g_audio_fd, AUDIOIOC_FREEBUFFER, (unsigned long)&bufdesc);
+            }
+        }
+        if (mq != (mqd_t)-1) {
+            char mq_name[32];
+            snprintf(mq_name, sizeof(mq_name), "/ai_radio_mq_%d", g_audio_fd);
+            ioctl(g_audio_fd, AUDIOIOC_UNREGISTERMQ, (unsigned long)mq);
+            mq_close(mq);
+            mq_unlink(mq_name);
+        }
+        ioctl(g_audio_fd, AUDIOIOC_RELEASE, 0);
+        close(g_audio_fd);
+        g_audio_fd = -1;
+    }
+    return NULL;
 }
 
 static void update_card_highlight(void)
@@ -286,81 +870,59 @@ static void update_freq_display(void)
     freq_to_string(g_freq_hz, fbuf, sizeof(fbuf));
     lv_label_set_text(g_freq_label, fbuf);
     lv_label_set_text(g_mode_label, MODE_NAMES[g_mode_idx]);
-    lv_label_set_text(g_step_label, STEP_NAMES[g_step_idx]);
     set_mode_label_color();
-}
-
-static void cw_append_char(char c)
-{
-    int len = strlen(g_cw_lines[g_cw_line_idx]);
-    if (len >= 46 || c == '\n') {
-        g_cw_line_idx = (g_cw_line_idx + 1) % CW_LINES;
-        memset(g_cw_lines[g_cw_line_idx], 0, sizeof(g_cw_lines[g_cw_line_idx]));
-        for (int i = 0; i < CW_LINES; i++) {
-            int li = (g_cw_line_idx - i + CW_LINES) % CW_LINES;
-            lv_label_set_text(g_cw_labels[i], g_cw_lines[li]);
-        }
-        if (c == '\n') return;
-    }
-    len = strlen(g_cw_lines[g_cw_line_idx]);
-    if (len < 46) {
-        g_cw_lines[g_cw_line_idx][len] = c;
-        g_cw_lines[g_cw_line_idx][len + 1] = '\0';
-        lv_label_set_text(g_cw_labels[0], g_cw_lines[g_cw_line_idx]);
-    }
-}
-
-static void cw_append_word(const char *word)
-{
-    while (*word) {
-        cw_append_char(*word++);
-    }
 }
 
 static void update_cards_display(void)
 {
+    char s_str[16];
+    if (g_s_plus_db > 0) {
+        snprintf(s_str, sizeof(s_str), "S9+%d", g_s_plus_db);
+    } else {
+        snprintf(s_str, sizeof(s_str), "S%d", g_s_units);
+    }
+    lv_label_set_text(g_card_val_labels[CARD_SIG], s_str);
+    lv_obj_set_style_text_color(g_card_val_labels[CARD_SIG],
+        s_meter_color(g_s_units, g_s_plus_db), 0);
+
     if (g_mayday_active) {
-        lv_label_set_text(g_card_val_labels[CARD_MAYDAY], "!! ACTIVE !!");
+        lv_label_set_text(g_card_val_labels[CARD_MAYDAY], "ALERT!");
         lv_obj_set_style_text_color(g_card_val_labels[CARD_MAYDAY], COLOR_RED, 0);
     } else {
-        lv_label_set_text(g_card_val_labels[CARD_MAYDAY], "Monitoring");
+        lv_label_set_text(g_card_val_labels[CARD_MAYDAY], "OK");
         lv_obj_set_style_text_color(g_card_val_labels[CARD_MAYDAY], COLOR_GREEN, 0);
     }
 
-    lv_label_set_text_fmt(g_card_val_labels[CARD_QSO], "%d QSOs", g_qso_count);
-
-    int band = get_current_band(g_freq_hz);
-    if (band >= 4 && band <= 8) {
-        int h = (g_sim_time_sec / 3600) % 24;
-        if (h >= 12 && h <= 16) band = 4;
-        else if (h >= 18 || h < 6) band = 8;
-        else band = 6;
+    char afc_str[16];
+    if (fabsf(g_cw_afc_offset) < 5.0f) {
+        snprintf(afc_str, sizeof(afc_str), "LOCK");
+    } else if (g_cw_afc_offset > 0) {
+        snprintf(afc_str, sizeof(afc_str), "%+dHz", (int)g_cw_afc_offset);
+    } else {
+        snprintf(afc_str, sizeof(afc_str), "%dHz", (int)g_cw_afc_offset);
     }
-    lv_label_set_text(g_card_val_labels[CARD_AI_FREQ], BAND_NAMES[band < 0 ? 4 : band]);
+    lv_label_set_text(g_card_val_labels[CARD_AFC], afc_str);
+    lv_obj_set_style_text_color(g_card_val_labels[CARD_AFC], COLOR_CYAN, 0);
 
-    const char *translations[] = {"QSY 14.225", "Good Signal", "QRZ?", "73 TU", "599 BK"};
-    lv_label_set_text(g_card_val_labels[CARD_XVERSE], translations[rand() % 5]);
+    lv_label_set_text(g_card_val_labels[CARD_FILTER], MODE_FILTERS[g_mode_idx]);
+    lv_obj_set_style_text_color(g_card_val_labels[CARD_FILTER], COLOR_AMBER, 0);
 
-    int sat_min = (12 * 60 + 34 + (g_sim_time_sec / 60)) % (24 * 60);
-    lv_label_set_text_fmt(g_card_val_labels[CARD_SAT], "ISS %02d:%02d",
-                          sat_min / 60, sat_min % 60);
+    if (g_ptt_active) {
+        lv_label_set_text(g_card_val_labels[CARD_PTT], "TX");
+        lv_obj_set_style_text_color(g_card_val_labels[CARD_PTT], COLOR_RED, 0);
+    } else {
+        lv_label_set_text(g_card_val_labels[CARD_PTT], "RX");
+        lv_obj_set_style_text_color(g_card_val_labels[CARD_PTT], COLOR_GREEN, 0);
+    }
 
-    lv_label_set_text(g_card_val_labels[CARD_SETUP], g_wifi_on ? "CFG:W" : "CFG:-");
+    lv_label_set_text(g_card_val_labels[CARD_SETUP], "SETUP");
+    lv_obj_set_style_text_color(g_card_val_labels[CARD_SETUP], COLOR_TEXT_DIM, 0);
 }
 
-static void adjust_freq(int dir)
+static void toggle_ptt(void)
 {
-    uint32_t step = STEP_SIZES[g_step_idx];
-    if (dir > 0) {
-        g_freq_hz += step;
-        if (g_freq_hz > BAND_EDGES[NUM_BANDS - 1][1])
-            g_freq_hz = BAND_EDGES[NUM_BANDS - 1][1];
-    } else {
-        if (g_freq_hz < step + BAND_EDGES[0][0])
-            g_freq_hz = BAND_EDGES[0][0];
-        else
-            g_freq_hz -= step;
-    }
+    g_ptt_active = !g_ptt_active;
+    printf("[PTT] %s\n", g_ptt_active ? "TX" : "RX");
 }
 
 static void handle_card_enter(void)
@@ -369,56 +931,29 @@ static void handle_card_enter(void)
     case CARD_MAYDAY:
         g_mayday_active = true;
         open_overlay("MAYDAY ALERT",
-            "Distress signal detected!\n"
-            "Freq: 14.300 MHz USB\n"
+            "SOS distress signal detected!\n"
+            "Monitor 2182kHz / 14300kHz\n"
             "Press ENTER to cancel\n"
             "HOME to return");
         break;
-    case CARD_QSO:
-        open_overlay("QSO Log",
-            "Recent contacts:\n"
-            "12:34 BA1AA 14.250 599\n"
-            "12:21 BG6XYZ 14.200\n"
-            "11:58 JA1RK 14.220\n"
-            "Total: 27 QSOs today");
-        break;
-    case CARD_AI_FREQ:
-        open_overlay("AI Freq Recommend",
-            "Based on UTC time, conditions:\n"
-            "- 20m (14.225) Open - Daytime\n"
-            "- 10m (28.400) Watch for open\n"
-            "- 40m (7.070) Best after dark\n"
-            "SFI=142 K=2 A=8");
-        break;
-    case CARD_XVERSE:
-        open_overlay("X-VERSE Translate",
-            "EN->ZH Live translation\n"
-            "RX: \"CQ CQ this is K3LR\"\n"
-            "-> \"CQ CQ 这里是K3LR\"\n"
-            "TX-ready (ENTER=PTT)");
-        break;
-    case CARD_SAT:
-        open_overlay("Satellite Passes",
-            "Next passes:\n"
-            "ISS  AOS 12:34  LOS 12:45\n"
-            "SO-50 AOS 14:22  LOS 14:35\n"
-            "FO-29 AOS 18:05  LOS 18:18\n"
-            "FO-29 435.800/145.900");
+    case CARD_PTT:
+        toggle_ptt();
         break;
     case CARD_SETUP:
         open_overlay("Settings",
-            "WiFi: ON  (press MENU toggle)\n"
-            "BT:   OFF\n"
-            "Brightness: 70%\n"
-            "Step: 1kHz\n"
-            "Mode: USB");
+            "Mode: USB/LSB/CW/AM/FM (MENU)\n"
+            "CW Tone: 500-1000Hz\n"
+            "WPM: 10-25\n"
+            "Freq Step: 100Hz-1MHz");
+        break;
+    default:
         break;
     }
 }
 
-static void handle_button_press(btn_buttonset_t btn)
+static void handle_button_press(btn_buttonset_t btn, bool long_press)
 {
-    printf("[BTN] 0x%02x\n", (unsigned)btn);
+    printf("[BTN] 0x%02x %s\n", (unsigned)btn, long_press ? "LONG" : "SHORT");
 
     if (g_overlay_open) {
         if (btn == BTN_HOME) {
@@ -439,35 +974,41 @@ static void handle_button_press(btn_buttonset_t btn)
         int dir = (btn == BTN_VOL_UP) ? 1 : -1;
         if (g_selected_card + dir >= 0 && g_selected_card + dir < NUM_CARDS) {
             g_selected_card += dir;
-        } else if (btn == BTN_VOL_UP) {
-            adjust_freq(1);
         } else {
-            adjust_freq(-1);
+            uint32_t steps[] = {100, 500, 1000, 5000, 10000, 100000, 1000000};
+            g_freq_hz += dir * steps[2];
+            if (g_freq_hz < 1800000) g_freq_hz = 1800000;
+            if (g_freq_hz > 54000000) g_freq_hz = 54000000;
         }
         update_card_highlight();
         update_freq_display();
     } else if (btn == BTN_MENU) {
-        static int menu_mode = 0;
-        menu_mode = (menu_mode + 1) % 3;
-        if (menu_mode == 0) {
-            g_step_idx = (g_step_idx + 1) % NUM_STEPS;
-        } else if (menu_mode == 1) {
-            g_mode_idx = (g_mode_idx + 1) % NUM_DEMOD_MODES;
+        if (long_press) {
+            g_cw_tone_freq += 50;
+            if (g_cw_tone_freq > 1000) g_cw_tone_freq = 500;
         } else {
-            g_wifi_on = !g_wifi_on;
+            g_mode_idx = (g_mode_idx + 1) % NUM_DEMOD_MODES;
         }
         update_freq_display();
-        update_cards_display();
-        lv_obj_set_style_bg_color(g_wifi_dot, g_wifi_on ? COLOR_GREEN : COLOR_TEXT_DIM, 0);
     } else if (btn == BTN_ENTER) {
-        handle_card_enter();
+        if (long_press) {
+            handle_card_enter();
+        } else {
+            toggle_ptt();
+        }
     } else if (btn == BTN_HOME) {
-        g_selected_card = 0;
-        g_step_idx = 2;
-        g_mode_idx = DEMOD_USB;
-        g_freq_hz = 14250000;
-        update_card_highlight();
-        update_freq_display();
+        if (long_press) {
+            g_selected_card = CARD_SETUP;
+            handle_card_enter();
+        } else {
+            g_selected_card = 0;
+            g_mode_idx = DEMOD_USB;
+            g_freq_hz = 14250000;
+            g_ptt_active = false;
+            g_mayday_active = false;
+            update_card_highlight();
+            update_freq_display();
+        }
     }
 }
 
@@ -484,24 +1025,34 @@ static void button_poll_timer(lv_timer_t *timer)
 
     uint32_t now = get_ms();
     btn_buttonset_t pressed = val & ~g_btn_last;
-    g_btn_last = val;
+    btn_buttonset_t released = g_btn_last & ~val;
 
-    if (pressed == 0) return;
-    if (now - g_btn_last_time < BTN_DEBOUNCE_MS) return;
-    g_btn_last_time = now;
+    if (pressed && g_btn_current == 0) {
+        g_btn_current = pressed;
+        g_btn_press_time = now;
+    }
 
-    btn_buttonset_t single_btn = 0;
-    for (int i = 0; i < 5; i++) {
-        btn_buttonset_t mask = (btn_buttonset_t)1 << i;
-        if (pressed & mask) {
-            single_btn = mask;
-            break;
+    if (released & g_btn_current) {
+        uint32_t held = now - g_btn_press_time;
+        bool is_long = (held >= BTN_LONGPRESS_MS);
+
+        btn_buttonset_t single_btn = 0;
+        for (int i = 0; i < 5; i++) {
+            btn_buttonset_t mask = (btn_buttonset_t)1 << i;
+            if (g_btn_current & mask) {
+                single_btn = mask;
+                break;
+            }
         }
+
+        if (single_btn && now - g_btn_last_time >= BTN_DEBOUNCE_MS) {
+            g_btn_last_time = now;
+            handle_button_press(single_btn, is_long);
+        }
+        g_btn_current = 0;
     }
 
-    if (single_btn) {
-        handle_button_press(single_btn);
-    }
+    g_btn_last = val;
 }
 
 static void mayday_flash_timer(lv_timer_t *timer)
@@ -514,75 +1065,68 @@ static void mayday_flash_timer(lv_timer_t *timer)
     lv_obj_set_style_border_width(g_border_flash, g_mayday_flash_on ? 3 : 0, 0);
 }
 
-static void update_spectrum(void)
-{
-    static int spec_drift[SPEC_BARS];
-    for (int i = 0; i < SPEC_BARS; i++) {
-        int change = (rand() % 5) - 2;
-        spec_drift[i] += change;
-        if (spec_drift[i] < 5) spec_drift[i] = 5;
-        if (spec_drift[i] > 95) spec_drift[i] = 95;
-        g_spec_values[i] = spec_drift[i];
-    }
-
-    int peak_pos = SPEC_BARS / 2 + (rand() % 11) - 5;
-    int peak_h = 60 + (rand() % 35);
-    if (peak_pos >= 0 && peak_pos < SPEC_BARS) {
-        g_spec_values[peak_pos] = peak_h;
-        if (peak_pos > 0) g_spec_values[peak_pos - 1] = peak_h - 10;
-        if (peak_pos < SPEC_BARS - 1) g_spec_values[peak_pos + 1] = peak_h - 10;
-    }
-
-    int bar_w = (LCD_W - 50) / SPEC_BARS;
-    int bar_area_h = SPECTRUM_H - 28;
-    for (int i = 0; i < SPEC_BARS; i++) {
-        int h = (g_spec_values[i] * bar_area_h) / 100;
-        lv_obj_set_size(g_spec_bars[i], bar_w - 1, h);
-        lv_obj_set_pos(g_spec_bars[i], 40 + i * bar_w, SPECTRUM_H - 12 - h);
-        lv_obj_set_style_bg_color(g_spec_bars[i], spec_bar_color(g_spec_values[i]), 0);
-    }
-
-    int noise_y = SPECTRUM_H - 12 - (int)((20 + (rand() % 8)) * bar_area_h / 100);
-    lv_obj_set_pos(g_noise_line, 40, noise_y);
-}
-
 static void ui_update_timer(lv_timer_t *timer)
 {
     (void)timer;
-
-    g_sim_time_sec++;
-    int hrs = (g_sim_time_sec / 3600) % 24;
-    int mins = (g_sim_time_sec / 60) % 60;
-    int secs = g_sim_time_sec % 60;
-    char time_buf[16];
-    snprintf(time_buf, sizeof(time_buf), "%02d:%02d:%02d", hrs, mins, secs);
-    lv_label_set_text(g_time_label, time_buf);
-
-    g_noise_floor = -80.0f + (float)(rand() % 10);
-    g_s_meter = 5 + (rand() % 4);
-    if ((rand() % 40) == 0) g_s_meter = 9;
-    lv_label_set_text_fmt(g_s_meter_label, "S%d", g_s_meter);
-    lv_obj_set_style_text_color(g_s_meter_label, s_meter_color(g_s_meter), 0);
-
-    update_spectrum();
-
-    static const char *cw_words[] = {
-        "CQ ", "DE ", "BA1AA ", "K ", "UR ", "599 ", "BK ", "73 ",
-        "QRZ? ", "ES ", "GB ", "SK ", "RST ", "TU ", "FB "
-    };
-    if ((rand() % 20) == 0) {
-        cw_append_word(cw_words[rand() % (sizeof(cw_words) / sizeof(cw_words[0]))]);
+    static time_t start_time = 0;
+    if (start_time == 0) start_time = time(NULL);
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+    if (tm_info) {
+        char time_buf[16];
+        strftime(time_buf, sizeof(time_buf), "%H:%M:%S", tm_info);
+        lv_label_set_text(g_time_label, time_buf);
     }
 
-    if ((rand() % 150) == 0) {
-        g_qso_count++;
+    char s_str[16];
+    int s_total = g_s_units + g_s_plus_db;
+    s_units_to_str(s_total, s_str, sizeof(s_str));
+    lv_label_set_text(g_s_meter_label, s_str);
+    lv_obj_set_style_text_color(g_s_meter_label,
+        s_meter_color(g_s_units, g_s_plus_db), 0);
+
+    int bar_w = (LCD_W - 50) / SPEC_BARS;
+    int bar_area_h = SPECTRUM_H - 30;
+    pthread_mutex_lock(&g_dsp_mutex);
+
+    float max_smooth = 0.001f;
+    for (int i = 0; i < SPEC_BARS; i++) {
+        if (g_spec_smooth[i] > max_smooth) max_smooth = g_spec_smooth[i];
     }
+
+    for (int i = 0; i < SPEC_BARS; i++) {
+        float norm = g_spec_smooth[i] / (g_noise_floor_mag * 8.0f);
+        if (norm > 1.0f) norm = 1.0f;
+        int h = (int)(norm * (float)bar_area_h);
+        if (h < 1) h = 1;
+        lv_obj_set_size(g_spec_bars[i], bar_w - 1, h);
+        lv_obj_set_pos(g_spec_bars[i], 40 + i * bar_w, SPECTRUM_H - 14 - h);
+        lv_obj_set_style_bg_color(g_spec_bars[i], spec_bar_color(norm), 0);
+    }
+
+    float noise_norm = g_noise_floor_mag / (g_noise_floor_mag * 8.0f) * 0.8f;
+    int noise_y = SPECTRUM_H - 14 - (int)(noise_norm * (float)bar_area_h);
+    lv_obj_set_pos(g_noise_line, 40, noise_y);
+
+    int peak_x = 40 + g_spec_peak_bin * bar_w;
+    lv_obj_set_pos(g_peak_line, peak_x, SPECTRUM_H - 14 - bar_area_h - 2);
+
+    pthread_mutex_unlock(&g_dsp_mutex);
+
+    if (g_audio_ready) {
+        lv_label_set_text(g_spec_status_label, "AUDIO SPECTRUM 0-4kHz");
+    } else {
+        lv_label_set_text(g_spec_status_label, g_audio_status);
+    }
+
+    char cw_status[32];
+    snprintf(cw_status, sizeof(cw_status), "CW %dHz %dWPM", g_cw_tone_freq, g_cw_wpm);
+    lv_label_set_text(g_cw_status_label, cw_status);
+    lv_obj_set_style_bg_color(g_cw_signal_dot,
+        g_cw_signal_present ? COLOR_RED : COLOR_TEXT_DIM, 0);
 
     update_cards_display();
-
-    if ((rand() % 500) == 0 && !g_mayday_active && !g_overlay_open) {
-        g_mayday_active = true;
-    }
+    update_freq_display();
 }
 
 static int button_init(void)
@@ -590,8 +1134,7 @@ static int button_init(void)
     const char *dev = "/dev/input/event1";
     g_btn_fd = open(dev, O_RDONLY | O_NONBLOCK);
     if (g_btn_fd < 0) {
-        printf("[BTN] Warning: cannot open %s (%s), running without buttons\n",
-               dev, strerror(errno));
+        printf("[BTN] Warning: cannot open %s (%s)\n", dev, strerror(errno));
         return -1;
     }
     printf("[BTN] Button device %s opened (fd=%d)\n", dev, g_btn_fd);
@@ -649,45 +1192,20 @@ static void create_main_screen(void)
     lv_obj_set_style_pad_all(topbar, 0, 0);
     lv_obj_set_style_radius(topbar, 0, 0);
 
-    g_time_label = create_label(topbar, 6, 5, "08:01:15",
-                                &lv_font_montserrat_12, COLOR_TEXT);
+    g_time_label = create_label(topbar, 4, 5, "00:00:00",
+                                &lv_font_montserrat_10, COLOR_TEXT);
 
     g_freq_label = create_label(topbar, -1, 2, "14.250.000",
-                                &lv_font_montserrat_18, COLOR_ACCENT);
+                                &lv_font_montserrat_16, COLOR_ACCENT);
     lv_obj_center(g_freq_label);
-    lv_obj_set_pos(g_freq_label, -20, 2);
+    lv_obj_set_pos(g_freq_label, -25, 3);
 
     g_mode_label = create_label(topbar, -1, 8, "USB",
                                 &lv_font_montserrat_10, COLOR_ACCENT);
-    lv_obj_align(g_mode_label, LV_ALIGN_CENTER, 58, 0);
+    lv_obj_align(g_mode_label, LV_ALIGN_CENTER, 52, 0);
 
-    g_step_label = create_label(topbar, -1, 10, "1kHz",
-                                &lv_font_montserrat_10, COLOR_AMBER);
-    lv_obj_align(g_step_label, LV_ALIGN_CENTER, 80, 8);
-
-    g_wifi_dot = lv_obj_create(topbar);
-    lv_obj_set_size(g_wifi_dot, 5, 5);
-    lv_obj_set_style_bg_color(g_wifi_dot, g_wifi_on ? COLOR_GREEN : COLOR_TEXT_DIM, 0);
-    lv_obj_set_style_radius(g_wifi_dot, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_border_width(g_wifi_dot, 0, 0);
-    lv_obj_set_style_pad_all(g_wifi_dot, 0, 0);
-    lv_obj_align(g_wifi_dot, LV_ALIGN_RIGHT_MID, -24, 0);
-    create_label(topbar, -1, -1, "W", &lv_font_montserrat_10,
-                 g_wifi_on ? COLOR_GREEN : COLOR_TEXT_DIM);
-    lv_obj_t *w_lbl = lv_obj_get_child(topbar, -1);
-    lv_obj_align(w_lbl, LV_ALIGN_RIGHT_MID, -16, 0);
-
-    g_bt_dot = lv_obj_create(topbar);
-    lv_obj_set_size(g_bt_dot, 5, 5);
-    lv_obj_set_style_bg_color(g_bt_dot, g_bt_on ? COLOR_CYAN : COLOR_TEXT_DIM, 0);
-    lv_obj_set_style_radius(g_bt_dot, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_border_width(g_bt_dot, 0, 0);
-    lv_obj_set_style_pad_all(g_bt_dot, 0, 0);
-    lv_obj_align(g_bt_dot, LV_ALIGN_RIGHT_MID, -10, 0);
-    create_label(topbar, -1, -1, "B", &lv_font_montserrat_10,
-                 g_bt_on ? COLOR_CYAN : COLOR_TEXT_DIM);
-    lv_obj_t *b_lbl = lv_obj_get_child(topbar, -1);
-    lv_obj_align(b_lbl, LV_ALIGN_RIGHT_MID, -2, 0);
+    g_s_meter_label = create_label(topbar, LCD_W - 38, 7, "S0",
+                                   &lv_font_montserrat_10, COLOR_TEXT_DIM);
 
     lv_obj_t *spectrum_bg = lv_obj_create(g_scr);
     lv_obj_set_size(spectrum_bg, LCD_W, SPECTRUM_H);
@@ -697,32 +1215,24 @@ static void create_main_screen(void)
     lv_obj_set_style_pad_all(spectrum_bg, 0, 0);
     lv_obj_set_style_radius(spectrum_bg, 0, 0);
 
-    g_s_meter_label = create_label(spectrum_bg, 6, 4, "S6",
-                                   &lv_font_montserrat_12, COLOR_GREEN);
+    g_spec_status_label = create_label(spectrum_bg, 4, 2, "AUDIO SPECTRUM 0-4kHz",
+                                       &lv_font_montserrat_10, COLOR_TEXT_DIM);
 
-    for (int i = 0; i < 9; i++) {
-        char s[4];
-        snprintf(s, sizeof(s), "%d", i + 1);
-        lv_color_t c = s_meter_color(i + 1);
-        create_label(spectrum_bg, 8 + i * 4, SPECTRUM_H - 10, s,
-                     &lv_font_montserrat_10, COLOR_TEXT_DIM);
-        (void)c;
-    }
-    create_label(spectrum_bg, 8 + 8 * 4, SPECTRUM_H - 10, "+",
-                 &lv_font_montserrat_10, COLOR_TEXT_DIM);
-    create_label(spectrum_bg, 8 + 8 * 4 + 6, SPECTRUM_H - 10, "10",
-                 &lv_font_montserrat_10, COLOR_RED);
+    create_label(spectrum_bg, 38, SPECTRUM_H - 12, "0", &lv_font_montserrat_10, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, 80, SPECTRUM_H - 12, "1k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, 140, SPECTRUM_H - 12, "2k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, 200, SPECTRUM_H - 12, "3k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, LCD_W - 28, SPECTRUM_H - 12, "4k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
 
-    create_label(spectrum_bg, 4, 20, "S", &lv_font_montserrat_10, COLOR_TEXT_DIM);
-
+    int bar_w = (LCD_W - 50) / SPEC_BARS;
     for (int i = 0; i < SPEC_BARS; i++) {
-        g_spec_bars[i] = create_bar(spectrum_bg, 40 + i * 4, SPECTRUM_H - 20,
-                                    3, 10, lv_color_hex(0x103060));
-        g_spec_values[i] = 20;
+        g_spec_bars[i] = create_bar(spectrum_bg, 40 + i * bar_w, SPECTRUM_H - 15,
+                                    bar_w - 1, 2, lv_color_hex(0x103060));
+        g_spec_smooth[i] = 0;
     }
 
-    g_noise_line = create_bar(spectrum_bg, 40, SPECTRUM_H - 25, LCD_W - 45, 1,
-                              lv_color_hex(0x405060));
+    g_noise_line = create_bar(spectrum_bg, 40, SPECTRUM_H - 20, LCD_W - 45, 1, COLOR_NOISE);
+    g_peak_line = create_bar(spectrum_bg, 160, SPECTRUM_H - 48, 2, 3, COLOR_PEAK);
 
     lv_obj_t *content_bg = lv_obj_create(g_scr);
     lv_obj_set_size(content_bg, LCD_W, CONTENT_H);
@@ -733,7 +1243,7 @@ static void create_main_screen(void)
     lv_obj_set_style_radius(content_bg, 0, 0);
 
     lv_obj_t *cw_box = lv_obj_create(content_bg);
-    lv_obj_set_size(cw_box, CARDS_START_X - 4, CONTENT_H - 4);
+    lv_obj_set_size(cw_box, CW_PANEL_W - 4, CONTENT_H - 4);
     lv_obj_set_pos(cw_box, 4, 2);
     lv_obj_set_style_bg_color(cw_box, COLOR_SPEC_BG, 0);
     lv_obj_set_style_border_color(cw_box, COLOR_CARD_BORDER, 0);
@@ -741,22 +1251,33 @@ static void create_main_screen(void)
     lv_obj_set_style_radius(cw_box, 4, 0);
     lv_obj_set_style_pad_all(cw_box, 4, 0);
 
-    create_label(cw_box, 4, 2, "CW DECODE", &lv_font_montserrat_10, COLOR_ACCENT);
+    g_cw_status_label = create_label(cw_box, 4, 2, "CW 700Hz 15WPM",
+                                     &lv_font_montserrat_10, COLOR_GREEN);
+
+    g_cw_signal_dot = lv_obj_create(cw_box);
+    lv_obj_set_size(g_cw_signal_dot, 6, 6);
+    lv_obj_set_style_bg_color(g_cw_signal_dot, COLOR_TEXT_DIM, 0);
+    lv_obj_set_style_radius(g_cw_signal_dot, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_border_width(g_cw_signal_dot, 0, 0);
+    lv_obj_set_style_pad_all(g_cw_signal_dot, 0, 0);
+    lv_obj_set_pos(g_cw_signal_dot, CW_PANEL_W - 22, 4);
+
     memset(g_cw_lines, 0, sizeof(g_cw_lines));
-    strncpy(g_cw_lines[0], "CQ CQ DE BA1AA...", sizeof(g_cw_lines[0]) - 1);
+    strncpy(g_cw_lines[0], "...", sizeof(g_cw_lines[0]) - 1);
     for (int i = 0; i < CW_LINES; i++) {
-        g_cw_labels[i] = create_label(cw_box, 4, 14 + i * 20, g_cw_lines[i],
+        g_cw_labels[i] = create_label(cw_box, 4, 18 + i * 20, g_cw_lines[i],
                                       &lv_font_montserrat_10, COLOR_TEXT);
     }
 
+    const char *CARD_TITLES[NUM_CARDS] = {"SIG", "MAYDAY", "AFC", "FILTER", "PTT", "SETUP"};
     const lv_color_t card_title_colors[NUM_CARDS] = {
-        COLOR_RED, COLOR_GREEN, COLOR_ACCENT, COLOR_CYAN, COLOR_AMBER, COLOR_TEXT_DIM
+        COLOR_GREEN, COLOR_RED, COLOR_CYAN, COLOR_AMBER, COLOR_ACCENT, COLOR_TEXT_DIM
     };
 
     for (int row = 0; row < CARD_ROWS; row++) {
         for (int col = 0; col < CARD_COLS; col++) {
             int idx = row * CARD_COLS + col;
-            int x = CARDS_START_X + CARD_PAD + col * (CARD_W + CARD_GAP_X);
+            int x = CARD_START_X + CARD_PAD + col * (CARD_W + CARD_GAP_X);
             int y = CARD_PAD + row * (CARD_H + CARD_GAP_Y);
             g_cards[idx] = lv_obj_create(content_bg);
             lv_obj_set_size(g_cards[idx], CARD_W, CARD_H);
@@ -765,12 +1286,12 @@ static void create_main_screen(void)
             lv_obj_set_style_border_color(g_cards[idx], COLOR_CARD_BORDER, 0);
             lv_obj_set_style_border_width(g_cards[idx], 1, 0);
             lv_obj_set_style_radius(g_cards[idx], 4, 0);
-            lv_obj_set_style_pad_all(g_cards[idx], 4, 0);
+            lv_obj_set_style_pad_all(g_cards[idx], 3, 0);
 
-            create_label(g_cards[idx], 4, 1, CARD_TITLES[idx],
+            create_label(g_cards[idx], 3, 1, CARD_TITLES[idx],
                          &lv_font_montserrat_10, card_title_colors[idx]);
 
-            g_card_val_labels[idx] = create_label(g_cards[idx], 4, 18, "",
+            g_card_val_labels[idx] = create_label(g_cards[idx], 3, 16, "",
                                                   &lv_font_montserrat_12, COLOR_TEXT);
         }
     }
@@ -784,7 +1305,7 @@ static void create_main_screen(void)
     lv_obj_set_style_radius(bottombar, 0, 0);
 
     g_hint_label = create_label(bottombar, -1, -1,
-        "VOL+:Tune  MENU:Mode  ENTER:Select  HOME:Main",
+        "VOL+-:Tune  MENU:Mode  ENTER:PTT  HOME:Hold=Setup",
         &lv_font_montserrat_10, COLOR_TEXT_DIM);
     lv_obj_center(g_hint_label);
 
@@ -797,20 +1318,16 @@ int main(int argc, char *argv[])
     (void)argv;
 
     printf("========================================\n");
-    printf("  AI Radio Console v%s for openvela\n", RADIO_APP_VERSION);
-    printf("  Landscape 320x240 - Gemini-S1 (R528)\n");
-    printf("  Contest 2026 - Team 095 (BI4MIB)\n");
+    printf("  AI Radio Console v2.0 for openvela\n");
+    printf("  REAL AUDIO DSP - Gemini-S1 (R528)\n");
+    printf("  Landscape 320x240 - Contest 2026\n");
     printf("========================================\n");
 
-    printf("[INIT] Initializing modules...\n");
-    agent_bridge_init();
-    mayday_detector_init();
-    cw_decoder_init(NULL);
-    signal_analyzer_init(AUDIO_SAMPLE_RATE);
-    freq_recommender_init();
-    radio_log_init(NULL);
-    translator_init();
-    printf("[INIT] All modules initialized.\n");
+    pthread_mutex_init(&g_dsp_mutex, NULL);
+    snprintf(g_audio_status, sizeof(g_audio_status), "WAITING FOR AUDIO...");
+
+    printf("[INIT] Starting audio capture thread...\n");
+    pthread_create(&g_audio_thread, NULL, audio_thread_func, NULL);
 
     printf("[UI] Creating LVGL landscape 320x240 interface...\n");
     lv_init();
@@ -823,18 +1340,19 @@ int main(int argc, char *argv[])
     dsc.utouch_path = NULL;
     lv_nuttx_init(&dsc, &nuttx_res);
 
-    if(nuttx_res.disp == NULL) {
+    if (nuttx_res.disp == NULL) {
         syslog(LOG_ERR, "ai_radio: failed to open /dev/lcd0\n");
     }
-    if(nuttx_res.indev == NULL) {
+    if (nuttx_res.indev == NULL) {
         syslog(LOG_WARNING, "ai_radio: failed to open /dev/input0 (touch)\n");
     }
+
+    g_cw_dit_ms = 1200 / g_cw_wpm;
 
     create_main_screen();
     update_freq_display();
     update_cards_display();
     update_card_highlight();
-    update_spectrum();
 
     lv_timer_create(ui_update_timer, UI_REFRESH_MS, NULL);
     lv_timer_create(mayday_flash_timer, 300, NULL);
@@ -844,16 +1362,18 @@ int main(int argc, char *argv[])
 
     printf("[UI] Interface created.\n");
     printf("[INFO] LRADC buttons: Vol-/+, Menu, Enter, Home\n");
-    printf("[INFO] System ready. Entering UI loop...\n");
+    printf("[INFO] Entering main loop...\n");
 
     while (g_running) {
         uint32_t idle = lv_timer_handler();
-        if(idle < 1) idle = 1;
-        if(idle > BTN_POLL_MS) idle = BTN_POLL_MS;
+        if (idle < 1) idle = 1;
+        if (idle > BTN_POLL_MS) idle = BTN_POLL_MS;
         usleep(idle * 1000);
     }
 
     if (g_btn_fd >= 0) close(g_btn_fd);
+    pthread_join(g_audio_thread, NULL);
+    pthread_mutex_destroy(&g_dsp_mutex);
     printf("[SHUTDOWN] AI Radio Console exiting.\n");
     return 0;
 }
