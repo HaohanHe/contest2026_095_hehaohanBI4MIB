@@ -26,8 +26,8 @@
 
 #include <lvgl.h>
 
-#define LV_HOR_RES          320
-#define LV_VER_RES          240
+#define LV_HOR_RES          240
+#define LV_VER_RES          320
 
 #define COLOR_BG            lv_color_hex(0x0d1117)
 #define COLOR_CARD          lv_color_hex(0x161b22)
@@ -67,9 +67,6 @@ static lv_obj_t *g_log_value_label = NULL;
 static lv_obj_t *g_translate_value_label = NULL;
 static lv_obj_t *g_sat_value_label = NULL;
 
-static int g_temp_val = 24;
-static int g_hum_val = 62;
-static int g_light_val = 320;
 static float g_noise_floor = -78.0f;
 static int g_s_meter = 7;
 static int g_qso_count = 12;
@@ -118,19 +115,19 @@ static lv_obj_t *create_card(lv_obj_t *parent, const char *icon_text, const char
                               lv_color_t icon_bg, lv_color_t icon_fg, int x, int y)
 {
     lv_obj_t *card = lv_obj_create(parent);
-    lv_obj_set_size(card, 148, 52);
+    lv_obj_set_size(card, 108, 44);
     lv_obj_set_pos(card, x, y);
     lv_obj_set_style_bg_color(card, COLOR_CARD, 0);
     lv_obj_set_style_border_color(card, COLOR_CARD_BORDER, 0);
     lv_obj_set_style_border_width(card, 1, 0);
     lv_obj_set_style_radius(card, 8, 0);
-    lv_obj_set_style_pad_all(card, 6, 0);
+    lv_obj_set_style_pad_all(card, 4, 0);
 
     lv_obj_t *icon = lv_obj_create(card);
-    lv_obj_set_size(icon, 20, 20);
+    lv_obj_set_size(icon, 16, 16);
     lv_obj_set_pos(icon, 0, 0);
     lv_obj_set_style_bg_color(icon, icon_bg, 0);
-    lv_obj_set_style_radius(icon, 4, 0);
+    lv_obj_set_style_radius(icon, 3, 0);
     lv_obj_set_style_border_width(icon, 0, 0);
     lv_obj_set_style_pad_all(icon, 0, 0);
 
@@ -142,7 +139,7 @@ static lv_obj_t *create_card(lv_obj_t *parent, const char *icon_text, const char
     lv_obj_t *title_label = lv_label_create(card);
     lv_label_set_text(title_label, title);
     lv_obj_set_style_text_color(title_label, COLOR_TEXT, 0);
-    lv_obj_set_pos(title_label, 28, 2);
+    lv_obj_set_pos(title_label, 22, 1);
 
     return card;
 }
@@ -176,8 +173,8 @@ static void main_screen_create(void)
     lv_obj_align(freq_unit, LV_ALIGN_CENTER, 0, 12);
 
     lv_obj_t *spectrum_container = lv_obj_create(g_main_screen);
-    lv_obj_set_size(spectrum_container, LV_HOR_RES - 16, 40);
-    lv_obj_set_pos(spectrum_container, 8, 76);
+    lv_obj_set_size(spectrum_container, LV_HOR_RES - 16, 36);
+    lv_obj_set_pos(spectrum_container, 8, 72);
     lv_obj_set_style_bg_color(spectrum_container, lv_color_hex(0x080b10), 0);
     lv_obj_set_style_border_color(spectrum_container, COLOR_CARD_BORDER, 0);
     lv_obj_set_style_border_width(spectrum_container, 1, 0);
@@ -204,10 +201,10 @@ static void main_screen_create(void)
     lv_obj_set_style_border_width(g_s_meter_bar, 0, 0);
     lv_obj_align(g_s_meter_bar, LV_ALIGN_BOTTOM_MID, 0, -4);
 
-    int card_w = 148;
-    int card_h = 52;
+    int card_w = 108;
+    int card_h = 44;
     int card_x_start = 8;
-    int card_y_start = 120;
+    int card_y_start = 114;
     int gap_x = 8;
     int gap_y = 6;
 
@@ -215,39 +212,48 @@ static void main_screen_create(void)
         lv_color_hex(0x3d1515), COLOR_RED, card_x_start, card_y_start);
     g_mayday_value_label = lv_label_create(g_card_mayday);
     lv_obj_set_style_text_color(g_mayday_value_label, COLOR_RED, 0);
-    lv_obj_set_pos(g_mayday_value_label, 6, 30);
+    lv_obj_set_pos(g_mayday_value_label, 4, 24);
 
     g_card_cw = create_card(g_main_screen, "CW", "CW Decode",
         lv_color_hex(0x0d2b45), COLOR_ACCENT, card_x_start + card_w + gap_x, card_y_start);
     g_cw_text_label = lv_label_create(g_card_cw);
     lv_obj_set_style_text_color(g_cw_text_label, COLOR_ACCENT, 0);
-    lv_obj_set_pos(g_cw_text_label, 6, 30);
+    lv_obj_set_pos(g_cw_text_label, 4, 24);
     lv_label_set_long_mode(g_cw_text_label, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    lv_obj_set_size(g_cw_text_label, card_w - 12, 16);
+    lv_obj_set_size(g_cw_text_label, card_w - 8, 14);
 
     g_card_interfere = create_card(g_main_screen, "INT", "Interfere",
         lv_color_hex(0x3d2b0d), COLOR_ORANGE, card_x_start, card_y_start + card_h + gap_y);
     g_interfere_value_label = lv_label_create(g_card_interfere);
     lv_obj_set_style_text_color(g_interfere_value_label, COLOR_TEXT_DIM, 0);
-    lv_obj_set_pos(g_interfere_value_label, 6, 30);
+    lv_obj_set_pos(g_interfere_value_label, 4, 24);
 
     g_card_ai = create_card(g_main_screen, "AI", "AI Freq",
         lv_color_hex(0x2a0d3d), COLOR_PURPLE, card_x_start + card_w + gap_x, card_y_start + card_h + gap_y);
     g_ai_value_label = lv_label_create(g_card_ai);
     lv_obj_set_style_text_color(g_ai_value_label, COLOR_GREEN, 0);
-    lv_obj_set_pos(g_ai_value_label, 6, 30);
+    lv_obj_set_pos(g_ai_value_label, 4, 24);
 
     g_card_log = create_card(g_main_screen, "LOG", "QSO Log",
         lv_color_hex(0x0d3d15), COLOR_GREEN, card_x_start, card_y_start + (card_h + gap_y) * 2);
     g_log_value_label = lv_label_create(g_card_log);
     lv_obj_set_style_text_color(g_log_value_label, COLOR_TEXT_DIM, 0);
-    lv_obj_set_pos(g_log_value_label, 6, 30);
+    lv_obj_set_pos(g_log_value_label, 4, 24);
 
     g_card_translate = create_card(g_main_screen, "TR", "Translate",
         lv_color_hex(0x0d3d3d), COLOR_CYAN, card_x_start + card_w + gap_x, card_y_start + (card_h + gap_y) * 2);
     g_translate_value_label = lv_label_create(g_card_translate);
     lv_obj_set_style_text_color(g_translate_value_label, COLOR_TEXT_DIM, 0);
-    lv_obj_set_pos(g_translate_value_label, 6, 30);
+    lv_obj_set_pos(g_translate_value_label, 4, 24);
+
+    g_card_sat = create_card(g_main_screen, "SAT", "Sat Pass",
+        lv_color_hex(0x1a0d3d), COLOR_YELLOW, card_x_start, card_y_start + (card_h + gap_y) * 3);
+    g_sat_value_label = lv_label_create(g_card_sat);
+    lv_obj_set_style_text_color(g_sat_value_label, COLOR_TEXT_DIM, 0);
+    lv_obj_set_pos(g_sat_value_label, 4, 24);
+
+    g_card_settings = create_card(g_main_screen, "SET", "Settings",
+        lv_color_hex(0x2d2d2d), COLOR_GRAY, card_x_start + card_w + gap_x, card_y_start + (card_h + gap_y) * 3);
 
     lv_label_set_text(g_mayday_value_label, g_mayday_alert ? "! ALERT !" : "Monitoring");
     strncpy(g_cw_buf, "CQ CQ DE BA1AA...", sizeof(g_cw_buf) - 1);
@@ -256,6 +262,7 @@ static void main_screen_create(void)
     lv_label_set_text(g_ai_value_label, "3 best freqs");
     lv_label_set_text_fmt(g_log_value_label, "%d QSOs today", g_qso_count);
     lv_label_set_text(g_translate_value_label, "EN-ZH Ready");
+    lv_label_set_text(g_sat_value_label, "ISS 12:34");
     lv_label_set_text_fmt(g_s_meter_label, "S%d", g_s_meter);
 
     lv_scr_load(g_main_screen);
@@ -274,8 +281,6 @@ static void ui_update_timer(lv_timer_t *timer)
         lv_label_set_text(g_time_label, time_buf);
     }
 
-    g_temp_val = 23 + (rand() % 3);
-    g_hum_val = 60 + (rand() % 8);
     g_noise_floor = -80.0f + (float)(rand() % 10);
     g_s_meter = 5 + (rand() % 5);
 
