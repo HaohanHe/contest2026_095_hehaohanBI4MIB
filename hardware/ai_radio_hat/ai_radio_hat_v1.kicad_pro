@@ -1,0 +1,8 @@
+(kicad_project
+  (version 1)
+  (generator "manual")
+  (project "ai_radio_hat_v1"
+    (comment "AI Radio HAT for Gemini-S1")
+    (company "Contest2026")
+  )
+)
