@@ -2,8 +2,10 @@
 #define __UI_MANAGER_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include "radio_config.h"
+#include "freq_recommender.h"
 
 typedef enum {
     UI_SCREEN_MAIN = 0,

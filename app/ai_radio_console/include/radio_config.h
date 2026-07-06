@@ -1,6 +1,8 @@
 #ifndef __RADIO_CONFIG_H
 #define __RADIO_CONFIG_H
 
+#include <stdint.h>
+
 #define RADIO_APP_NAME          "ai_radio_console"
 #define RADIO_APP_VERSION       "1.0.0"
 #define RADIO_APP_STACKSIZE     8192

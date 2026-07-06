@@ -2,6 +2,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define FFT_SIZE 512
 #define FFT_BINS (FFT_SIZE / 2)
@@ -69,7 +70,6 @@ static void analyze_spectrum(void) {
     fft_compute(g_fft_real, g_fft_imag, FFT_SIZE);
     float max_power = -1000.0f;
     int max_bin = 0;
-    float center_bin = (float)(CW_BPF_LOW_FREQ + CW_BPF_HIGH_FREQ) / 2 * FFT_SIZE / g_sample_rate;
     float bin_width = (float)g_sample_rate / FFT_SIZE;
     for (int i = 1; i < FFT_BINS; i++) {
         float power = g_fft_real[i] * g_fft_real[i] + g_fft_imag[i] * g_fft_imag[i];

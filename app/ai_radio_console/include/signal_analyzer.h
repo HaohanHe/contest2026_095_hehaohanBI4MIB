@@ -2,6 +2,7 @@
 #define __SIGNAL_ANALYZER_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include "radio_config.h"
 

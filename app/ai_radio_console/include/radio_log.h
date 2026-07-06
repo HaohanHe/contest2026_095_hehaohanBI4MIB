@@ -2,6 +2,7 @@
 #define __RADIO_LOG_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include "radio_config.h"
 

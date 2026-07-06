@@ -21,7 +21,6 @@ static float g_current_db = -60.0f;
 
 static void *capture_thread_func(void *arg) {
     (void)arg;
-    size_t samples_per_frame = AUDIO_FRAME_SIZE / sizeof(int16_t);
     while (g_recording) {
         ssize_t bytes_read = read(g_audio_fd, g_frame_buffer, AUDIO_FRAME_SIZE);
         if (bytes_read <= 0) {

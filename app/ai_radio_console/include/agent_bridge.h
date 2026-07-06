@@ -2,6 +2,7 @@
 #define __AGENT_BRIDGE_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include "radio_config.h"
 

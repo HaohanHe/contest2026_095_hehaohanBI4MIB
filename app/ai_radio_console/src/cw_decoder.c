@@ -1,4 +1,5 @@
 #include "cw_decoder.h"
+#include "radio_config.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>

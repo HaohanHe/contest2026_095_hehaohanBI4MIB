@@ -2,6 +2,7 @@
 #define __CW_DECODER_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 #define CW_DECODER_MAX_TEXT 256
