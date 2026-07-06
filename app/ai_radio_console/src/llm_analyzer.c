@@ -121,6 +121,17 @@ typedef struct {
     void *user_data;
 } analysis_task_t;
 
+typedef struct {
+    char transcript[MAX_TRANSCRIPT_LEN];
+    float frequency;
+    char mode[16];
+    llm_analysis_stream_cb_t stream_cb;
+    llm_analysis_cb_t final_cb;
+    void *user_data;
+    char response[MAX_LLM_RESPONSE_LEN];
+    size_t response_len;
+} stream_analysis_task_t;
+
 static void *analysis_thread(void *arg)
 {
     analysis_task_t *task = (analysis_task_t *)arg;
@@ -159,6 +170,64 @@ static void *analysis_thread(void *arg)
     return NULL;
 }
 
+static void stream_analysis_chunk_cb(const char *chunk_text, bool is_done, void *user_data)
+{
+    stream_analysis_task_t *task = (stream_analysis_task_t *)user_data;
+    if (!task) return;
+
+    if (is_done) {
+        analysis_result_t result;
+        parse_analysis_result(task->response, &result);
+        if (task->final_cb) {
+            task->final_cb(&result, task->user_data);
+        }
+        free(task);
+        return;
+    }
+
+    if (task->stream_cb) {
+        task->stream_cb(chunk_text, false, task->user_data);
+    }
+
+    size_t chunk_len = strlen(chunk_text);
+    if (task->response_len + chunk_len < sizeof(task->response) - 1) {
+        memcpy(task->response + task->response_len, chunk_text, chunk_len);
+        task->response_len += chunk_len;
+        task->response[task->response_len] = '\0';
+    }
+}
+
+static void *stream_analysis_thread(void *arg)
+{
+    stream_analysis_task_t *task = (stream_analysis_task_t *)arg;
+    if (!task) return NULL;
+
+    const char *model = g_config.llm_model[0] ? g_config.llm_model : DEFAULT_LLM_MODEL;
+
+    char user_msg[MAX_TRANSCRIPT_LEN + 128];
+    snprintf(user_msg, sizeof(user_msg),
+        "当前频率：%.3f MHz，模式：%s\n"
+        "通联转写文本：%s\n"
+        "请分析此内容。",
+        task->frequency / 1000000.0f, task->mode, task->transcript);
+
+    int ret = sf_client_chat_completion_stream(model, SYSTEM_PROMPT_ANALYSIS, user_msg,
+                                                stream_analysis_chunk_cb, task);
+    if (ret != 0) {
+        analysis_result_t result;
+        memset(&result, 0, sizeof(result));
+        result.type = ANALYSIS_NO_CONTENT;
+        result.alert_level = ALERT_LEVEL_NONE;
+        snprintf(result.summary, sizeof(result.summary), "[LLM流式调用失败: %s]",
+                 sf_client_get_last_error());
+        if (task->final_cb) {
+            task->final_cb(&result, task->user_data);
+        }
+        free(task);
+    }
+    return NULL;
+}
+
 int llm_analyzer_analyze_transcript(const char *transcript, float frequency,
                                      const char *mode, llm_analysis_cb_t cb, void *user_data)
 {
@@ -176,6 +245,33 @@ int llm_analyzer_analyze_transcript(const char *transcript, float frequency,
 
     pthread_t tid;
     pthread_create(&tid, NULL, analysis_thread, task);
+    pthread_detach(tid);
+    return 0;
+}
+
+int llm_analyzer_analyze_transcript_stream(const char *transcript, float frequency,
+                                            const char *mode,
+                                            llm_analysis_stream_cb_t stream_cb,
+                                            llm_analysis_cb_t final_cb,
+                                            void *user_data)
+{
+    if (!g_enabled || !transcript) return -1;
+
+    stream_analysis_task_t *task = (stream_analysis_task_t *)malloc(sizeof(stream_analysis_task_t));
+    if (!task) return -1;
+    memset(task, 0, sizeof(*task));
+
+    strncpy(task->transcript, transcript, sizeof(task->transcript) - 1);
+    task->transcript[sizeof(task->transcript) - 1] = '\0';
+    task->frequency = frequency;
+    strncpy(task->mode, mode ? mode : "USB", sizeof(task->mode) - 1);
+    task->mode[sizeof(task->mode) - 1] = '\0';
+    task->stream_cb = stream_cb;
+    task->final_cb = final_cb;
+    task->user_data = user_data;
+
+    pthread_t tid;
+    pthread_create(&tid, NULL, stream_analysis_thread, task);
     pthread_detach(tid);
     return 0;
 }

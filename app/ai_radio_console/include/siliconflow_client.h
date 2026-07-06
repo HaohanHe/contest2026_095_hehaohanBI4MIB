@@ -26,6 +26,17 @@ int sf_client_chat_completion(const char *model, const char *system_prompt,
                                const char *user_message, char *out_response,
                                size_t max_len, float *out_confidence);
 
+/* Stream callback: invoked for each delta text chunk.
+ * chunk_text: the newly generated text delta (empty when is_done == true).
+ * is_done:    true when the stream ends ([DONE] received).
+ * user_data:  opaque pointer passed by the caller.
+ */
+typedef void (*sf_stream_chunk_cb_t)(const char *chunk_text, bool is_done, void *user_data);
+
+int sf_client_chat_completion_stream(const char *model, const char *system_prompt,
+                                      const char *user_message,
+                                      sf_stream_chunk_cb_t cb, void *user_data);
+
 bool sf_client_check_connection(void);
 const char *sf_client_get_last_error(void);
 

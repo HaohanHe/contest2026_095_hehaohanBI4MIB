@@ -46,6 +46,16 @@
 #define ASR_CHUNK_SECONDS       5
 #define ASR_CHUNK_SAMPLES       (AUDIO_SAMPLE_RATE * ASR_CHUNK_SECONDS)
 
+/* Streaming ASR parameters */
+#define ASR_STREAM_TARGET_RATE  16000
+#define ASR_STREAM_INPUT_RATE   8000
+#define ASR_VAD_FRAME_MS        20
+#define ASR_VAD_SPEECH_FRAMES   5    /* 100 ms of speech to trigger start */
+#define ASR_VAD_SILENT_FRAMES   25   /* 500 ms of silence to trigger end */
+#define ASR_VAD_THRESHOLD_DB    -40.0f
+#define ASR_PARTIAL_INTERVAL_MS 1000 /* send partial ASR every 1s while speaking */
+#define ASR_UTTERANCE_MAX_S     30
+
 #define SILICONFLOW_ASR_ENDPOINT  "https://api.siliconflow.cn/v1/audio/transcriptions"
 #define SILICONFLOW_CHAT_ENDPOINT "https://api.siliconflow.cn/v1/chat/completions"
 #define DEFAULT_ASR_MODEL         "FunAudioLLM/SenseVoiceSmall"

@@ -27,6 +27,17 @@ static void on_asr_result(const char *text, bool is_partial, void *user_data);
 static void on_asr_state(asr_state_t state, void *user_data);
 static void on_asr_error(int error_code, const char *message, void *user_data);
 static void on_llm_analysis(const analysis_result_t *result, void *ud);
+static void on_llm_stream_chunk(const char *chunk_text, bool is_done, void *user_data);
+
+static char g_current_utt_text[MAX_TRANSCRIPT_LEN];
+
+static void on_llm_stream_chunk(const char *chunk_text, bool is_done, void *user_data)
+{
+    (void)user_data;
+    if (is_done) return;
+    if (!chunk_text || chunk_text[0] == '\0') return;
+    printf("[agent_bridge] LLM analysis stream: %s", chunk_text);
+}
 
 static void on_llm_analysis(const analysis_result_t *result, void *ud)
 {
@@ -68,23 +79,39 @@ static void on_llm_analysis(const analysis_result_t *result, void *ud)
 static void on_asr_result(const char *text, bool is_partial, void *user_data)
 {
     (void)user_data;
-    (void)is_partial;
     if (!text || text[0] == '\0') return;
 
-    printf("[agent_bridge] ASR transcript: %s\n", text);
+    printf("[agent_bridge] ASR %s: %s\n", is_partial ? "partial" : "final", text);
 
-    if (g_transcript_cb) {
-        g_transcript_cb(text, 0, g_cb_data);
+    /* Accumulate utterance text; partial results are deltas from ASR engine */
+    size_t curr_len = strlen(g_current_utt_text);
+    size_t text_len = strlen(text);
+    if (curr_len + text_len < sizeof(g_current_utt_text) - 1) {
+        memcpy(g_current_utt_text + curr_len, text, text_len);
+        g_current_utt_text[curr_len + text_len] = '\0';
     }
 
+    if (g_transcript_cb) {
+        g_transcript_cb(text, is_partial ? 1 : 0, g_cb_data);
+    }
+
+    if (is_partial) {
+        return;
+    }
+
+    /* Final result: log complete utterance and run LLM analysis */
     if (g_config.auto_logging) {
-        radio_log_qso_text(g_current_freq, g_current_mode, text);
+        radio_log_qso_text(g_current_freq, g_current_mode, g_current_utt_text);
     }
 
     if (g_config.llm_enabled && (g_config.mayday_detection_via_llm || g_config.violation_detection)) {
-        llm_analyzer_analyze_transcript(text, g_current_freq, g_current_mode,
-                                        on_llm_analysis, NULL);
+        llm_analyzer_analyze_transcript_stream(g_current_utt_text, g_current_freq,
+                                                g_current_mode,
+                                                on_llm_stream_chunk,
+                                                on_llm_analysis, NULL);
     }
+
+    g_current_utt_text[0] = '\0';
 }
 
 static void on_asr_state(asr_state_t state, void *user_data)
@@ -111,6 +138,7 @@ static void on_asr_error(int error_code, const char *message, void *user_data)
 int agent_bridge_init(void)
 {
     config_store_load(&g_config);
+    g_current_utt_text[0] = '\0';
 
     if (g_config.api_key[0] != '\0') {
         sf_client_init(&g_config);
@@ -122,6 +150,10 @@ int agent_bridge_init(void)
         cbs.on_state_change = on_asr_state;
         cbs.on_error = on_asr_error;
         asr_engine_set_callbacks(&cbs);
+
+        if (g_config.asr_enabled) {
+            asr_engine_start();
+        }
 
         g_connected = sf_client_check_connection();
         printf("[agent_bridge] Initialized with SiliconFlow (ASR model: %s, LLM model: %s)\n",
@@ -257,6 +289,7 @@ int agent_bridge_update_config(const ai_config_t *config)
     if (!config) return -1;
     bool was_enabled = g_config.asr_enabled;
     memcpy(&g_config, config, sizeof(g_config));
+    g_current_utt_text[0] = '\0';
     config_store_save(&g_config);
 
     asr_engine_stop();
