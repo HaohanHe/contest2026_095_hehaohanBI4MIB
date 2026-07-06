@@ -22,6 +22,10 @@
 #include "agent_bridge.h"
 #include "radio_config.h"
 #include "radio_log.h"
+#include "input_lradc.h"
+#include "wifi_auto_connect.h"
+#include "audio_i2s.h"
+#include "ui_ai_radio.h"
 
 #define UI_REFRESH_MS       200
 #define LCD_W               320
@@ -79,9 +83,7 @@
 #define CW_LINES            4
 #define SPEC_BARS           60
 
-#define AUDIO_SAMPLE_RATE   8000
-#define AUDIO_CHANNELS      1
-#define AUDIO_BPS           16
+#define AUDIO_BPS           AUDIO_BITS_PER_SAMPLE
 #define AUDIO_CHUNK_SAMPLES 160
 #define AUDIO_RING_SIZE     512
 
@@ -184,6 +186,7 @@ static uint32_t g_btn_press_time = 0;
 static btn_buttonset_t g_btn_current = 0;
 static volatile bool g_running = true;
 static pthread_t g_audio_thread;
+static bool g_audio_thread_created = false;
 static pthread_mutex_t g_dsp_mutex;
 
 static int16_t g_ring_buffer[AUDIO_RING_SIZE];
@@ -1139,13 +1142,9 @@ static void ui_update_timer(lv_timer_t *timer)
 
 static int button_init(void)
 {
-    const char *dev = "/dev/input/event1";
-    g_btn_fd = open(dev, O_RDONLY | O_NONBLOCK);
-    if (g_btn_fd < 0) {
-        printf("[BTN] Warning: cannot open %s (%s)\n", dev, strerror(errno));
-        return -1;
-    }
-    printf("[BTN] Button device %s opened (fd=%d)\n", dev, g_btn_fd);
+    /* Inline LVGL button polling is disabled; LRADC input is handled
+     * by the input_lradc module to avoid sharing /dev/input/event1. */
+    g_btn_fd = -1;
     return 0;
 }
 
@@ -1332,6 +1331,8 @@ int main(int argc, char *argv[])
     printf("  Voice AI powered by SiliconFlow ASR+LLM\n");
     printf("========================================\n");
 
+    wifi_auto_connect_start();
+
     pthread_mutex_init(&g_dsp_mutex, NULL);
     snprintf(g_audio_status, sizeof(g_audio_status), "WAITING FOR AUDIO...");
 
@@ -1341,7 +1342,15 @@ int main(int argc, char *argv[])
     agent_bridge_set_mode(MODE_NAMES[g_mode_idx]);
 
     printf("[INIT] Starting audio capture thread...\n");
-    pthread_create(&g_audio_thread, NULL, audio_thread_func, NULL);
+#if AUDIO_CAPTURE_FROM_I2S
+    if (audio_i2s_init() == 0) {
+        audio_i2s_start();
+    } else
+#endif
+    {
+        pthread_create(&g_audio_thread, NULL, audio_thread_func, NULL);
+        g_audio_thread_created = true;
+    }
 
     printf("[UI] Creating LVGL landscape 320x240 interface...\n");
     lv_init();
@@ -1368,11 +1377,16 @@ int main(int argc, char *argv[])
     update_cards_display();
     update_card_highlight();
 
+    ui_ai_radio_init();
+
     lv_timer_create(ui_update_timer, UI_REFRESH_MS, NULL);
     lv_timer_create(mayday_flash_timer, 300, NULL);
 
     button_init();
     lv_timer_create(button_poll_timer, BTN_POLL_MS, NULL);
+
+    input_lradc_init();
+    input_lradc_start();
 
     printf("[UI] Interface created.\n");
     printf("[INFO] LRADC buttons: Vol-/+, Menu, Enter, Home\n");
@@ -1380,13 +1394,18 @@ int main(int argc, char *argv[])
 
     while (g_running) {
         uint32_t idle = lv_timer_handler();
+        ui_ai_radio_refresh();
         if (idle < 1) idle = 1;
         if (idle > BTN_POLL_MS) idle = BTN_POLL_MS;
         usleep(idle * 1000);
     }
 
     if (g_btn_fd >= 0) close(g_btn_fd);
-    pthread_join(g_audio_thread, NULL);
+    input_lradc_stop();
+    audio_i2s_stop();
+    if (g_audio_thread_created) {
+        pthread_join(g_audio_thread, NULL);
+    }
     agent_bridge_deinit();
     radio_log_deinit();
     pthread_mutex_destroy(&g_dsp_mutex);

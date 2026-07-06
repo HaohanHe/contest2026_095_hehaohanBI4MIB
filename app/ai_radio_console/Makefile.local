@@ -12,12 +12,21 @@ TARGET = $(BUILDDIR)/ai_radio
 SRCS = $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRCS))
 
-.PHONY: all clean run
+.PHONY: all clean run codesize
 
-all: $(TARGET)
+all: $(TARGET) codesize
 	@echo ""
 	@echo "=== Build complete ==="
 	@ls -la $(TARGET)
+
+codesize: $(TARGET)
+	@echo ""
+	@echo "=== Code size summary ==="
+	@find $(SRCDIR) include -type f \( -name '*.c' -o -name '*.h' \) -exec wc -l {} +
+	@echo ""
+	@echo "ELF size:"
+	@ls -lh $(TARGET)
+	@command -v size >/dev/null 2>&1 && size $(TARGET) || true
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)

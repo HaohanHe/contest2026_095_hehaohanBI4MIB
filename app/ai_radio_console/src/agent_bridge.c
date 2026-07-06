@@ -5,6 +5,7 @@
 #include "radio_log.h"
 #include "radio_config.h"
 #include "config_store.h"
+#include "ui_ai_radio.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -42,6 +43,10 @@ static void on_llm_stream_chunk(const char *chunk_text, bool is_done, void *user
 static void on_llm_analysis(const analysis_result_t *result, void *ud)
 {
     (void)ud;
+
+    ui_ai_radio_set_analysis(result->summary, result->alert_level);
+    ui_ai_radio_show_alert(result->alert_level > ALERT_LEVEL_NONE, result->alert_level);
+
     if (result->needs_alert && g_alert_cb) {
         alert_event_t alert;
         memset(&alert, 0, sizeof(alert));
@@ -82,6 +87,8 @@ static void on_asr_result(const char *text, bool is_partial, void *user_data)
     if (!text || text[0] == '\0') return;
 
     printf("[agent_bridge] ASR %s: %s\n", is_partial ? "partial" : "final", text);
+
+    ui_ai_radio_append_transcript(text, is_partial);
 
     /* Accumulate utterance text; partial results are deltas from ASR engine */
     size_t curr_len = strlen(g_current_utt_text);
@@ -275,12 +282,14 @@ int agent_bridge_set_mode(const char *mode)
         strncpy(g_current_mode, mode, sizeof(g_current_mode) - 1);
         g_current_mode[sizeof(g_current_mode) - 1] = '\0';
     }
+    ui_ai_radio_set_frequency(g_current_freq, g_current_mode);
     return 0;
 }
 
 int agent_bridge_set_frequency(float freq_hz)
 {
     g_current_freq = freq_hz;
+    ui_ai_radio_set_frequency(g_current_freq, g_current_mode);
     return 0;
 }
 

@@ -341,7 +341,29 @@ int asr_engine_feed_audio(const int16_t *samples, size_t count)
 
     pthread_mutex_lock(&g_mutex);
 
-    /* Safety cap: if utterance too long, force final and reset */
+#if AUDIO_SAMPLE_RATE == ASR_TARGET_SAMPLE_RATE
+    /* Input already at target rate; feed directly without upsampling */
+    if (g_utt_count >= ASR_UTTERANCE_MAX_SAMPLES - count - ASR_VAD_FRAME_SAMPLES) {
+        if (g_utt_count > ASR_TARGET_SAMPLE_RATE / 2) {
+            g_final_pending = true;
+        }
+        reset_utterance_locked();
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        int16_t s = samples[i];
+        if (g_utt_count < ASR_UTTERANCE_MAX_SAMPLES) {
+            g_utt_buf[g_utt_count++] = s;
+        }
+
+        g_vad_frame[g_vad_frame_count++] = s;
+        if (g_vad_frame_count >= ASR_VAD_FRAME_SAMPLES) {
+            process_vad_frame(g_vad_frame);
+            g_vad_frame_count = 0;
+        }
+    }
+#else
+    /* Upsample from lower rate (e.g. 8 kHz) to target 16 kHz */
     if (g_utt_count >= ASR_UTTERANCE_MAX_SAMPLES - (count * ASR_UPSAMPLE_FACTOR) - ASR_VAD_FRAME_SAMPLES) {
         if (g_utt_count > ASR_TARGET_SAMPLE_RATE / 2) {
             g_final_pending = true;
@@ -367,6 +389,7 @@ int asr_engine_feed_audio(const int16_t *samples, size_t count)
         }
         g_last_input_sample = in;
     }
+#endif
 
     pthread_mutex_unlock(&g_mutex);
     return 0;
