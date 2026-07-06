@@ -7,6 +7,10 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#if GPS_ENABLED
+#include "location_service.h"
+#endif
+
 static bool g_initialized = false;
 static char g_db_path[256] = LOG_DB_PATH;
 
@@ -244,9 +248,30 @@ int radio_log_qso_text(float freq, const char *mode, const char *text) {
     if (!g_transcript_fp) return -1;
     time_t now = time(NULL);
     char tbuf[32];
-    struct tm *tm_info = localtime(&now);
-    strftime(tbuf, sizeof(tbuf), "%H:%M:%S", tm_info);
+    struct tm *tm_info = gmtime(&now);
+    if (tm_info) {
+        strftime(tbuf, sizeof(tbuf), "%Y-%m-%dT%H:%M:%SZ", tm_info);
+    } else {
+        snprintf(tbuf, sizeof(tbuf), "---");
+    }
+
+#if GPS_ENABLED
+    gps_fix_t fix;
+    bool has_fix = location_service_get_fix(&fix);
+    if (has_fix && fix.valid) {
+        fprintf(g_transcript_fp,
+                "[%s] %.3f MHz %s: \"%s\" lat=%.4f lon=%.4f alt=%.1f\n",
+                tbuf, freq / 1000000.0f, mode ? mode : "USB", text,
+                fix.latitude, fix.longitude, fix.altitude_m);
+    } else {
+        fprintf(g_transcript_fp,
+                "[%s] %.3f MHz %s: \"%s\" lat=--- lon=--- alt=---\n",
+                tbuf, freq / 1000000.0f, mode ? mode : "USB", text);
+    }
+#else
     fprintf(g_transcript_fp, "[%s] %.3fMHz %s: %s\n", tbuf, freq / 1000000.0f, mode ? mode : "USB", text);
+#endif
+
     fflush(g_transcript_fp);
     return 0;
 }

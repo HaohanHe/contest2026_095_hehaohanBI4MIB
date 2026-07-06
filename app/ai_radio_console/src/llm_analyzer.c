@@ -1,12 +1,14 @@
 #include "llm_analyzer.h"
 #include "siliconflow_client.h"
 #include "json_minimal.h"
+#include "location_service.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <math.h>
 
 static ai_config_t g_config;
 static bool g_enabled = false;
@@ -119,6 +121,8 @@ typedef struct {
     char mode[16];
     llm_analysis_cb_t cb;
     void *user_data;
+    gps_fix_t fix;
+    bool has_fix;
 } analysis_task_t;
 
 typedef struct {
@@ -130,7 +134,29 @@ typedef struct {
     void *user_data;
     char response[MAX_LLM_RESPONSE_LEN];
     size_t response_len;
+    gps_fix_t fix;
+    bool has_fix;
 } stream_analysis_task_t;
+
+static void build_analysis_prompt(const char *transcript, float frequency, const char *mode,
+                                  const gps_fix_t *fix, char *out_buf, size_t out_buf_len)
+{
+    char loc_str[128] = {0};
+    if (fix && fix->valid) {
+        snprintf(loc_str, sizeof(loc_str),
+                 "当前位置：%s %.4f 度，%s %.4f 度，海拔 %.1f 米。\n",
+                 fix->latitude >= 0.0 ? "北纬" : "南纬", fabs(fix->latitude),
+                 fix->longitude >= 0.0 ? "东经" : "西经", fabs(fix->longitude),
+                 fix->altitude_m);
+    }
+
+    snprintf(out_buf, out_buf_len,
+             "%s"
+             "当前频率：%.3f MHz，模式：%s\n"
+             "通联转写文本：%s\n"
+             "请分析此内容。",
+             loc_str, frequency / 1000000.0f, mode, transcript);
+}
 
 static void *analysis_thread(void *arg)
 {
@@ -139,12 +165,9 @@ static void *analysis_thread(void *arg)
 
     const char *model = g_config.llm_model[0] ? g_config.llm_model : DEFAULT_LLM_MODEL;
 
-    char user_msg[MAX_TRANSCRIPT_LEN + 128];
-    snprintf(user_msg, sizeof(user_msg),
-        "当前频率：%.3f MHz，模式：%s\n"
-        "通联转写文本：%s\n"
-        "请分析此内容。",
-        task->frequency / 1000000.0f, task->mode, task->transcript);
+    char user_msg[MAX_TRANSCRIPT_LEN + 256];
+    build_analysis_prompt(task->transcript, task->frequency, task->mode,
+                          task->has_fix ? &task->fix : NULL, user_msg, sizeof(user_msg));
 
     char response[MAX_LLM_RESPONSE_LEN];
     float conf = 0;
@@ -154,6 +177,12 @@ static void *analysis_thread(void *arg)
     analysis_result_t result;
     if (ret == 0) {
         parse_analysis_result(response, &result);
+        if (task->has_fix && task->fix.valid) {
+            snprintf(result.location, sizeof(result.location),
+                     "%s%.4f,%s%.4f",
+                     task->fix.latitude >= 0.0 ? "N" : "S", fabs(task->fix.latitude),
+                     task->fix.longitude >= 0.0 ? "E" : "W", fabs(task->fix.longitude));
+        }
     } else {
         memset(&result, 0, sizeof(result));
         result.type = ANALYSIS_NO_CONTENT;
@@ -178,6 +207,12 @@ static void stream_analysis_chunk_cb(const char *chunk_text, bool is_done, void 
     if (is_done) {
         analysis_result_t result;
         parse_analysis_result(task->response, &result);
+        if (task->has_fix && task->fix.valid) {
+            snprintf(result.location, sizeof(result.location),
+                     "%s%.4f,%s%.4f",
+                     task->fix.latitude >= 0.0 ? "N" : "S", fabs(task->fix.latitude),
+                     task->fix.longitude >= 0.0 ? "E" : "W", fabs(task->fix.longitude));
+        }
         if (task->final_cb) {
             task->final_cb(&result, task->user_data);
         }
@@ -204,12 +239,9 @@ static void *stream_analysis_thread(void *arg)
 
     const char *model = g_config.llm_model[0] ? g_config.llm_model : DEFAULT_LLM_MODEL;
 
-    char user_msg[MAX_TRANSCRIPT_LEN + 128];
-    snprintf(user_msg, sizeof(user_msg),
-        "当前频率：%.3f MHz，模式：%s\n"
-        "通联转写文本：%s\n"
-        "请分析此内容。",
-        task->frequency / 1000000.0f, task->mode, task->transcript);
+    char user_msg[MAX_TRANSCRIPT_LEN + 256];
+    build_analysis_prompt(task->transcript, task->frequency, task->mode,
+                          task->has_fix ? &task->fix : NULL, user_msg, sizeof(user_msg));
 
     int ret = sf_client_chat_completion_stream(model, SYSTEM_PROMPT_ANALYSIS, user_msg,
                                                 stream_analysis_chunk_cb, task);
@@ -235,13 +267,16 @@ int llm_analyzer_analyze_transcript(const char *transcript, float frequency,
 
     analysis_task_t *task = (analysis_task_t *)malloc(sizeof(analysis_task_t));
     if (!task) return -1;
+    memset(task, 0, sizeof(*task));
 
     strncpy(task->transcript, transcript, sizeof(task->transcript) - 1);
     task->transcript[sizeof(task->transcript) - 1] = '\0';
     task->frequency = frequency;
     strncpy(task->mode, mode ? mode : "USB", sizeof(task->mode) - 1);
+    task->mode[sizeof(task->mode) - 1] = '\0';
     task->cb = cb;
     task->user_data = user_data;
+    task->has_fix = location_service_get_fix(&task->fix);
 
     pthread_t tid;
     pthread_create(&tid, NULL, analysis_thread, task);
@@ -269,6 +304,7 @@ int llm_analyzer_analyze_transcript_stream(const char *transcript, float frequen
     task->stream_cb = stream_cb;
     task->final_cb = final_cb;
     task->user_data = user_data;
+    task->has_fix = location_service_get_fix(&task->fix);
 
     pthread_t tid;
     pthread_create(&tid, NULL, stream_analysis_thread, task);

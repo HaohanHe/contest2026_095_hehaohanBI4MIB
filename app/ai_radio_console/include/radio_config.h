@@ -21,6 +21,13 @@
 #define CW_MIN_WPM              5
 #define CW_MAX_WPM              40
 
+/* GPS module configuration (Gemini-S1 UART GPS) */
+#define GPS_ENABLED             1
+#define GPS_UART_DEV            "/dev/ttyS1"
+#define GPS_BAUD_RATE           9600
+#define GPS_UPDATE_HZ           1
+#define GPS_READ_BUF_SIZE       256
+
 #define MAYDAY_TRIGGER_CONF     0.75f
 #define INTERFERENCE_DB_THRESH  -40
 #define MALICIOUS_MIN_SECONDS   30

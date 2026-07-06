@@ -32,6 +32,7 @@ typedef struct {
     char keywords[128];
     char callsigns[128];
     char translation[512];
+    char location[64];
     bool needs_alert;
 } analysis_result_t;
 

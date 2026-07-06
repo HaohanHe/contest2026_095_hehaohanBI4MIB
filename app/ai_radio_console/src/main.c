@@ -22,6 +22,7 @@
 #include "agent_bridge.h"
 #include "radio_config.h"
 #include "radio_log.h"
+#include "location_service.h"
 #include "input_lradc.h"
 #include "wifi_auto_connect.h"
 #include "audio_i2s.h"
@@ -1341,6 +1342,10 @@ int main(int argc, char *argv[])
     agent_bridge_set_frequency((float)g_freq_hz);
     agent_bridge_set_mode(MODE_NAMES[g_mode_idx]);
 
+    if (location_service_init() != 0) {
+        printf("[INIT] location_service_init failed\n");
+    }
+
     printf("[INIT] Starting audio capture thread...\n");
 #if AUDIO_CAPTURE_FROM_I2S
     if (audio_i2s_init() == 0) {
@@ -1388,6 +1393,10 @@ int main(int argc, char *argv[])
     input_lradc_init();
     input_lradc_start();
 
+    if (location_service_start() != 0) {
+        printf("[INIT] location_service_start failed\n");
+    }
+
     printf("[UI] Interface created.\n");
     printf("[INFO] LRADC buttons: Vol-/+, Menu, Enter, Home\n");
     printf("[INFO] Entering main loop...\n");
@@ -1406,6 +1415,7 @@ int main(int argc, char *argv[])
     if (g_audio_thread_created) {
         pthread_join(g_audio_thread, NULL);
     }
+    location_service_stop();
     agent_bridge_deinit();
     radio_log_deinit();
     pthread_mutex_destroy(&g_dsp_mutex);
