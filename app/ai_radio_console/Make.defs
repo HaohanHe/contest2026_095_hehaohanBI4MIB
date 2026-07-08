@@ -1,0 +1,7 @@
+############################################################################
+# Contest 2026 team 095 AI Radio Console - Make.defs
+############################################################################
+
+ifneq ($(CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE),)
+CONFIGURED_APPS += $(APPDIR)/packages/demos/contest2026_095_ai_radio_console
+endif

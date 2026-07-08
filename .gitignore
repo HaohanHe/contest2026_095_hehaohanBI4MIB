@@ -1,0 +1,11 @@
+# Build artifacts
+*.o
+*.a
+*.elf
+*.hex
+*.map
+.depend
+.dep
+Make.dep
+.built
+*.run.media.*
