@@ -1,6 +1,13 @@
 # 参考文件不推 GitHub
 参考/
 
+# 大型压缩包
+*.zip
+*.tar.xz
+*.tar.gz
+*.7z
+*.deb
+
 # 编译产物
 build/
 out/
@@ -9,21 +16,30 @@ out/
 *.elf
 *.hex
 *.map
-*.img
 *.bin
-
-# 大型压缩包（已在其它地方存档或有官方源）
-*.tar.xz
-*.tar.gz
-*.zip
+*.img
+*.so
+*.rpk
 
 # IDE / 工具临时文件
 .trae/
 .mimocode/
 .claude/
 .agentsskills/
+.idea/
+.vscode/
+*.iml
+local.properties
 
-# 大型文档（已在其它仓库存档）
+# 第三方文档（已在其它仓库存档）
+feishu_docs/
+openvela-docs-github/
+openvela-docs-gitee/
+feishu_docs_full.zip
+Veeridio.zip
+ai_radio_hat.zip
+
+# 大型文档/工具目录
 feishu_docs_full/
 openvela-docs-gitee/
 openvela-docs-github/
@@ -31,6 +47,15 @@ openvela_build/
 openvela_frameworks/
 openvela_claude_skills/
 sunxi-livesuite-master/
+com.agent.coapp/
+
+# 第三方非原创资源（字体、音频、视频、固件）
+*.ttf
+*.mp3
+*.wav
+*.mp4
+*.webm
+*.pdf
 
 # 临时文件
 tmp_stubs/
