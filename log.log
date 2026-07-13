@@ -1,0 +1,971 @@
+bi4mib@bi4mib-VMware20-1:~/下载/总结语音讨论内容/SpaceCommAR$ adb logcat
+- waiting for device -
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] hardware version 3
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] nand log ctrl: 0x418f5aa0 0x418f5db4 0x418f5b24 0x418f5db8
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] SpiNandHwInit: Start Nand Hardware initializing Jul 13 2026 00:00:31.....
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] kernel: nand version: 3 6069 20231225 18211952
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] kernel: flash driver compilation time Jul 13 2026 00:00:30
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] nand secure storage check fail:2
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] secure storage fail 1
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot start 
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot :0x4213bf88
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->magic :0xaa55a5a5
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->len :0x8000
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->no_use_block :0x3b0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->uboot_start_block :0x8
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->uboot_next_block :0x28
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->logic_start_block :0x3b0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]mbr len :4096
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]_PARTITION len :2560
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]_NAND_STORAGE_INFO len :512
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]_FACTORY_BLOCK len :2048
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]partition_num: 0,size :0x3fb00,cross_talk 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part mbr size: 0x200 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part bootloader0 size: 0x800 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part dummy_1 size: 0x40000 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part boot0-direct size: 0x800 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part uboot-direct size: 0x2000 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part reserved_1 size: 0x800 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part sst size: 0xa00 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part bootloader size: 0x4000 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part res size: 0xc800 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part usrdata size: 0x6be00 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NE]part UDISK size: 0xfff7f100 type: 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->size :260864
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->cross_talk :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->attribute :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->start.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->start.Block_NO :944
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->end.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->end.Block_NO :2047
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[0].name :mbr
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[0].size :512
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[0].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[1].name :bootloader0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[1].size :2048
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[1].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[2].name :dummy_1
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[2].size :262144
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[2].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[3].name :boot0-direct
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[3].size :2048
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[3].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[4].name :uboot-direct
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[4].size :8192
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[4].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[5].name :reserved_1
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[5].size :2048
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[5].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[6].name :sst
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[6].size :2560
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[6].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[7].name :bootloader
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[7].size :16384
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[7].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[8].name :res
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[8].size :51200
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[8].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[9].name :usrdata
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[9].size :441856
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[9].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[10].name :UDISK
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[10].size :-528128
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]partition->nand_disk[10].type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->PartitionNO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->SectorNumsPerPage :4
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->PageNumsPerBlk :64
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->TotalBlkNum :1104
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->FullBitmapPerPage :4
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->FreeBlock :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->TotalSectors :260864
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->StartBlock.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->StartBlock.Block_NO :944
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->EndBlock.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->EndBlock.Block_NO :2047
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->next_phy_partition :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->PartitionNO 0  FACTORY BAD BLOCK:
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]phy_partition->PartitionNO 0  NEW BAD BLOCK:
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]build 1 phy_partition !
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->type :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->SectorNumsPerPage :4
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->BytesUserData :16
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->PageNumsPerBlk :64
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->BlkPerChip :2048
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->FirstBuild :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->FullBitmap :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->bad_block_addr.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->bad_block_addr.Block_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->mbr_block_addr.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->mbr_block_addr.Block_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->no_used_block_addr.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->no_used_block_addr.Block_NO :944
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->new_bad_block_addr.Chip_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->new_bad_block_addr.Block_NO :0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->new_bad_page_addr :65535
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->partition_nums :1
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]sizeof partition:2384
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info->partition:0:
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]size:0x3fb00
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]cross_talk:0x0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]attribute:0x0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]start: chip:0 block:944
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]end  : chip:0 block:2047
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot :0x4213bf88
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->magic :0xaa55a5a5
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->len :0x8000
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->no_use_block :0x3b0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->uboot_start_block :0x8
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->uboot_next_block :0x28
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]boot->logic_start_block :0x3b0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]mbr len :4096
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]_PARTITION len :2560
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]_NAND_STORAGE_INFO len :512
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]_FACTORY_BLOCK len :2048
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_info_init_v3 ok!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]nand_partition0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: total block count 1104
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: free block count 85
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NI]: try to build nftl
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NI]: now first scan
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: firstly, try to scan total 1104 block for first scan
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: then, do after frist scaning
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: the total blocks from frist scan 1104
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: the total blocks for user sapce 1019
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NI]: now second scan
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: found 1st current used block on 1102
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: cross talk block:1102 total_good_num 8 good_page_num: 8, max_page: 8!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: no_cross_talk_rebuild_current_block!! 1102,8,0!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: erase_block block 1102!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: recover_phy_page_mapping no used page 8!!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: recover 1101 8
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: free block num 1103
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: max block erase times 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: min block erase times 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: max block used counter 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: min block used counter 0
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [ND]: not power on gc [1103, 17, 56], [1104 1019 85]!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] [NI]: nftl scan ok!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] thread 0x6 create
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] thread 0x7 create
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] detected 7 phy partition, offset: 40a00
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] Nand Init OK
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] Do not need auto mount data partition!!!
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] sunxi ce init...
+[70/01/ 1 00:00:00] [CPU0] [ 4] [nsh] r528_rc_initialize...
+[70/01/ 1 00:00:01] [CPU0] [ 4] [nsh] r528_late_initialize finish 
+[70/01/ 1 08:00:01] [CPU0] [13] [nsh] yaffs: 86 blocks to be sorted...
+[70/01/ 1 08:00:02] [CPU1] [20] [nsh] usb_uv_open (73): failed to open usb device -1 2
+[70/01/ 1 08:00:02] [CPU1] [47] [nsh] [LVGL] [User]	(2.567, +2567)	 check_stack_size: tid: 47, Stack size : 102352 lv_nuttx_entry.c:279
+[70/01/ 1 08:00:02] [CPU1] [47] [nsh] [LVGL] [User]	(2.568, +1)	 lv_nuttx_lcd_create: lcd /dev/lcd0 opening lv_nuttx_lcd.c:77
+[70/01/ 1 08:00:02] [CPU1] [47] [nsh] [LVGL] [User]	(2.569, +1)	 lv_nuttx_lcd_create: lcd /dev/lcd0 open success lv_nuttx_lcd.c:84
+[70/01/ 1 08:00:02] [CPU1] [47] [nsh] [LVGL] [User]	(2.571, +2)	 lv_nuttx_touchscreen_create: touchscreen /dev/input0 opening lv_nuttx_touchscreen.c:79
+[70/01/ 1 08:00:02] [CPU1] [47] [nsh] [LVGL] [User]	(2.571, +0)	 lv_nuttx_touchscreen_create: touchscreen /dev/input0 open success, maxpoint 1 lv_nuttx_touchscreen.c:98
+[70/01/ 1 08:00:02] [CPU0] [48] [nsh] 
+
+[70/01/ 1 08:00:02] [CPU0] [48] [nsh] RTL871X: rltk_wlan_control netif is DOWN
+[70/01/ 1 08:00:02] [CPU0] [48] [nsh] 
+
+[70/01/ 1 08:00:02] [CPU0] [48] [nsh] RTL871X: rltk_wlan_control netif is DOWN
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: rtw_set_traffic_busy_thres, g_user_busy_traffic_thres = 500 
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: dump_drv_version v03 ic: RTL8733BS libver: e2ade5e184747099a675bcc67676b46eb6b9c7f3
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: dump_drv_version build time: Jan 24 2025 14:19:07
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: wlan0 :rltk_wlan_init
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: RTW: rtw_drv_entry enter
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: RTW: rtw_drv_entry exit
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: RTW: rtw_drv_probe line:1717
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: [gspi_dvobj_init] get wifi_func:0x421fc4c8
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: [HALMAC]135
+HALMAC_MAJOR_VER = 1
+HALMAC_PROTOTYPE_VER = 6
+HALMAC_MINOR_VER = 6
+HALMAC_PATCH_VER = 41
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X:  rtw_hal_config_rftype 174 pHalData->NumTotalRFPath=1 
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtw_hal_config_rftype RF_Type is 0 TotalTxPath is 1 
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: Chip Version Info: CHIP_8723F_Normal_Chip_UMC_D_CUT_1T1R_RomVer(3)
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtl8723f_sethwreg: bMacPwrCtrlOn=1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: before 0x68:0xb005c0f5,0x10dd:0x1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: after 0x68:0xb005c0f5,0x10dd:0x1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_LOGICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: check_phy_efuse_tx_power_info_valid: tpt_mode is TSSI, skip check
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: Efuse Realmap:
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 29 81 80 86 10 00 84 00 B2 0D B5 35 08 94 8A 1B
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF 05 06 06 05 05 05 04 04 04 04 00 FF FF FE
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF 06 06 06 06 06 06
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 07 07 07 07 07 FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF 7F 43 20 00 FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF 31 00 11 00 00 00 00 40 11 04 FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 3E B0 01 12 23 FF FF FF 20 04 4C 02 33 B7 21 02
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 0C 00 22 04 00 08 00 32 FF 21 02 0C 00 22 2A 01
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 01 00 00 00 00 00 00 00 00 00 00 00 02 00 FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 00 EB 00 6E 01 00 00 00 00 FF 84 FC 14 3D 5D F9
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 7F 35 13 FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 21 02 0C 00 22 2A 01 01 00 00 00 00 00 00 00 00
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 00 00 00 02 00 FF FF 00 00 00 00 00 00 00 00 00
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 00 00 00 00 00 00 00 00 EB 00 6E 01 00 00 00 00
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: D0 B0 58 59 32 07 55 C3 C3 00 A0 C4 63 DD 98 BB
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 14 05 A4 E7 FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 05 05 85 85 8F 85 83 80 8F 8F 8F 8B 8C 81 80 80
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: 00 80 FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM ID = 0x8129
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM Version = 0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: Hal_EfuseParseTxPowerInfo tpt_mode=4, PG with 1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM Regulatory=0x01
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM Board Type=0x01
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM Enable BT-coex, ant_num=1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM ChannelPlan=0x7f
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM crystal_cap=0x43
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM ThermalMeter=0x20
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM efuse[0xc9]=0x11 is valid
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM Customer ID=0x00
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM SupportRemoteWakeup=0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM PAType_2G is 0x0, ExternalPA_2G = 0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM PAType_5G is 0x0, external_pa_5g = 0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM LNAType_2G is 0x0, ExternalLNA_2G = 0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM LNAType_5G is 0x0, external_lna_5g = 0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM TypeGPA = 0x0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM TypeAPA = 0x0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM TypeGLNA = 0x0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM TypeALNA = 0x0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: EEPROM rfe_type=0x4
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: efuse_date= 0xFF IC SupportBW = 0x6
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtl8723f_sethwreg: bMacPwrCtrlOn=0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: disable_interrupt: update SDIO HIMR=0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtw_init_sec_priv(): num_wpa_info= 1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtw_init_sec_priv(): palloc_wpastainfo_buf= 0x42310930 alloc_wpastainfo_size=808
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtw_init_sec_priv(): wpa_sta_info[0]= 0x42310934
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: init_channel_set(): RTW_ChannelPlan5G[0].Len = 24
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: tx_bus_agg_buf_data:0x4212021c tx_bus_agg_buf_end:0x421243a0 MAX_TX_SKB_BUS_AGG_DATA_SIZE:16772
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: The driver is for MP
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: init_phydm_cominfo: Fv=1 Cv=3
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: default power by rate loaded
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtw_macaddr_cfg MAC Address  = 84:fc:14:3d:5d:f9
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: bDriverStopped:1, bSurpriseRemoved:0, bup:0, hw_init_completed:0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: wlan0 :dev=0x423062d8
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: wlan0 :rltk_wlan_start
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: +871x_drv - drv_open, bup=0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtl8723f_hal_init acquire FW from file:/resource/etc/wifi/FW_NIC_BCUT.bin
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtl8723f_sethwreg: bMacPwrCtrlOn=1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: before 0x68:0xb005c0f5,0x10dd:0x1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: after 0x68:0xb005c0f5,0x10dd:0x1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: + txfifo_wait_empty
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: - txfifo_wait_empty
+
+[70/01/ 1 08:00:03] [CPU1] [20] [nsh] adb_register_service (338): id=1, peer=21
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: - download_firmware_8xxx HALMAC_RET_SUCCESS
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: fw: 1.1d
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: [HALMAC][ZZY]0x718 old = c0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: [HALMAC][ZZY]0x718 new = 80
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: enable_interrupt : update SDIO HIMR=0x00000000
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtl8723f_hal_init Download Firmware from file success
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: NIC FW Version:1 SubVersion:29 FW size:120040
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: is_valid_id_status: HALMAC_FEATURE_DUMP_PHYSICAL_EFUSE
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: [RF] [RFK] WiFi / BT RFK handshake start!!
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: [RF] [RFK] WiFi rfk_type = 0x0
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: [RF] [RFK] WiFi / BT RFK handshake finish!!
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: start_addr=(0x0), end_addr=(0x20000), buffer_size=(0x20000), smp_number_max=(16384)
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] [DBG] halbtc8723f_cfg_rfe_type(): rfe_module_type:4
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] [DBG] halbtc8723f_cfg_rfe_type(): coex_sta->kt_ver:3
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU1] [53] [nsh] RTL871X: [HW_VAR_ENABLE_RX_BAR] 0x6A2=0x100
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: rtw_hal_init: padapter->registrypriv.set_rrsr_value=0xffffffff
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: MAC Address = 84:fc:14:3d:5d:f9
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: -871x_drv - dev_open, bup=1
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: wpa_set_auth_algs, AUTH_ALG_OPEN_SYSTEM
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: wpa_set_encryption()=>dot11AuthAlgrthm=0, ndisauthtype=7, ndisencryptstatus=1, dot11PrivacyAlgrthm=4, dot118021XGrpPrivacy=4
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: set wpa passphrase=Rxw@2511, len=8
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: wpa passphrase=Rxw@2511, len=8
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: =>rtw_wx_set_essid
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: ssid=Rivotek-Visitor, len=15
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: set ssid [Rivotek-Visitor] 
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: Set SSID under fw_state=0x00000000
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [53] [nsh] RTL871X: <=rtw_wx_set_essid, ret 0
+[70/01/ 1 08:00:03] [CPU0] [59] [nsh] 
+
+[70/01/ 1 08:00:03] [CPU0] [59] [nsh] RTL871X: [HW_VAR_CHECK_TXBUF] Empty in 2 ms
+[70/01/ 1 08:00:05] [CPU1] [59] [nsh] 
+
+[70/01/ 1 08:00:05] [CPU1] [59] [nsh] RTL871X: _btmpoper_cmd: C2H status = BT_STATUS_BT_OP_SUCCESS
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] 
+
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] RTL871X: survey done event(19)
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] 
+
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] RTL871X: +indicate_wx_scan_complete_event
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] 
+
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] RTL871X: rtw_surveydone_event_callback: to_join: 1 
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] 
+
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] RTL871X: rtw_select_and_join_from_scanned_queue: return _FAIL(candidate == NULL)
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] 
+
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] RTL871X: try_to_join, but select scanning queue fail
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] 
+
+[70/01/ 1 08:00:07] [CPU0] [59] [nsh] RTL871X: indicate_wx_custom_event No Assoc Network After Scan Done
+[70/01/ 1 08:00:07] [CPU1] [59] [nsh] 
+
+[70/01/ 1 08:00:07] [CPU1] [59] [nsh] RTL871X: rtw_reset_securitypriv(): wpa_sta_info[0]= 0x42310934
+[70/01/ 1 08:00:10] [CPU1] [60] [nsh] bluetoothd main 34
+[70/01/ 1 08:00:10] [CPU1] [60] [nsh] /data/misc/bt folder create: 0
+[70/01/ 1 08:00:11] [CPU0] [47] [nsh] [LVGL] [User]	(11.651, +9080)	 window_click_cb: Window 5 clicked luncher_mini.c:883
+[70/01/ 1 08:00:11] [CPU0] [47] [nsh] [LVGL] [User]	(11.651, +0)	 window_click_cb: Launching AI Radio Console... luncher_mini.c:912
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh] ac_type: 1
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh]   AUDIO_TYPE_INPUT:
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh]     Number of channels: 1
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh]     Sample rate:        16000
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh]     Sample width:       16
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh] sunxi_audio_start index:0
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh] Starting worker thread
+[70/01/ 1 08:00:11] [CPU0] [62] [nsh] Created worker thread
+[70/01/ 1 08:00:11] [CPU1] [81] [nsh] Entry
+[70/01/ 1 08:00:11] [CPU1] [81] [nsh] prepare:0x4141db1d
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [User]	(11.758, +11758)	 check_stack_size: tid: 62, Stack size : 49104 lv_nuttx_entry.c:279
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [User]	(11.758, +0)	 lv_nuttx_lcd_create: lcd /dev/lcd0 opening lv_nuttx_lcd.c:77
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [User]	(11.759, +1)	 lv_nuttx_lcd_create: lcd /dev/lcd0 open success lv_nuttx_lcd.c:84
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [User]	(11.760, +1)	 lv_nuttx_touchscreen_create: touchscreen /dev/input0 opening lv_nuttx_touchscreen.c:79
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [User]	(11.761, +1)	 lv_nuttx_touchscreen_create: touchscreen /dev/input0 open success, maxpoint 1 lv_nuttx_touchscreen.c:98
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [settings] initialized (WiFi SSID=none, ASR=FunAudioLLM/SenseVoiceSmall)
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] r528_bl_buttons:retval:63
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.793, +32)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.794, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.794, +0)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.796, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.797, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.799, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.800, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.802, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.803, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.805, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.806, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.807, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.809, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.810, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.812, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.813, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.815, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.816, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.818, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.819, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.821, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.822, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.823, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.825, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [85] [nsh] r528_bl_buttons:retval:63
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.831, +6)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.832, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.833, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.835, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.836, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.837, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.839, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.840, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.842, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.843, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.845, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.846, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.848, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.849, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.850, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.852, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.853, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.855, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.856, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.858, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.859, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.861, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.862, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.864, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.865, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.867, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.868, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.869, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.871, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.872, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.874, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.875, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.877, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.879, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.880, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.881, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.883, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.884, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.885, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.887, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.888, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.890, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.891, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.893, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.894, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.896, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.897, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.899, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.900, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.901, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.903, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.904, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.906, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.907, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.909, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.910, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.912, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.913, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.915, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.916, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.917, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.919, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.920, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.922, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.923, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.925, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.926, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.928, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.929, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.931, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.932, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.934, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.935, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.936, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.938, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.939, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.941, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.942, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.944, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.945, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.947, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.948, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.949, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.951, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.952, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.954, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.955, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.957, +2)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [62] [nsh] [LVGL] [Warn]	(11.958, +1)	 lv_font_get_bitmap_fmt_txt: Compressed fonts is used but LV_USE_FONT_COMPRESSED is not enabled in lv_conf.h lv_font_fmt_txt.c:162
+[70/01/ 1 08:00:11] [CPU1] [85] [nsh] r528_bl_buttons:retval:63
+[70/01/ 1 08:00:11] [CPU1] [47] [nsh] spi_mode_check()630 [spi1] invalid parameter
+[70/01/ 1 08:00:11] [CPU1] [47] [nsh] hal_spi_xfer()2064 [spi1] invalid parameter
+[70/01/ 1 08:00:12] [CPU1] [85] [nsh] r528_bl_buttons:retval:63
+[70/01/ 1 08:00:12] [CPU1] [85] [nsh] r528_bl_buttons:retval:63
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_cpu_complete()1819 [spi1] xfer timeout
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump()208 [spi1] irq_cnt: 12912
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump()209 [spi1] dump reg:
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump_reg()199 0x04026000: 00010002 00000083 80000184 00000000 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump_reg()199 0x04026010: 00000700 00000032 00200020 00000000 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump_reg()199 0x04026020: 00000000 00000002 00002000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump_reg()199 0x04026030: 0000024b 0000024b 0000024b 00000000 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump_reg()199 0x04026040: 000000a0 00000000 00000000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump_reg()199 0x04026050: 00000000 00000000 00000000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump()218 [spi1] sspi: 41918158
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] 00000000: 00000000 00300001 04026000 00000001 4212f5e8 421318e0 421317b0 421a8b30 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] 00000020: 00000002 04026300 00000000 00000000 00000000 00000000 00010017 4190bcd8 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] 00000040: 00000001 421e9200 04026200 00000404 00000002 00000002 00170001 4190bc9c 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] 00000060: 421e9200 421e91b8 421e91d0 00000001 02625a00 00000100 00000000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] 00000080: 423721bc 00000001 
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] spi_err_dump()222 [spi1] transfer: 423721bc
+[70/01/ 1 08:00:13] [CPU1] [62] [nsh] 00000000: 423721e3 00000001 00000001 00000000 00000000 00000029 
+[70/01/ 1 08:00:13] [CPU1] [85] [nsh] r528_bl_buttons:retval:63
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_dma_tx_complete()1859 [spi1] dma xfer timeout
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_dma_tx_complete()1860 [spi1] 18b4a646 - 1b2c2483
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump()208 [spi1] irq_cnt: 12912
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump()209 [spi1] dump reg:
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump_reg()199 0x04026000: 00010002 00000083 80000184 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump_reg()199 0x04026010: 00000700 00000032 00200020 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump_reg()199 0x04026020: 00000000 00000002 00002000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump_reg()199 0x04026030: 00000249 00000249 00000249 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump_reg()199 0x04026040: 000000a0 00000000 00000000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump_reg()199 0x04026050: 00000000 00000000 00000000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] Common register:
+	mask0: 0x00000000
+	mask1: 0x00000000
+	pend0: 0x00033300
+	pend1: 0x00000000
+	secur: 0x0000ffff
+	_gate: 0x00000000
+	stats: 0x00000000
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] Chan 4 reg:
+	___en: 	0x00000000
+	pause: 	0x00000000
+	start: 	0xfffff800
+	__cfg: 	0x05970481
+	__src: 	0x421e9280
+	__dst: 	0x04026200
+	count: 	0x00000280
+	_para: 	0x00000008
+
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] chan mem: 4190bc9c
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000000: 00000009 00000001 421e9200 04026200 00000404 00000002 00000002 00170001 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000020: 00000000 00000000 00000000 00000004 00000000 00000000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] chan desc: 0
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000000: ea000019 eafffffe eafffffe eafffffe eafffffe eafffffe ea000001 eafffffe 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000020: ea000003 e24ee004 e92d5fff eb0022a9 e8fd9fff eb00007d e59f121c e1550001 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump()218 [spi1] sspi: 41918158
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000000: 00000000 00300001 04026000 00000001 4212f5e8 421318e0 421317b0 421a8b30 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000020: 00000002 04026300 00000000 00000000 00000000 00000000 00010017 4190bcd8 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000040: 00000001 421e9200 04026200 00000404 00000002 00000002 00170001 4190bc9c 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000060: 421e9200 421e91b8 421e91d0 00000001 02625a00 00000100 00000000 00000000 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000080: 423721bc 00000001 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_err_dump()222 [spi1] transfer: 423721bc
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] 00000000: 423721e3 00000001 00000001 00000000 00000000 00000029 
+[70/01/ 1 08:00:13] [CPU1] [47] [nsh] spi_dma_tx_complete()1906 [spi1] hw config
+[70/01/ 1 08:00:13] [CPU1] [85] [nsh] r528_bl_buttons:retval:63
+bi4mib@bi4mib-VMware20-1:~/下载/总结语音讨论内容/SpaceCommAR$ 

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI Agent 分层架构图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #f8f9fa; padding: 20px; }
+h1 { text-align: center; color: #1e1e1e; margin-bottom: 4px; font-size: 24px; }
+.subtitle { text-align: center; color: #868e96; font-size: 13px; margin-bottom: 16px; }
+.canvas { max-width: 1020px; margin: 0 auto; }
+.layer { border-radius: 10px; padding: 10px 14px 14px; margin-bottom: 6px; position: relative; }
+.layer-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.modules { display: flex; flex-wrap: wrap; gap: 6px; }
+.mod { border-radius: 6px; padding: 8px 12px; text-align: center; font-size: 12px; line-height: 1.4; min-width: 120px; flex: 1; border: 1px solid; }
+.mod .name { font-weight: 600; }
+.mod .detail { font-size: 11px; opacity: 0.7; }
+.arrow { text-align: center; color: #868e96; font-size: 18px; line-height: 20px; margin: 2px 0; }
+.split { display: flex; gap: 6px; }
+.split-left { flex: 1.2; }
+.split-right { flex: 0.8; }
+.split-right .modules { flex-direction: column; }
+.divider { width: 1px; background: #ced4da; margin: 0 4px; align-self: stretch; opacity: 0.5; }
+
+/* Layer colors */
+.l1 { background: #c5f6fa; border: 2px solid #0c8599; }
+.l1 .layer-title { color: #0c8599; }
+.l1 .mod { background: #99e9f2; border-color: #0c8599; color: #0c8599; }
+
+.l2 { background: #d0bfff; border: 2px solid #6741d9; }
+.l2 .layer-title { color: #6741d9; }
+.l2 .mod { background: #e5dbff; border-color: #6741d9; color: #6741d9; }
+
+.l3 { background: #ffd8a8; border: 2px solid #e8590c; }
+.l3 .layer-title { color: #e8590c; }
+.l3 .mod { background: #ffdecc; border-color: #e8590c; color: #e8590c; }
+
+.l4 { background: #ffc9c9; border: 2px solid #c92a2a; }
+.l4 .layer-title { color: #c92a2a; }
+.l4 .mod { background: #ffe3e3; border-color: #c92a2a; color: #c92a2a; }
+
+.l5 { background: #eebefa; border: 2px solid #9c36b5; }
+.l5 .layer-title { color: #9c36b5; }
+.l5 .mod { background: #f3d9fa; border-color: #9c36b5; color: #9c36b5; }
+
+.l6 { background: #b2f2bb; border: 2px solid #2b8a3e; }
+.l6 .layer-title { color: #2b8a3e; }
+.l6 .mod { background: #d3f9d8; border-color: #2b8a3e; color: #2b8a3e; }
+
+.l7 { background: #d8f5a2; border: 2px solid #5c940d; }
+.l7 .layer-title { color: #5c940d; }
+.l7 .mod { background: #e9fac8; border-color: #5c940d; color: #5c940d; }
+
+.l8 { background: #dee2e6; border: 2px solid #495057; }
+.l8 .layer-title { color: #495057; }
+.l8 .mod { background: #e9ecef; border-color: #495057; color: #495057; }
+</style>
+</head>
+<body>
+<h1>AI Agent 分层架构图</h1>
+<p class="subtitle">↑ 请求上行 · 上层依赖下层 · ↓ 响应下行</p>
+<div class="canvas">
+
+<!-- Layer 1 -->
+<div class="layer l1">
+  <div class="layer-title">Layer 1 — 接入层 Input Channels</div>
+  <div class="modules">
+    <div class="mod"><div class="name">飞书 Bot</div><div class="detail">feishu_bot.c</div></div>
+    <div class="mod"><div class="name">WebSocket</div><div class="detail">ws_server.c :28789</div></div>
+    <div class="mod"><div class="name">NSH CLI</div><div class="detail">nsh_commands.c</div></div>
+    <div class="mod"><div class="name">MQTT</div><div class="detail">mqtt_channel.c</div></div>
+    <div class="mod"><div class="name">Voice (PTT)</div><div class="detail">voice_channel.c</div></div>
+    <div class="mod"><div class="name">WeChat</div><div class="detail">weixin_channel.c<br>iLink Bot API</div></div>
+  </div>
+</div>
+<div class="arrow">▼</div>
+
+<!-- Layer 2 -->
+<div class="layer l2">
+  <div class="layer-title">Layer 2 — 消息总线 Message Bus</div>
+  <div class="modules">
+    <div class="mod"><div class="name">Inbound Queue</div><div class="detail">16 slots</div></div>
+    <div class="mod"><div class="name">Outbound Queue</div><div class="detail">16 slots</div></div>
+  </div>
+</div>
+<div class="arrow">▼</div>
+
+<!-- Layer 3 -->
+<div class="layer l3">
+  <div class="layer-title">Layer 3 — Agent 核心 (ReAct Loop)</div>
+  <div class="modules">
+    <div class="mod"><div class="name">Agent Loop</div><div class="detail">ReAct ×10 iterations</div></div>
+    <div class="mod"><div class="name">Context Builder</div><div class="detail">12KB prompt</div></div>
+    <div class="mod"><div class="name">Session Mgr</div><div class="detail">20 msgs history</div></div>
+    <div class="mod"><div class="name">Agent Trace</div><div class="detail">结构化追踪</div></div>
+    <div class="mod"><div class="name">Agent Mem</div><div class="detail">动态缩放</div></div>
+  </div>
+</div>
+<div class="arrow">▼</div>
+
+<!-- Layer 4 -->
+<div class="layer l4">
+  <div class="layer-title">Layer 4 — 工具层 + LLM 层</div>
+  <div class="split">
+    <div class="split-left">
+      <div style="font-size:13px;color:#c92a2a;font-weight:600;margin-bottom:6px;">4a — Tools (14+)</div>
+      <div class="modules">
+        <div class="mod"><div class="name">run_shell</div></div>
+        <div class="mod"><div class="name">analyze_image</div></div>
+        <div class="mod"><div class="name">web_search</div></div>
+        <div class="mod"><div class="name">feishu_doc/chat</div></div>
+        <div class="mod"><div class="name">file ops</div></div>
+        <div class="mod"><div class="name">cron_*</div></div>
+        <div class="mod"><div class="name">music_*</div></div>
+        <div class="mod"><div class="name">system/health</div></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="split-right">
+      <div style="font-size:13px;color:#c92a2a;font-weight:600;margin-bottom:6px;">4b — LLM</div>
+      <div class="modules">
+        <div class="mod"><div class="name">LLM Router</div><div class="detail">4 backends, failover, latency</div></div>
+        <div class="mod"><div class="name">LLM Cache</div><div class="detail">8-slot LRU, TTL 300s</div></div>
+        <div class="mod"><div class="name">LLM Proxy</div><div class="detail">OpenAI-compatible API</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="arrow">▼</div>
+
+<!-- Layer 5 -->
+<div class="layer l5">
+  <div class="layer-title">Layer 5 — 语音管线 Voice Pipeline</div>
+  <div class="modules">
+    <div class="mod"><div class="name">Audio Capture</div><div class="detail">PCM 16kHz lazy alloc</div></div>
+    <div class="mod"><div class="name">Volc ASR</div><div class="detail">WebSocket 流式</div></div>
+    <div class="mod"><div class="name">Volc TTS</div><div class="detail">HTTP 分块 128+16KB</div></div>
+    <div class="mod"><div class="name">Audio Playback</div><div class="detail">PCM → Speaker</div></div>
+  </div>
+</div>
+<div class="arrow">▼</div>
+
+<!-- Layer 6 -->
+<div class="layer l6">
+  <div class="layer-title">Layer 6 — 扩展层 Extensions</div>
+  <div class="modules">
+    <div class="mod"><div class="name">MCP Client</div><div class="detail">Streamable HTTP (Amap/DiDi)</div></div>
+    <div class="mod"><div class="name">Node Executor</div><div class="detail">QuickJS / Lua</div></div>
+    <div class="mod"><div class="name">Skills Loader</div><div class="detail">动态加载技能</div></div>
+    <div class="mod"><div class="name">Memory Store</div><div class="detail">KV 持久化</div></div>
+  </div>
+</div>
+<div class="arrow">▼</div>
+
+<!-- Layer 7 -->
+<div class="layer l7">
+  <div class="layer-title">Layer 7 — 基础设施 Infrastructure</div>
+  <div class="modules">
+    <div class="mod"><div class="name">TLS (mbedTLS)</div><div class="detail">HTTPS/WSS</div></div>
+    <div class="mod"><div class="name">HTTP Proxy</div><div class="detail">SOCKS5/HTTP</div></div>
+    <div class="mod"><div class="name">Config Store</div><div class="detail">NVS / File</div></div>
+    <div class="mod"><div class="name">Network Stack</div><div class="detail">TCP/UDP/DNS</div></div>
+    <div class="mod"><div class="name">Cron Engine</div><div class="detail">定时任务</div></div>
+  </div>
+</div>
+<div class="arrow">▼</div>
+
+<!-- Layer 8 -->
+<div class="layer l8">
+  <div class="layer-title">Layer 8 — OS 层 NuttX / POSIX</div>
+  <div class="modules">
+    <div class="mod"><div class="name">pthreads / mutex</div></div>
+    <div class="mod"><div class="name">POSIX FS / Socket</div></div>
+    <div class="mod"><div class="name">Audio Driver</div></div>
+    <div class="mod"><div class="name">Framebuffer</div></div>
+    <div class="mod"><div class="name">Timer / RTC</div></div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

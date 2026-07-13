@@ -1,0 +1,52 @@
+############################################################################
+# boards/r528/drivers/Make.defs
+#
+# Platform drivers for r528 board.
+############################################################################
+
+include $(TOPDIR)/../vendor/allwinnertech/Common.mk
+
+# Realtek WiFi driver wrappers are needed by the binary blob librtl8733bs.a
+# so we include them even in binary-only mode.
+ifneq ($(CONFIG_ALLWINNER_BINARY_ONLY),y)
+
+ifeq ($(CONFIG_IEEE80211_REALTEK_WIFI),y)
+include $(AW_BOARD_DIR)/drivers/realtek_ieee80211/Make.defs
+DEPPATH += --dep-path $(AW_WIFI_DIR)/include
+VPATH += :$(AW_WIFI_DIR)/include
+$(eval $(AW_ADD_WIFI_INCLUDES))
+endif
+
+# Micro SD driver is OS-dependent glue needed by the chip initialization
+ifeq ($(CONFIG_MICRO_TF),y)
+include $(AW_BOARD_DIR)/drivers/micro_sd/Make.defs
+DEPPATH += --dep-path platform/micro_sd
+VPATH += :platform/micro_sd
+CFLAGS += ${INCDIR_PREFIX}$(AW_BOARD_DIR)/drivers/micro_sd
+endif
+
+else
+
+# In binary-only mode, link against prebuilt drivers library
+ifeq ($(CONFIG_IEEE80211_REALTEK_WIFI),y)
+EXTRA_LIBPATHS += -L$(AW_VENDOR_DIR)/libs/drivers/r528
+EXTRA_LIBS     += -ldrivers_r528
+# We still need headers for compilation of other modules that might include them
+include $(AW_BOARD_DIR)/drivers/realtek_ieee80211/Make.defs
+# But we must ensure CSRCS are NOT added by the included Make.defs,
+# or we just include paths manually.
+# NOTE: realtek_ieee80211/Make.defs ADDS TO CSRCS. We cannot include it directly if we want to skip source.
+# So we only add includes here.
+$(eval $(AW_ADD_WIFI_INCLUDES))
+endif
+
+ifeq ($(CONFIG_MICRO_TF),y)
+# Provide includes for Micro SD if needed
+CFLAGS += ${INCDIR_PREFIX}$(AW_BOARD_DIR)/drivers/micro_sd
+endif
+
+endif # CONFIG_ALLWINNER_BINARY_ONLY
+
+ifneq ($(CONFIG_ALLWINNER_BINARY_ONLY),y)
+
+endif # CONFIG_ALLWINNER_BINARY_ONLY

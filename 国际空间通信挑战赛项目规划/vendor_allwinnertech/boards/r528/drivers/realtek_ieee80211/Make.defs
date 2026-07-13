@@ -1,0 +1,98 @@
+ifneq ($(CONFIG_ALLWINNER_BINARY_ONLY),y)
+ifeq ($(CONFIG_IEEE80211_REALTEK_WIFI),y)
+# src
+CSRCS += realtek_netdev.c
+CSRCS += realtek_driver.c
+CSRCS += realtek_sdio.c
+CSRCS += realtek_gpio.c
+CSRCS += customer_rtos_service.c
+CSRCS += osdep_service.c
+CSRCS += wifi_conf.c
+CSRCS += wifi_ind.c
+CSRCS += wifi_promisc.c
+CSRCS += wifi_util.c    
+CSRCS += device_lock.c
+CSRCS += net_stack_intf.c		
+CSRCS += rtwlan_bsp.c
+CSRCS += wifi_io.c
+CSRCS += rtw_opt_crypto_ssl.c
+endif
+# include
+$(eval $(AW_ADD_WIFI_INCLUDES))
+
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)/../apps/crypto/mbedtls/include
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)/../apps/crypto/mbedtls/mbedtls/include
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)/../apps/include/crypto
+CFLAGS += -Wno-attributes
+CFLAGS += -DDISABLE_MEM_USAGE
+
+CONFIG_USER_WIFIMAC_PATH ?=
+ifeq ($(CONFIG_USER_WIFIMAC_PATH),)
+CFLAGS += -DWIFIMAC_PATH=\"/data/wifimac.txt\"
+else ifeq ($(CONFIG_USER_WIFIMAC_PATH),"")
+CFLAGS += -DWIFIMAC_PATH=\"/data/wifimac.txt\"
+else
+CFLAGS += -DWIFIMAC_PATH=\"$(CONFIG_USER_WIFIMAC_PATH)\"
+endif
+
+CONFIG_CCV_WIFI_FW_PATH ?=
+ifeq ($(CONFIG_CCV_WIFI_FW_PATH),)
+CFLAGS += -DCCVWIFIFW_PATH=\"/resource/etc/wifi/FW_NIC_ACUT.bin\"
+else ifeq ($(CONFIG_CCV_WIFI_FW_PATH),"")
+CFLAGS += -DCCVWIFIFW_PATH=\"/resource/etc/wifi/FW_NIC_ACUT.bin\"
+else
+CFLAGS += -DCCVWIFIFW_PATH=\"$(CONFIG_CCV_WIFI_FW_PATH)\"
+endif
+
+CONFIG_WIFI_FW_PATH ?=
+ifeq ($(CONFIG_WIFI_FW_PATH),)
+CFLAGS += -DWIFIFW_PATH=\"/resource/etc/wifi/FW_NIC_BCUT.bin\"
+else ifeq ($(CONFIG_WIFI_FW_PATH),"")
+CFLAGS += -DWIFIFW_PATH=\"/resource/etc/wifi/FW_NIC_BCUT.bin\"
+else
+CFLAGS += -DWIFIFW_PATH=\"$(CONFIG_WIFI_FW_PATH)\"
+endif
+
+# Include realtek build support
+
+WLAN_RELDIR = platform/realtek_ieee80211
+
+DEPPATH += --dep-path $(WLAN_RELDIR)
+VPATH += :$(WLAN_RELDIR)
+
+ifeq ($(CONFIG_MM_KASAN),y)
+DEPPATH += --dep-path $(WLAN_RELDIR)/wlan_lib_kasan
+VPATH += :$(WLAN_RELDIR)/wlan_lib_kasan
+else ifeq ($(CONFIG_X4B_FACTEST),y)
+DEPPATH += --dep-path $(WLAN_RELDIR)/wlan_lib_factory
+VPATH += :$(WLAN_RELDIR)/wlan_lib_factory
+else 
+DEPPATH += --dep-path $(WLAN_RELDIR)/wlan_lib
+VPATH += :$(WLAN_RELDIR)/wlan_lib
+endif
+
+DEPPATH += --dep-path $(WLAN_RELDIR)/api/option
+DEPPATH += --dep-path $(WLAN_RELDIR)/api/wifi
+DEPPATH += --dep-path $(WLAN_RELDIR)/include
+DEPPATH += --dep-path $(WLAN_RELDIR)/os/customer_rtos
+DEPPATH += --dep-path $(WLAN_RELDIR)/os/os_dep
+DEPPATH += --dep-path $(WLAN_RELDIR)/os/os_dep/include
+DEPPATH += --dep-path $(WLAN_RELDIR)/platform/include
+DEPPATH += --dep-path $(WLAN_RELDIR)/platform/rtwlan_bsp
+DEPPATH += --dep-path $(WLAN_RELDIR)/platform/sdio
+DEPPATH += --dep-path $(WLAN_RELDIR)/platform/sdio/core
+DEPPATH += --dep-path $(WLAN_RELDIR)/platform/sdio/include
+
+VPATH += :$(WLAN_RELDIR)/api/option
+VPATH += :$(WLAN_RELDIR)/api/wifi
+VPATH += :$(WLAN_RELDIR)/include
+VPATH += :$(WLAN_RELDIR)/os/customer_rtos
+VPATH += :$(WLAN_RELDIR)/os/os_dep
+VPATH += :$(WLAN_RELDIR)/os/os_dep/include
+VPATH += :$(WLAN_RELDIR)/platform/include
+VPATH += :$(WLAN_RELDIR)/platform/rtwlan_bsp
+VPATH += :$(WLAN_RELDIR)/platform/sdio
+VPATH += :$(WLAN_RELDIR)/platform/sdio/core
+VPATH += :$(WLAN_RELDIR)/platform/sdio/include
+
+endif

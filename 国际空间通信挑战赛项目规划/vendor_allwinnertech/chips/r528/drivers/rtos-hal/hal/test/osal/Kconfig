@@ -1,0 +1,25 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config OSAL_TEST
+	tristate "\"osal test\""
+	default n
+
+if OSAL_TEST
+
+config OSAL_TEST_PROGNAME
+	string "Program name"
+	default "osal_test"
+
+
+config OSAL_TEST_PRIORITY
+	int "osal_test task priority"
+	default 100
+
+config OSAL_TEST_STACKSIZE
+	int "osal_test stack size"
+	default DEFAULT_TASK_STACKSIZE
+
+endif

@@ -1,0 +1,14 @@
+{
+  "api_key": "",
+  "model": "mimo-v2-flash",
+  "llm_host": "api.xiaomimimo.com",
+  "llm_path": "/v1/chat/completions",
+  "tavily_key": "",
+  "volc_appkey": "",
+  "volc_token": "",
+  "volc_api_key": "",
+  "volc_cluster": "volcano_tts",
+  "volc_asr_cluster": "volcengine_streaming_common",
+  "proxy_host": "",
+  "proxy_port": ""
+}

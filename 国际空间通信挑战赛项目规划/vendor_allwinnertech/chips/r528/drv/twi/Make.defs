@@ -1,0 +1,5 @@
+DRV_TWI_PATH=drv/twi
+
+ifeq ($(CONFIG_DRIVERS_TWI), y)
+CHIP_CSRCS += $(DRV_TWI_PATH)/drv_twi.c
+endif

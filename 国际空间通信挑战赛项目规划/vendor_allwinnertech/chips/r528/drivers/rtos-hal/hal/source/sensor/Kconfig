@@ -1,0 +1,38 @@
+menu "Sensor Devices"
+
+config SENSORS_HX3203
+        bool "HX3203 Ambient Light Sensor for uORB"
+        default n
+        select DRIVERS_TWI
+        ---help---
+                Enable support for the HX3203 Ambient Light Sensor driver.
+
+config SENSORS_SHTC3
+        bool "SHTC3 Temperature & Humidity Sensor"
+        default n
+        select DRIVERS_TWI
+        ---help---
+                Enable support for the SHTC3 Temperature & Humidity Sensor driver.
+
+config SENSORS_LTR553
+    bool "LTR553 Ambient Light and Proximity Sensor"
+    default n
+    depends on I2C
+    ---help---
+        Enable driver for LTR553 ambient light and proximity sensor.
+
+config SENSORS_SGP30_UORB
+    bool "SGP30 co2 and tvoc UORB Sensor"
+    default n
+    select DRIVERS_TWI
+    depends on I2C
+    ---help---
+        Enable driver for SGP30 co2 and tvoc sensor.
+
+if SENSORS_LTR553
+config LTR553_I2C_FREQUENCY
+    int "LTR553 I2C frequency"
+    default 400000
+    range 1 400000
+endif # SENSORS_LTR553
+endmenu

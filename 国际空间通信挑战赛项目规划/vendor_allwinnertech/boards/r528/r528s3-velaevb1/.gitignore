@@ -1,0 +1,16 @@
+*.o
+*.depend
+Make.dep
+libboard.a
+tags
+cscope.*
+freertos.fex
+.built
+*.fex
+etctmp.c
+
+etctmp
+libs
+src/etc/pns
+/aw_dsp
+

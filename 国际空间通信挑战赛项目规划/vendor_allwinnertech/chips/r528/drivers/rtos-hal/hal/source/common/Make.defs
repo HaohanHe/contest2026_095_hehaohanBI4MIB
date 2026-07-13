@@ -1,0 +1,19 @@
+ifeq ($(CONFIG_DRIVERS_DMA),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+DMA_COMMON_PATH=drivers/rtos-hal/hal/source/common
+
+DEPPATH+=--dep-path $(DMA_COMMON_PATH)
+VPATH+=:chip/$(DMA_COMMON_PATH)
+
+ARCH_SRC := $(TOPDIR)/arch/$(CONFIG_ARCH)/src
+ARCH_INC := $(TOPDIR)/arch/$(CONFIG_ARCH)/include
+ARCH_COMMON_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(DMA_COMMON_PATH)
+
+# Include the  module.
+CHIP_CSRCS += $(DMA_COMMON_PATH)/dma_alloc.c
+
+endif
+

@@ -1,0 +1,1 @@
+LICHEE_BRANDY_DEFCONF:=sun8iw20p1_velaevb1_rtos_nand

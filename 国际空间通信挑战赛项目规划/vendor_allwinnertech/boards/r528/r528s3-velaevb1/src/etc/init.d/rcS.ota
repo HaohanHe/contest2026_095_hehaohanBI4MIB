@@ -1,0 +1,96 @@
+/****************************************************************************
+ * vendor/allwinnertech/boards/r528/r528s3-evb4/src/etc/init.d/rcS.ota
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+
+#include <nuttx/config.h>
+#ifdef CONFIG_X4B_OTA
+
+echo "You're running an ota image."
+set -x
+
+kvdbd &
+
+setlogmask i
+
+mount -t yaffs /dev/usrdata /data
+set errcode $?
+if [ $errcode -ne 0 ]
+then
+    echo "/dev/usrdata mount failed, errcode is" $errcode
+    reboot
+fi
+
+if [ ! -e /data/ota.zip ]
+then
+    echo "ota.zip doesn't exist, will reboot to the old system"
+    reboot
+fi
+
+setprop ota.progress.current 0
+setprop ota.progress.next 15
+
+set silent_reboot_flag `getprop persist.silent_reboot.flag`
+if [ -z $silent_reboot_flag -o $silent_reboot_flag == false ]
+then
+    mount -t romfs /dev/res /resource
+    set errcode $?
+    if [ $errcode -ne 0 ]
+    then
+        echo "/dev/res mount failed, errcode is" $errcode
+        reboot
+    fi
+    otaUI -c /resource/ota/ota_ui_config.json &
+fi
+
+echo "mount ota.zip to /ota"
+mount -t zipfs -o /data/ota.zip /ota
+set errcode $?
+if [ $errcode -ne 0 ]
+then
+    echo "mount ota.zip failed, will reboot to the old system, errcode is" $errcode
+    setprop ota.progress.current -3
+    rm /data/ota.zip
+    reboot
+fi
+
+setprop ota.progress.current 15
+setprop ota.progress.next 30
+
+mkdir /data/ota_tmp
+sh /ota/ota.sh
+set ota_progress `getprop ota.progress.current`
+if [ $ota_progress == 100 ]
+then
+    echo "ota success"
+else
+    echo "ota failed"
+fi
+
+rm -r /data/ota_tmp
+rm /data/ota.zip
+
+set silent_reboot_flag `getprop persist.silent_reboot.flag`
+if [ -z $silent_reboot_flag -o $silent_reboot_flag == false ]
+then
+    setprop ota.progress.current 101
+else
+    reboot
+fi
+
+#endif

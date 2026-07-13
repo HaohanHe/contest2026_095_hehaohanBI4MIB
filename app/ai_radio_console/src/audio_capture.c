@@ -11,6 +11,7 @@
 
 static bool g_initialized = false;
 static bool g_recording = false;
+static bool g_thread_created = false;
 static pthread_t g_capture_thread;
 static audio_frame_callback_t g_callback = NULL;
 static void *g_cb_data = NULL;
@@ -42,40 +43,46 @@ static void *capture_thread_func(void *arg) {
     return NULL;
 }
 
-int audio_capture_init(void) {
-    g_audio_fd = open("/dev/pcmC0D0c", O_RDONLY | O_NONBLOCK);
+int radio_audio_capture_init(void) {
+    g_audio_fd = open(AUDIO_CAPTURE_DEV, O_RDONLY | O_NONBLOCK);
     if (g_audio_fd < 0) {
         g_audio_fd = open("/dev/audio_in", O_RDONLY | O_NONBLOCK);
     }
     if (g_audio_fd < 0) {
-        fprintf(stderr, "audio_capture: cannot open audio device, using simulated input\n");
+        fprintf(stderr, "audio_capture: cannot open %s, using simulated input\n", AUDIO_CAPTURE_DEV);
     }
     g_initialized = true;
     return 0;
 }
 
-int audio_capture_start(audio_frame_callback_t cb, void *user_data) {
+int radio_audio_capture_start(audio_frame_callback_t cb, void *user_data) {
     if (!g_initialized) return -1;
     if (g_recording) return 0;
     g_callback = cb;
     g_cb_data = user_data;
     g_recording = true;
+    g_thread_created = false;
     if (g_audio_fd >= 0) {
-        pthread_create(&g_capture_thread, NULL, capture_thread_func, NULL);
+        if (pthread_create(&g_capture_thread, NULL, capture_thread_func, NULL) != 0) {
+            g_recording = false;
+            return -1;
+        }
+        g_thread_created = true;
     }
     return 0;
 }
 
-int audio_capture_stop(void) {
+int radio_audio_capture_stop(void) {
     g_recording = false;
-    if (g_audio_fd >= 0) {
+    if (g_thread_created) {
         pthread_join(g_capture_thread, NULL);
+        g_thread_created = false;
     }
     return 0;
 }
 
-int audio_capture_deinit(void) {
-    audio_capture_stop();
+int radio_audio_capture_deinit(void) {
+    radio_audio_capture_stop();
     if (g_audio_fd >= 0) {
         close(g_audio_fd);
         g_audio_fd = -1;
@@ -84,17 +91,17 @@ int audio_capture_deinit(void) {
     return 0;
 }
 
-int audio_capture_get_level_db(float *db_out) {
+int radio_audio_capture_get_level_db(float *db_out) {
     if (!db_out) return -1;
     *db_out = g_current_db;
     return 0;
 }
 
-bool audio_capture_is_active(void) {
+bool radio_audio_capture_is_active(void) {
     return g_recording;
 }
 
-int audio_capture_save_wav(const char *path, const int16_t *data, size_t samples) {
+int radio_audio_capture_save_wav(const char *path, const int16_t *data, size_t samples) {
     if (!path || !data || samples == 0) return -1;
     FILE *f = fopen(path, "wb");
     if (!f) return -1;

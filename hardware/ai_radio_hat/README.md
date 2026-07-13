@@ -73,8 +73,8 @@
 
 硬件接上后，软件端需要确认：
 
-1. R528 音频输入设备为 `/dev/audio/pcm0c` 或 `/dev/pcmC0D0c`
-2. ASR 采样率配置为 16kHz（当前代码已内置 8k→16k 重采样）
+1. R528 音频输入设备为 `/dev/audio/pcm0c`
+2. ASR 采样率配置为 16kHz（通过 AUDIOIOC_CONFIGURE 设置）
 3. PTT GPIO 对应 `GPADC0`（需在代码里配置）
 4. CAT 串口对应 `/dev/ttyS?`（通常是 R_TX/R_RX 对应的 UART）
 

@@ -135,6 +135,14 @@ static void process_vad_frame(const int16_t *frame)
     }
 }
 
+/* Static buffer for ASR transcription text to avoid stack overflow.
+ * Only used from asr_worker_thread which holds g_mutex during use. */
+static char g_asr_text_buf[MAX_TRANSCRIPT_LEN];
+
+/* Static delta buffer to avoid 4KB stack allocation in asr_worker_thread.
+ * Protected by g_mutex (only accessed while locked). */
+static char g_asr_delta_buf[MAX_TRANSCRIPT_LEN];
+
 /* Returns 0 on success, -1 on error. On error out_delta contains the error message. */
 static int do_asr_request_locked(bool is_partial, char *out_delta, size_t delta_max_len)
 {
@@ -151,12 +159,11 @@ static int do_asr_request_locked(bool is_partial, char *out_delta, size_t delta_
     wav_encoder_finalize(&wav);
     size_t wav_len = wav_encoder_get_total_size(&wav);
 
-    char text[MAX_TRANSCRIPT_LEN];
     const char *model = g_config.asr_model[0] ? g_config.asr_model : DEFAULT_ASR_MODEL;
 
     /* Release mutex during network call so feed_audio can keep collecting */
     pthread_mutex_unlock(&g_mutex);
-    int ret = sf_client_transcribe_audio(g_wav_buf, wav_len, model, text, sizeof(text));
+    int ret = sf_client_transcribe_audio(g_wav_buf, wav_len, model, g_asr_text_buf, sizeof(g_asr_text_buf));
     pthread_mutex_lock(&g_mutex);
 
     if (ret != 0) {
@@ -165,13 +172,13 @@ static int do_asr_request_locked(bool is_partial, char *out_delta, size_t delta_
         return -1;
     }
 
-    compute_text_delta(g_last_partial_text, text, out_delta, delta_max_len);
+    compute_text_delta(g_last_partial_text, g_asr_text_buf, out_delta, delta_max_len);
 
-    strncpy(g_last_text, text, sizeof(g_last_text) - 1);
+    strncpy(g_last_text, g_asr_text_buf, sizeof(g_last_text) - 1);
     g_last_text[sizeof(g_last_text) - 1] = '\0';
 
     if (is_partial) {
-        strncpy(g_last_partial_text, text, sizeof(g_last_partial_text) - 1);
+        strncpy(g_last_partial_text, g_asr_text_buf, sizeof(g_last_partial_text) - 1);
         g_last_partial_text[sizeof(g_last_partial_text) - 1] = '\0';
     }
 
@@ -207,62 +214,59 @@ static void *asr_worker_thread(void *arg)
         pthread_mutex_unlock(&g_mutex);
 
         if (do_flush) {
-            char delta[MAX_TRANSCRIPT_LEN];
             bool had_data = false;
             pthread_mutex_lock(&g_mutex);
             had_data = g_utt_count > 0;
-            int ret = had_data ? do_asr_request_locked(false, delta, sizeof(delta)) : 0;
+            int ret = had_data ? do_asr_request_locked(false, g_asr_delta_buf, sizeof(g_asr_delta_buf)) : 0;
             reset_utterance_locked();
             pthread_mutex_unlock(&g_mutex);
 
             if (had_data) {
                 if (ret == 0) {
                     set_state(ASR_STATE_READY);
-                    if (g_cbs.on_result && delta[0] != '\0') {
-                        g_cbs.on_result(delta, false, g_cbs.user_data);
+                    if (g_cbs.on_result && g_asr_delta_buf[0] != '\0') {
+                        g_cbs.on_result(g_asr_delta_buf, false, g_cbs.user_data);
                     }
                 } else {
                     set_state(ASR_STATE_ERROR);
                     if (g_cbs.on_error) {
-                        g_cbs.on_error(-1, delta, g_cbs.user_data);
+                        g_cbs.on_error(-1, g_asr_delta_buf, g_cbs.user_data);
                     }
                 }
             }
         } else if (do_final) {
-            char delta[MAX_TRANSCRIPT_LEN];
             pthread_mutex_lock(&g_mutex);
-            int ret = do_asr_request_locked(false, delta, sizeof(delta));
+            int ret = do_asr_request_locked(false, g_asr_delta_buf, sizeof(g_asr_delta_buf));
             reset_utterance_locked();
             g_final_pending = false;
             pthread_mutex_unlock(&g_mutex);
 
             if (ret == 0) {
                 set_state(ASR_STATE_READY);
-                if (g_cbs.on_result && delta[0] != '\0') {
-                    g_cbs.on_result(delta, false, g_cbs.user_data);
+                if (g_cbs.on_result && g_asr_delta_buf[0] != '\0') {
+                    g_cbs.on_result(g_asr_delta_buf, false, g_cbs.user_data);
                 }
             } else {
                 set_state(ASR_STATE_ERROR);
                 if (g_cbs.on_error) {
-                    g_cbs.on_error(-1, delta, g_cbs.user_data);
+                    g_cbs.on_error(-1, g_asr_delta_buf, g_cbs.user_data);
                 }
             }
         } else if (do_partial) {
-            char delta[MAX_TRANSCRIPT_LEN];
             pthread_mutex_lock(&g_mutex);
             set_state(ASR_STATE_UPLOADING);
-            int ret = do_asr_request_locked(true, delta, sizeof(delta));
+            int ret = do_asr_request_locked(true, g_asr_delta_buf, sizeof(g_asr_delta_buf));
             pthread_mutex_unlock(&g_mutex);
 
             if (ret == 0) {
                 set_state(ASR_STATE_READY);
-                if (g_cbs.on_result && delta[0] != '\0') {
-                    g_cbs.on_result(delta, true, g_cbs.user_data);
+                if (g_cbs.on_result && g_asr_delta_buf[0] != '\0') {
+                    g_cbs.on_result(g_asr_delta_buf, true, g_cbs.user_data);
                 }
             } else {
                 set_state(ASR_STATE_ERROR);
                 if (g_cbs.on_error) {
-                    g_cbs.on_error(-1, delta, g_cbs.user_data);
+                    g_cbs.on_error(-1, g_asr_delta_buf, g_cbs.user_data);
                 }
             }
         }

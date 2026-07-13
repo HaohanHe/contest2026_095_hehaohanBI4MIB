@@ -3,9 +3,9 @@
 
 #include "radio_config.h"
 
-int config_store_init(void);
-int config_store_load(ai_config_t *config);
-int config_store_save(const ai_config_t *config);
-void config_set_defaults(ai_config_t *config);
+int radio_config_store_init(void);
+int radio_config_store_load(ai_config_t *config);
+int radio_config_store_save(const ai_config_t *config);
+void radio_config_set_defaults(ai_config_t *config);
 
 #endif

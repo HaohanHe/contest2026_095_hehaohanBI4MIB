@@ -1,0 +1,17 @@
+OSAL_SOURCE_PATH=drivers/osal/src
+
+DEPPATH+=--dep-path $(OSAL_SOURCE_PATH) 
+VPATH+=:chip/$(OSAL_SOURCE_PATH)
+
+# Include the  module.
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_atomic.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_cache.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_mem.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_interrupt.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_thread.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_time.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_sem.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_mutex.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_queue.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_timer.c
+CHIP_CSRCS += $(OSAL_SOURCE_PATH)/hal_workqueue.c

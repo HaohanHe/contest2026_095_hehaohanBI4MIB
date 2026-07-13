@@ -1,0 +1,36 @@
+
+COMMON_PATH=$(DRV_SOURCE_PATH)/sound/common
+
+DEPPATH+=--dep-path $(COMMON_PATH)
+VPATH+=:chip/$(COMMON_PATH)
+
+ifeq ($(CONFIG_SND_COMMON_SUNXI_COMMON),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(COMMON_PATH)/snd_sunxi_common.c
+
+endif
+
+ifeq ($(CONFIG_SND_SOC_SUNXI_RXSYNC),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(COMMON_PATH)/snd_sunxi_rxsync.c
+
+endif
+
+
+ifeq ($(CONFIG_SND_COMMON_SUNXI_ALG_CFG),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(COMMON_PATH)/snd_sunxi_alg_cfg.c
+
+endif

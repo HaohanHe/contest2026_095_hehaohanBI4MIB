@@ -14,6 +14,8 @@
 static int g_lradc_fd = -1;
 static pthread_t g_lradc_thread;
 static volatile bool g_running = false;
+static lradc_button_cb_t g_button_cb = NULL;
+static void *g_button_cb_data = NULL;
 
 static uint32_t get_ms(void)
 {
@@ -35,6 +37,11 @@ static btn_buttonset_t first_button(btn_buttonset_t mask)
 
 static void handle_long_press(btn_buttonset_t btn)
 {
+    /* Notify external callback first */
+    if (g_button_cb) {
+        g_button_cb(btn, true, g_button_cb_data);
+    }
+
     if (btn != LRADC_BTN_ENTER) {
         return;
     }
@@ -50,6 +57,11 @@ static void handle_long_press(btn_buttonset_t btn)
 
 static void handle_short_press(btn_buttonset_t btn)
 {
+    /* Notify external callback first */
+    if (g_button_cb) {
+        g_button_cb(btn, false, g_button_cb_data);
+    }
+
     if (btn == LRADC_BTN_MENU) {
         printf("[input_lradc] Menu short press\n");
     }
@@ -161,4 +173,10 @@ int input_lradc_stop(void)
 
     printf("[input_lradc] Stopped\n");
     return 0;
+}
+
+void input_lradc_set_button_callback(lradc_button_cb_t cb, void *user_data)
+{
+    g_button_cb = cb;
+    g_button_cb_data = user_data;
 }

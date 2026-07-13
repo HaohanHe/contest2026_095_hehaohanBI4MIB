@@ -1,0 +1,53 @@
+ifeq ($(CONFIG_SENSORS_HX3203), y)
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+HX3203_PATH=drivers/rtos-hal/hal/source/sensor
+
+DEPPATH+=--dep-path $(HX3203_PATH) 
+VPATH+=:chip/$(HX3203_PATH)
+
+ARCH_GPIO_SRC_PATH:=$(ARCH_SRC)/chip/$(HX3203_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)/soc
+
+CHIP_CSRCS += $(HX3203_PATH)/hx3203_uorb.c
+
+endif
+
+ifeq ($(CONFIG_SENSORS_SHTC3), y)
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+SHTC3_PATH=drivers/rtos-hal/hal/source/sensor/temperature
+DEPPATH+=--dep-path $(SHTC3_PATH)
+VPATH+=:chip/$(SHTC3_PATH)
+ARCH_GPIO_SRC_PATH:=$(ARCH_SRC)/chip/$(SHTC3_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)/soc
+CHIP_CSRCS += $(SHTC3_PATH)/shtc3.c
+CFLAGS          += ${INCDIR_PREFIX}$(APPDIR)/system/uorb/
+endif
+
+ifeq ($(CONFIG_SENSORS_LTR553), y)
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+LTR553_PATH=drivers/rtos-hal/hal/source/sensor/als
+DEPPATH+=--dep-path $(LTR553_PATH)
+VPATH+=:chip/$(LTR553_PATH)
+ARCH_GPIO_SRC_PATH:=$(ARCH_SRC)/chip/$(LTR553_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)/soc
+CHIP_CSRCS += $(LTR553_PATH)/ltr553.c
+CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/system/uorb/
+endif
+
+ifeq ($(CONFIG_SENSORS_SGP30_UORB), y)
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+SGP30_PATH=drivers/rtos-hal/hal/source/sensor/sgp30
+DEPPATH+=--dep-path $(SGP30_PATH)
+VPATH+=:chip/$(SGP30_PATH)
+ARCH_GPIO_SRC_PATH:=$(ARCH_SRC)/chip/$(SGP30_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)/soc
+CHIP_CSRCS += $(SGP30_PATH)/sgp30_uorb.c
+CHIP_CSRCS += $(SGP30_PATH)/sgp30.c
+CFLAGS          += ${INCDIR_PREFIX}$(APPDIR)/system/uorb/
+endif
+CFLAGS += -DCONFIG_DRIVERS_SENSORS

@@ -1,0 +1,45 @@
+ifeq ($(CONFIG_DRIVERS_CCMU),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+CCMU_PATH=drivers/rtos-hal/hal/source/ccmu
+SUNXI_NG_PATH=$(CCMU_PATH)/sunxi-ng
+
+DEPPATH+=--dep-path $(CCMU_PATH) 
+VPATH+=:chip/$(CCMU_PATH)
+
+ARCH_CCMU_SRC_PATH:=$(AW_SRCDIR)/$(CCMU_PATH)
+ARCH_CCMU_PARENT_SRC_PATH:=$(AW_SRCDIR)/$(DRV_SOURCE_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_CCMU_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_CCMU_PARENT_SRC_PATH)
+
+# Include the  module.
+CHIP_CSRCS += $(CCMU_PATH)/hal_clk.c
+CHIP_CSRCS += $(CCMU_PATH)/hal_reset.c
+
+CHIP_CSRCS += $(SUNXI_NG_PATH)/clk.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_mux.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_nm.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_common.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_reset.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_div.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_frac.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_gate.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_mp.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_mult.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_nk.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_nkm.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_nkmp.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu_sdm.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/clk-fixed-factor.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/clk-fixed-rate.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/clk-divider.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu-sun8iw20.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu-sun8iw20-r.c
+CHIP_CSRCS += $(SUNXI_NG_PATH)/ccu-sun8iw20-rtc.c
+
+endif
+

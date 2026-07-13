@@ -1,0 +1,312 @@
+#
+# Copyright (C) 2026 Xiaomi Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXAMPLES_AI_AGENT_VELA
+	tristate "Vela AI Agent"
+	default n
+	---help---
+		Enable the AI Agent ported to Vela/NuttX.
+		Requires network connectivity and mbedTLS.
+
+if EXAMPLES_AI_AGENT_VELA
+
+config EXAMPLES_AI_AGENT_VELA_PROGNAME
+	string "Program name"
+	default "ai_agent"
+	---help---
+		Name of the NSH built-in command.
+
+config EXAMPLES_AI_AGENT_VELA_PRIORITY
+	int "Agent task priority"
+	default 100
+
+config EXAMPLES_AI_AGENT_VELA_STACKSIZE
+	int "Agent main stack size"
+	default 32768
+
+config EXAMPLES_AI_AGENT_VELA_DATA_DIR
+	string "Persistent data directory"
+	default "/data/ai_agent"
+	---help---
+		Base directory for config, memory and session files.
+		Must be on a writable filesystem (e.g. littlefs, romfs+ramdisk).
+
+config EXAMPLES_AI_AGENT_VELA_NODE_ID
+	string "Node client ID"
+	default "watch-01"
+	---help---
+		Unique identifier for this device when connecting to an
+		OpenClaw Gateway as a Node. Used in tool names like
+		node:<id>:<command>.
+
+config EXAMPLES_AI_AGENT_VELA_NODE_DISPLAY_NAME
+	string "Node client display name"
+	default "Smart Watch"
+	---help---
+		Human-readable name shown on the Hub side for this Node.
+
+choice
+	prompt "Shell security policy"
+	default EXAMPLES_AI_AGENT_VELA_SHELL_ALLOWLIST
+	---help---
+		Security policy for run_shell tool execution.
+		- Allowlist: Only pre-approved commands (safest for production)
+		- Full: Allow most commands except critical ones (for development/skills)
+		- Deny: Disable run_shell completely
+
+config EXAMPLES_AI_AGENT_VELA_SHELL_ALLOWLIST
+	bool "Allowlist mode (production)"
+	---help---
+		Only allow pre-approved safe commands. Blocks shell meta-characters
+		(pipes, redirects, etc.) and dangerous commands (rm, reboot, etc.).
+		Recommended for production deployments.
+
+config EXAMPLES_AI_AGENT_VELA_SHELL_FULL
+	bool "Full mode (development)"
+	---help---
+		Allow most shell commands and features (pipes, redirects, etc.).
+		Only blocks critical system commands (reboot, mkfs, insmod, etc.).
+		Recommended for development and skill authoring.
+
+config EXAMPLES_AI_AGENT_VELA_SHELL_DENY
+	bool "Deny mode (disabled)"
+	---help---
+		Completely disable run_shell tool. Use when shell access is not needed.
+
+endchoice
+
+config AI_AGENT_LVGL_UI
+	bool "Enable LVGL UI channel"
+	default n
+	depends on GRAPHICS_LVGL
+	---help---
+		Enable the LVGL-based chat UI channel for AI Agent.
+		Provides a chat-bubble interface on a round watch screen
+		with PTT (Push-to-Talk) voice input.
+
+config AI_AGENT_FEISHU
+	bool "Enable Feishu bot channel"
+	default y
+	---help---
+		Enable the Feishu (Lark) bot channel. Uses WebSocket
+		long-polling with TLS. Costs ~108KB RAM when active
+		(20KB thread + 64KB frame buf + 20KB TLS context).
+		Disable to save memory if only using CLI.
+
+config AI_AGENT_WEIXIN
+	bool "Enable WeChat channel"
+	default y
+	---help---
+		Enable the WeChat (weixin) channel. Uses HTTPS
+		long-polling. Costs ~45KB RAM at peak (12KB thread
+		+ 32KB response buffer). Disable to save memory.
+
+config AI_AGENT_MQTT
+	bool "Enable MQTT channel"
+	default y
+	---help---
+		Enable the MQTT pub/sub channel. Costs ~15KB RAM
+		(12KB thread + 2KB buffers). Disable to save memory.
+
+config AI_AGENT_AUDIO_PREPROCESS
+	bool "Enable audio preprocessing (NS + AGC)"
+	default n
+	depends on BES_AEC
+	---help---
+		Enable noise suppression and automatic gain control
+		on captured audio before sending to ASR. Uses BES
+		ec2float for NS and compexp for AGC. Requires ~150KB
+		heap on BES platforms with HiFi4 DSP.
+
+config AI_AGENT_AUDIO_CAPTURE_GAIN
+	int "Audio capture gain multiplier"
+	default 6
+	range 1 16
+	---help---
+		Gain multiplier applied to captured audio samples.
+		When board configures multiple DMIC channels but only
+		one has a physical microphone, the mono downmix dilutes
+		the signal. Set gain to compensate:
+		- 1 = No gain (single-channel or balanced multi-mic)
+		- 6 = Compensate for 6-channel DMIC with 1 active mic
+		- Higher values for more amplification (may clip)
+
+config AI_AGENT_AUDIO_ALSA_DIRECT
+	bool "Use direct ALSA capture backend"
+	default n
+	---help---
+		Capture audio directly through the ALSA (aw-alsa-lib) PCM
+		interface instead of the portable media_recorder backend.
+		This requires chip-specific ALSA headers and the Allwinner
+		R528 rtos-hal include tree, so it only builds on boards that
+		ship that SDK. Leave disabled (the default) on all other
+		boards; the agent then uses the media framework recorder,
+		which works everywhere. When enabled, the agent still falls
+		back to media_recorder at runtime if ALSA capture fails.
+
+config AI_AGENT_CAMERA
+	bool "Enable camera capture tool"
+	default n
+	depends on VIDEO
+	---help---
+		Enable the camera_capture tool for taking photos via
+		V4L2 and analyzing them with Vision LLM. Requires a
+		camera device at /dev/video0. Use for object recognition,
+		text reading, and scene description.
+
+config AI_AGENT_NODE
+	bool "Enable Hub-Node cross-device protocol"
+	default y
+	---help---
+		Enable the Node client and Node manager for cross-device
+		tool invocation via OpenClaw Gateway. Costs ~20KB RAM
+		(threads + WebSocket buffers). Disable on standalone
+		devices that don't need multi-device coordination.
+
+config AI_AGENT_MCP
+	bool "Enable MCP tool bridge"
+	default y
+	---help---
+		Enable the Model Context Protocol bridge for remote
+		tool servers. Costs ~10KB RAM (registry + client state).
+		Disable to save memory if only using builtin tools.
+
+config AI_AGENT_TEST
+	bool "Enable integration test commands"
+	default n
+	---help---
+		Compile the claw_test CLI command and vision integration test
+		harness. Adds ~2KB code. Use 'claw_test' in NSH to run tests.
+
+config AI_AGENT_TEST_IMAGE_DIR
+	string "Test image directory"
+	default "/data/ai_agent/test"
+	depends on AGENT_TEST
+	---help---
+		Directory for test images used by the vision integration tests.
+		Images can be pre-pushed via adb or generated at runtime.
+		Must be on a writable filesystem.
+
+config AI_AGENT_NET_RPMSG
+	bool "Use RPMSG/TUN network (no Wi-Fi)"
+	default n
+	---help---
+		Use RPMSG usrsock or TUN device for network connectivity
+		instead of Wi-Fi. For boards without onboard Wi-Fi that
+		rely on BLE proxy to a phone for internet access.
+		Enables configurable timeouts, retry logic, BLE state
+		bridging, and resource guards suited for high-latency
+		BLE proxy links.
+
+config AI_AGENT_SKILL_SYNC
+	bool "Enable Bitable skill sync"
+	default n
+	---help---
+		Pull skills from a Feishu Bitable (multi-dimensional table)
+		at startup after network is connected. Requires Feishu app
+		credentials to be configured.
+
+if AGENT_SKILL_SYNC
+
+config AI_AGENT_SKILL_SYNC_APP_TOKEN
+	string "Bitable app_token"
+	default ""
+	---help---
+		The app_token of the Feishu Bitable that stores skills.
+		Found in the Bitable URL: /base/<app_token>
+
+config AI_AGENT_SKILL_SYNC_TABLE_ID
+	string "Bitable table_id"
+	default ""
+	---help---
+		The table_id within the Bitable that contains skill records.
+
+config AI_AGENT_SKILL_SYNC_MODE
+	int "Sync mode (0=incremental, 1=full)"
+	default 0
+	---help---
+		0 = Incremental: only update skills whose version changed.
+		1 = Full: rewrite all skills and remove orphaned local ones.
+
+config AI_AGENT_SKILL_SYNC_DEVICE_TYPE
+	string "Device type for target_device filter"
+	default "all"
+	---help---
+		Device type used to filter skills by target_device field.
+		Skills with target_device containing this value or "all"
+		will be synced. Examples: watch, band, glasses, speaker.
+
+endif
+
+config AI_AGENT_MCP_MAX_SERVERS
+	int "Max MCP remote servers"
+	default 4
+	range 1 8
+	depends on AGENT_MCP
+	---help---
+		Maximum number of remote MCP servers. Each server slot
+		uses ~456 bytes BSS. Reduce on memory-constrained boards.
+
+config AI_AGENT_MCP_MAX_TOOLS
+	int "Max MCP remote tools"
+	default 16
+	range 4 64
+	depends on AGENT_MCP
+	---help---
+		Maximum cached remote tools across all MCP servers.
+		Each tool slot uses ~452 bytes BSS. Reduce on
+		memory-constrained boards.
+
+config AI_AGENT_TLS_CONN_POOL_SIZE
+	int "TLS connection pool size"
+	default 2
+	range 1 4
+	---help---
+		Number of persistent TLS connections kept alive for
+		reuse. Each slot uses ~12KB BSS (TLS context + raw
+		buffer). Set to 1 on memory-constrained boards.
+
+config AI_AGENT_BLE_GATT
+	bool "Enable BLE GATT data channel"
+	default n
+	---help---
+		Enable BLE GATT data channel using Nordic UART Service
+		(NUS) pattern. Provides bidirectional data exchange over
+		BLE with any GATT client (iOS/Android). Works on BLE-only
+		chips without classic Bluetooth SPP support.
+
+config AI_AGENT_BLE_NET
+	bool "Enable BLE SPP network proxy"
+	default n
+	---help---
+		Enable BLE SPP + TUN based network proxy channel.
+		Provides internet access via phone companion app over
+		Bluetooth SPP. For devices without Wi-Fi.
+
+config AI_AGENT_REST_API
+	bool "Enable REST API endpoints"
+	default n
+	---help---
+		Enable HTTP REST API endpoints accessible via WebSocket
+		server for remote configuration, skill management, and
+		log retrieval from Android companion App.
+
+endif

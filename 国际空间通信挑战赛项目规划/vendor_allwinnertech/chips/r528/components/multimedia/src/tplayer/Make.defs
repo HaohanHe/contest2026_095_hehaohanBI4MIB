@@ -1,0 +1,33 @@
+ifeq ($(CONFIG_TPLAYER),y)
+TPLAYER_SOURCE_PATH=components$(DELIM)multimedia$(DELIM)src$(DELIM)tplayer
+
+DEPPATH+=--dep-path $(TPLAYER_SOURCE_PATH) 
+VPATH+=:chip$(DELIM)$(TPLAYER_SOURCE_PATH)
+
+
+ARCH_SRC := $(TOPDIR)$(DELIM)arch$(DELIM)$(CONFIG_ARCH)$(DELIM)src
+ARCH_INC := $(TOPDIR)$(DELIM)arch$(DELIM)$(CONFIG_ARCH)$(DELIM)include
+ARCH_TPLAYER_CUR_SRC_PATH:=$(AW_SRCDIR)$(DELIM)$(TPLAYER_SOURCE_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)components$(DELIM)multimedia$(DELIM)inc$(DELIM)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TPLAYER_CUR_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TPLAYER_CUR_SRC_PATH)$(DELIM)awsink
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarc$(DELIM)include
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx
+CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)components$(DELIM)multimedia$(DELIM)inc$(DELIM)libuapi
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)external$(DELIM)include$(DELIM)adecoder
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)libcore$(DELIM)playback$(DELIM)include
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)libcore$(DELIM)common$(DELIM)iniparser
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)libcore$(DELIM)parser$(DELIM)include
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)libcore$(DELIM)stream$(DELIM)include
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)libcore$(DELIM)stream$(DELIM)http
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)libcore$(DELIM)base$(DELIM)include
+#CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)$(DELIM)multimedia$(DELIM)src$(DELIM)libcedarx$(DELIM)libcore$(DELIM)xplayer$(DELIM)include
+CFLAGS += -Wno-undef
+
+CHIP_CSRCS += $(TPLAYER_SOURCE_PATH)$(DELIM)tplayer.c
+#CHIP_CSRCS += $(TPLAYER_SOURCE_PATH)$(DELIM)awsink$(DELIM)tsound_ctrl.c
+CHIP_CSRCS += $(TPLAYER_SOURCE_PATH)$(DELIM)awsink$(DELIM)tdeinterlace_ctrl.c
+CHIP_CSRCS += $(TPLAYER_SOURCE_PATH)$(DELIM)awsink$(DELIM)tsubtitlectrl_ctrl.c
+CHIP_CSRCS += $(TPLAYER_SOURCE_PATH)$(DELIM)awsink$(DELIM)tlayer_ctrl.c
+endif

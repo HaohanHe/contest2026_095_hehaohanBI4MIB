@@ -1,0 +1,36 @@
+menu "Allwinner rpmsg memblk"
+
+config AW_RPMSG_MEMBLK
+	bool "rpmsg memblk comonent"
+	default n
+
+config AW_RPMSG_MEMBLK_TEST
+	bool "rpmsg memblk test app"
+	default n
+
+config AW_RPMSG_MEMBLK_DEBUG
+	bool "rpmsg memblk debug info"
+	default n
+
+config AW_MEMBLK_DEBUG
+	bool "memblk debug info"
+	default n
+
+config MEMBLK_MAX_ITEM
+	int "memblk max item"
+	depends on AW_RPMSG_MEMBLK
+	default 32
+
+config AW_RPMSG_MEMBLK_THTEAD_PRIORITY
+	int "memblk thread priority"
+	depends on AW_RPMSG_MEMBLK
+	default 100
+
+config AW_RPMSG_MEMBLK_THTEAD_STACK_SIZE
+	int "memblk thread stack size"
+	depends on AW_RPMSG_MEMBLK
+	default 8192
+
+
+
+endmenu

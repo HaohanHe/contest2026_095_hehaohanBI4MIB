@@ -53,6 +53,8 @@ static bool g_alert_show = false;
 static int g_alert_level = ALERT_LEVEL_NONE;
 static bool g_alert_flash_on = false;
 static uint32_t g_last_blink_ms = 0;
+static lv_obj_t *g_main_screen = NULL;
+static bool g_visible = false;
 
 static const char *alert_level_str(int level)
 {
@@ -130,6 +132,9 @@ static void update_transcript_label(void)
     lv_label_set_text(g_transcript_label, combined);
 }
 
+/* 显式引用中文字体，防止链接器丢弃 */
+extern const lv_font_t ai_radio_font;
+
 int ui_ai_radio_init(void)
 {
     g_screen = lv_obj_create(NULL);
@@ -140,6 +145,9 @@ int ui_ai_radio_init(void)
     lv_obj_set_style_pad_all(g_screen, 0, 0);
     lv_obj_set_style_radius(g_screen, 0, 0);
     lv_obj_set_style_border_width(g_screen, 0, 0);
+
+    /* AI 页面使用中文字体，确保 ASR/LLM 中文结果显示正常 */
+    lv_obj_set_style_text_font(g_screen, &ai_radio_font, 0);
 
     /* Alert banner */
     g_banner = lv_obj_create(g_screen);
@@ -153,7 +161,7 @@ int ui_ai_radio_init(void)
     g_alert_label = lv_label_create(g_banner);
     lv_label_set_text(g_alert_label, "AI RADIO READY");
     lv_obj_set_style_text_color(g_alert_label, COLOR_TEXT, 0);
-    lv_obj_set_style_text_font(g_alert_label, &lv_font_montserrat_12, 0);
+    /* font inherited from screen */
     lv_obj_set_pos(g_alert_label, 8, 6);
 
     /* Frequency / mode bar */
@@ -168,13 +176,13 @@ int ui_ai_radio_init(void)
     g_freq_label = lv_label_create(freq_bar);
     lv_label_set_text(g_freq_label, "14.250.000 MHz");
     lv_obj_set_style_text_color(g_freq_label, COLOR_ACCENT, 0);
-    lv_obj_set_style_text_font(g_freq_label, &lv_font_montserrat_16, 0);
+    /* font inherited from screen */
     lv_obj_set_pos(g_freq_label, 8, 6);
 
     g_mode_label = lv_label_create(freq_bar);
     lv_label_set_text(g_mode_label, "USB");
     lv_obj_set_style_text_color(g_mode_label, COLOR_GREEN, 0);
-    lv_obj_set_style_text_font(g_mode_label, &lv_font_montserrat_14, 0);
+    /* font inherited from screen */
     lv_obj_set_pos(g_mode_label, LCD_W - 56, 8);
 
     /* Transcript panel */
@@ -190,13 +198,13 @@ int ui_ai_radio_init(void)
     g_transcript_title = lv_label_create(transcript_panel);
     lv_label_set_text(g_transcript_title, "ASR TRANSCRIPT");
     lv_obj_set_style_text_color(g_transcript_title, COLOR_TEXT_DIM, 0);
-    lv_obj_set_style_text_font(g_transcript_title, &lv_font_montserrat_10, 0);
+    /* font inherited from screen */
     lv_obj_set_pos(g_transcript_title, 4, 2);
 
     g_transcript_label = lv_label_create(transcript_panel);
     lv_label_set_text(g_transcript_label, "Waiting for audio...");
     lv_obj_set_style_text_color(g_transcript_label, COLOR_TEXT_DIM, 0);
-    lv_obj_set_style_text_font(g_transcript_label, &lv_font_montserrat_12, 0);
+    /* font inherited from screen */
     lv_label_set_long_mode(g_transcript_label, LV_LABEL_LONG_WRAP);
     lv_obj_set_size(g_transcript_label, LCD_W - 12, TRANSCRIPT_H - 20);
     lv_obj_set_pos(g_transcript_label, 4, 18);
@@ -214,13 +222,13 @@ int ui_ai_radio_init(void)
     g_summary_title = lv_label_create(summary_panel);
     lv_label_set_text(g_summary_title, "AI ANALYSIS");
     lv_obj_set_style_text_color(g_summary_title, COLOR_TEXT_DIM, 0);
-    lv_obj_set_style_text_font(g_summary_title, &lv_font_montserrat_10, 0);
+    /* font inherited from screen */
     lv_obj_set_pos(g_summary_title, 4, 2);
 
     g_summary_label = lv_label_create(summary_panel);
     lv_label_set_text(g_summary_label, "No analysis yet.");
     lv_obj_set_style_text_color(g_summary_label, COLOR_TEXT, 0);
-    lv_obj_set_style_text_font(g_summary_label, &lv_font_montserrat_12, 0);
+    /* font inherited from screen */
     lv_label_set_long_mode(g_summary_label, LV_LABEL_LONG_WRAP);
     lv_obj_set_size(g_summary_label, LCD_W - 12, SUMMARY_H - 44);
     lv_obj_set_pos(g_summary_label, 4, 18);
@@ -228,15 +236,41 @@ int ui_ai_radio_init(void)
     g_alert_level_label = lv_label_create(summary_panel);
     lv_label_set_text(g_alert_level_label, "ALERT: NONE");
     lv_obj_set_style_text_color(g_alert_level_label, COLOR_GREEN, 0);
-    lv_obj_set_style_text_font(g_alert_level_label, &lv_font_montserrat_12, 0);
+    /* font inherited from screen */
     lv_obj_set_pos(g_alert_level_label, 4, SUMMARY_H - 22);
 
     g_transcript_history[0] = '\0';
     g_partial_text[0] = '\0';
 
     ui_ai_radio_set_frequency(g_current_freq_hz, g_current_mode);
-    lv_scr_load(g_screen);
+    /* NOTE: Do NOT call lv_scr_load() here.
+     * The main screen (create_main_screen) is the default active screen.
+     * This AI radio screen is used as an overlay/secondary view and will be
+     * loaded on demand via ui_ai_radio_show(). */
+    g_main_screen = lv_scr_act();
     return 0;
+}
+
+void ui_ai_radio_show(void)
+{
+    if (!g_screen) return;
+    if (g_main_screen == NULL) {
+        g_main_screen = lv_scr_act();
+    }
+    lv_scr_load(g_screen);
+    g_visible = true;
+}
+
+void ui_ai_radio_hide(void)
+{
+    if (!g_main_screen || !g_visible) return;
+    lv_scr_load(g_main_screen);
+    g_visible = false;
+}
+
+bool ui_ai_radio_is_visible(void)
+{
+    return g_visible;
 }
 
 void ui_ai_radio_set_frequency(float freq_hz, const char *mode)

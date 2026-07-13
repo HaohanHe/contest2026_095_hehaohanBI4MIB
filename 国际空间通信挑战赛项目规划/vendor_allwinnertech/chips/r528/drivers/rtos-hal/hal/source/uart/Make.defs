@@ -1,0 +1,15 @@
+ifeq ($(CONFIG_DRIVERS_UART),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+UART_PATH=$(DRV_SOURCE_PATH)/uart
+
+DEPPATH+=--dep-path $(UART_PATH)
+VPATH+=:chip/$(UART_PATH)
+
+# Include the  module.
+CHIP_CSRCS += $(UART_PATH)/hal_uart.c
+
+endif
+

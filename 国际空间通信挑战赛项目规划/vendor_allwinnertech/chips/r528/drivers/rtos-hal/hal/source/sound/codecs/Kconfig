@@ -1,0 +1,18 @@
+menu "AllWinner CODEC drivers"
+
+config SND_CODEC_SUN8IW20_AUDIOCODEC
+	bool "Allwinner AudioCodec support"
+	default n
+	select SND_PLATFORM_SUNXI_CPUDAI
+	select SND_PLATFORM_SUNXI_PCM
+	depends on (SOC_SUN20IW1P1 || ARCH_SUN8IW20)
+	help
+	  Select Y to add support the Codec embedded in the Allwinner
+	  sun8iw20 and affiliated SoCs.
+
+config SND_CODEC_DUMMY
+	bool "Sunxi dummy codec"
+	default n
+
+
+endmenu

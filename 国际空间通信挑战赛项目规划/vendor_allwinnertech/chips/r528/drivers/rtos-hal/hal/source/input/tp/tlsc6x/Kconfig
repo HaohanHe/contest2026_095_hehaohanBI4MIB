@@ -1,0 +1,9 @@
+if DRIVERS_TP
+config DRIVERS_TLSC6X
+	select DRIVERS_TWI
+	select INPUT_TOUCHSCREEN
+	bool "tlsc6x tp driver"
+	default n
+	---help---
+		Select to enable support touch panel tlsc6x
+endif

@@ -1,0 +1,113 @@
+#
+# Copyright (C) 2026 Xiaomi Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and limitations
+# under the License.
+#
+
+config AI_RADIO_CONSOLE
+	bool "AI Radio Console (Gemini-S1 HAT)"
+	default n
+	depends on AUDIO && LVGL && EXAMPLES_AI_AGENT_VELA
+	---help---
+		AI Radio Console for Gemini-S1 with AI Radio HAT.
+		Provides LVGL UI, LINEIN audio recording, PTT control,
+		ASR transcription and ai_agent integration for radio QSO logging.
+
+if AI_RADIO_CONSOLE
+
+config AI_RADIO_CONSOLE_USE_VOICE_CHANNEL
+	bool "Use ai_agent voice_channel for PTT+ASR"
+	default y
+	depends on EXAMPLES_AI_AGENT_VELA
+	---help---
+		Use the ai_agent voice_channel API (voice_channel_start /
+		voice_channel_stop_with_text) for PTT recording and ASR.
+		This is the recommended path in the mini_memo example:
+		ai_agent handles capture, streaming/batch ASR and HTTPS.
+		
+		If disabled, fall back to the legacy nxrecorder + custom
+		HTTP ASR client path (requires an HTTP relay for HTTPS).
+
+config AI_RADIO_CONSOLE_PTT_SELFTEST_MS
+	int "PTT selftest hold time (ms, 0=disabled)"
+	default 0
+	---help---
+		If non-zero, the application starts in PTT self-test mode
+		and simulates a PTT press of this duration at startup.
+		Useful for headless testing (e.g. mini_memo --ptt-selftest).
+
+config AI_RADIO_CONSOLE_PRIORITY
+	int "ai_radio_console task priority"
+	default 100
+
+config AI_RADIO_CONSOLE_STACKSIZE
+	int "ai_radio_console task stack size"
+	default 8192
+
+config AI_RADIO_CONSOLE_PTT_GPIO
+	string "PTT GPIO device path"
+	default "/dev/gpio0"
+	---help---
+		GPIO device used for PTT keying (e.g., /dev/gpio0).
+
+config AI_RADIO_CONSOLE_PTT_PIN
+	int "PTT GPIO pin number"
+	default 0
+	---help---
+		Pin number on the GPIO device for PTT (GPADC0 -> 0).
+
+config AI_RADIO_CONSOLE_INPUT_DEV
+	string "LVGL input/touch device path"
+	default "/dev/input0"
+	---help---
+		Touchscreen or button input device used by LVGL (e.g. /dev/input0).
+		Leave empty if the board has no touchscreen.
+
+if !AI_RADIO_CONSOLE_USE_VOICE_CHANNEL
+
+config AI_RADIO_CONSOLE_AUDIO_DEV
+	string "Audio capture device"
+	default "/dev/audio/pcm0c"
+	---help---
+		PCM capture device used by the legacy nxrecorder backend.
+		Ignored when voice_channel is enabled.
+
+config AI_RADIO_CONSOLE_ASR_URL
+	string "ASR API URL"
+	default "https://api.siliconflow.cn/v1/audio/transcriptions"
+	---help---
+		HTTP ASR endpoint for the legacy nxrecorder + custom ASR path.
+		Ignored when voice_channel is enabled (ai_agent config owns ASR).
+
+config AI_RADIO_CONSOLE_ASR_MODEL
+	string "ASR model name"
+	default "iic/SenseVoiceSmall"
+	---help---
+		ASR model for the legacy nxrecorder + custom ASR path.
+		Ignored when voice_channel is enabled.
+
+endif # !AI_RADIO_CONSOLE_USE_VOICE_CHANNEL
+
+config AI_RADIO_CONSOLE_SERVER
+	bool "Enable built-in REST/WebSocket server"
+	default y
+	---help---
+		Start a small HTTP/WebSocket server inside ai_radio_console.
+		Default port is 28790 to avoid conflict with ai_agent on 28789.
+
+config AI_RADIO_CONSOLE_SERVER_PORT
+	int "REST/WebSocket server port"
+	default 28790
+	depends on AI_RADIO_CONSOLE_SERVER
+
+endif

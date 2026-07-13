@@ -1,0 +1,5 @@
+config COMPONENTS_RING_BUFFER
+	bool "Ring buffer component"
+	help
+	  Say y here to enable support for the ring buffer component.
+

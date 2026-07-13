@@ -24,18 +24,12 @@ static void on_gps_fix(const gps_fix_t *fix, void *user_data)
 
 int location_service_init(void)
 {
-#if GPS_ENABLED
-    pthread_mutex_init(&g_fix_mutex, NULL);
+    /* g_fix_mutex is statically initialized via PTHREAD_MUTEX_INITIALIZER;
+     * no need to re-init here. */
     memset(&g_latest_fix, 0, sizeof(g_latest_fix));
     g_latest_fix.valid = false;
     g_started = false;
     return 0;
-#else
-    memset(&g_latest_fix, 0, sizeof(g_latest_fix));
-    g_latest_fix.valid = false;
-    g_started = false;
-    return 0;
-#endif
 }
 
 int location_service_start(void)

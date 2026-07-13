@@ -1,0 +1,21 @@
+
+# Include platform's table.
+# Include build support
+
+TPADC_PATH=drivers/rtos-hal/hal/source/tpadc
+
+DEPPATH+=--dep-path $(TPADC_PATH)
+VPATH+=:chip/$(TPADC_PATH)
+
+ARCH_SRC := $(TOPDIR)/arch/$(CONFIG_ARCH)/src
+ARCH_INC := $(TOPDIR)/arch/$(CONFIG_ARCH)/include
+ARCH_TPADC_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(TPADC_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TPADC_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TPADC_SRC_PATH)/platform
+
+ifeq ($(CONFIG_DRIVERS_TPADC),y)
+# Include the  module.
+CHIP_CSRCS += $(TPADC_PATH)/hal_tpadc.c
+
+endif

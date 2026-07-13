@@ -22,6 +22,7 @@ typedef uint32_t lv_res_t;
 typedef struct _lv_obj_t lv_obj_t;
 typedef struct _lv_timer_t lv_timer_t;
 typedef void * lv_event_t;
+typedef int   lv_event_code_t;
 typedef void * lv_style_t;
 struct _lv_font_t { int dummy; };
 typedef struct _lv_font_t lv_font_t;
@@ -63,7 +64,12 @@ typedef enum {
 } lv_label_long_mode_t;
 
 #define LV_EVENT_CLICKED     0x04
+#define LV_EVENT_READY      0x0A
+#define LV_EVENT_CANCEL     0x0B
+#define LV_EVENT_ALL        0x00
 #define LV_OBJ_FLAG_CLICKABLE 0x00001000
+#define LV_OBJ_FLAG_HIDDEN  0x00002000
+#define LV_OBJ_FLAG_SCROLLABLE 0x00004000
 #define LV_FONT_DEFAULT        ((const lv_font_t *)0)
 static const lv_font_t lv_font_montserrat_10 = {0};
 static const lv_font_t lv_font_montserrat_12 = {0};
@@ -260,6 +266,49 @@ static inline void lv_nuttx_init(lv_nuttx_dsc_t *dsc, lv_nuttx_result_t *res) {
     res->disp = (void*)1;
     res->indev = (void*)1;
 }
+
+/* ── Event accessors ─────────────────────────────────────── */
+static inline lv_obj_t * lv_event_get_target(lv_event_t * e) { (void)e; return NULL; }
+static inline int lv_event_get_code(lv_event_t * e) { (void)e; return 0; }
+static inline void * lv_event_get_user_data(lv_event_t * e) { (void)e; return NULL; }
+
+/* ── Object manipulation ──────────────────────────────────── */
+static inline void lv_obj_move_foreground(lv_obj_t * obj) { (void)obj; }
+static inline lv_coord_t lv_obj_get_x(lv_obj_t * obj) { return obj ? obj->x : 0; }
+static inline lv_coord_t lv_obj_get_y(lv_obj_t * obj) { return obj ? obj->y : 0; }
+
+/* ── Flex layout ──────────────────────────────────────────── */
+#define LV_FLEX_FLOW_COLUMN   0x01
+#define LV_FLEX_FLOW_ROW      0x02
+#define LV_FLEX_ALIGN_START   0
+#define LV_FLEX_ALIGN_CENTER   1
+#define LV_FLEX_ALIGN_END      2
+static inline void lv_obj_set_flex_flow(lv_obj_t * obj, int flow) { (void)obj; (void)flow; }
+static inline void lv_obj_set_flex_align(lv_obj_t * obj, int main, int cross, int track) { (void)obj; (void)main; (void)cross; (void)track; }
+static inline void lv_obj_set_style_pad_row(lv_obj_t * obj, lv_coord_t pad, int sel) { (void)obj; (void)pad; (void)sel; }
+
+/* ── Textarea ─────────────────────────────────────────────── */
+static inline lv_obj_t * lv_textarea_create(lv_obj_t * parent) {
+    return lv_obj_create(parent);
+}
+static inline void lv_textarea_set_text(lv_obj_t * ta, const char * text) {
+    if(ta && text) strncpy(ta->text, text, MAX_LOCAL_TEXT_LEN-1);
+}
+static inline const char * lv_textarea_get_text(lv_obj_t * ta) {
+    return ta ? ta->text : NULL;
+}
+static inline void lv_textarea_set_placeholder_text(lv_obj_t * ta, const char * txt) { (void)ta; (void)txt; }
+static inline void lv_textarea_set_password_mode(lv_obj_t * ta, bool en) { (void)ta; (void)en; }
+
+/* ── Keyboard ─────────────────────────────────────────────── */
+static inline lv_obj_t * lv_keyboard_create(lv_obj_t * parent) {
+    return lv_obj_create(parent);
+}
+static inline void lv_keyboard_set_textarea(lv_obj_t * kb, lv_obj_t * ta) { (void)kb; (void)ta; }
+
+/* ── Symbols ──────────────────────────────────────────────── */
+#define LV_SYMBOL_SETTINGS  "\xEF\x97\x92"
+#define LV_SYMBOL_HOME      "\xEF\x82\xAB"
 
 #ifdef __cplusplus
 }

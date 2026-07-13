@@ -1,0 +1,5 @@
+DRV_IR_PATH=drv/ir
+
+ifneq ($(filter y,$(CONFIG_DRIVERS_CIR_RX) $(CONFIG_DRIVERS_CIR_TX)),)
+CHIP_CSRCS += $(DRV_IR_PATH)/drv_ir.c
+endif

@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define RADIO_APP_NAME          "ai_radio_console"
-#define RADIO_APP_VERSION       "1.1.0"
+#define RADIO_APP_VERSION       "2.0"
 #define RADIO_APP_STACKSIZE     16384
 #define RADIO_APP_PRIORITY      100
 
@@ -16,10 +16,23 @@
 #define AUDIO_FRAME_MS          20
 #define AUDIO_FRAME_SIZE        (AUDIO_SAMPLE_RATE * AUDIO_CHANNELS * AUDIO_BITS_PER_SAMPLE / 8 * AUDIO_FRAME_MS / 1000)
 
+/* Gemini-S1 (R528) audio device paths
+ * 采集: /dev/audio/pcm0c  (card0, device0, capture)
+ * 播放: /dev/audio/pcm0p  (card0, device0, playback)
+ * NuttX Audio 子系统通过 AUDIOIOC_CONFIGURE 设置采样率/位深/声道 */
+#define AUDIO_CAPTURE_DEV       "/dev/audio/pcm0c"
+#define AUDIO_PLAYBACK_DEV      "/dev/audio/pcm0p"
+
 #define CW_BPF_LOW_FREQ         500
 #define CW_BPF_HIGH_FREQ        1000
 #define CW_MIN_WPM              5
 #define CW_MAX_WPM              40
+
+/* Environmental sensor configuration (Gemini-S1 SHTC3 + LTR553) */
+#define SENSOR_ENV_ENABLED      1
+#define SENSOR_SHTC3_DEV        "/dev/sensor0"
+#define SENSOR_LTR553_DEV       "/dev/sensor1"
+#define SENSOR_POLL_INTERVAL_MS 2000
 
 /* GPS module configuration (Gemini-S1 UART GPS) */
 #define GPS_ENABLED             1
@@ -64,6 +77,10 @@
 #define ASR_PARTIAL_INTERVAL_MS 1000 /* send partial ASR every 1s while speaking */
 #define ASR_UTTERANCE_MAX_S     30
 
+/* SiliconFlow API endpoints. Defaults use HTTPS and require TLS support.
+ * On OpenVela/NuttX, enable CONFIG_NETUTILS_MBEDTLS so that
+ * siliconflow_client.c can establish the TLS connection.
+ * To use plain HTTP, override these endpoints at runtime or via config_store. */
 #define SILICONFLOW_ASR_ENDPOINT  "https://api.siliconflow.cn/v1/audio/transcriptions"
 #define SILICONFLOW_CHAT_ENDPOINT "https://api.siliconflow.cn/v1/chat/completions"
 #define DEFAULT_ASR_MODEL         "FunAudioLLM/SenseVoiceSmall"
@@ -159,8 +176,8 @@ typedef enum {
     TRANSLATE_MAX
 } translate_lang_t;
 
-int config_store_load(ai_config_t *config);
-int config_store_save(const ai_config_t *config);
-void config_set_defaults(ai_config_t *config);
+int radio_config_store_load(ai_config_t *config);
+int radio_config_store_save(const ai_config_t *config);
+void radio_config_set_defaults(ai_config_t *config);
 
 #endif

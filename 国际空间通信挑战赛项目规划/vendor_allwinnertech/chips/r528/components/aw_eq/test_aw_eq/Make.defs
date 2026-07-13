@@ -1,0 +1,4 @@
+ifneq ($(CONFIG_COMPONENTS_AW_EQ_TEST),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/components/aw_eq/test_aw_eq
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/components/aw_eq/test_aw_eq
+endif

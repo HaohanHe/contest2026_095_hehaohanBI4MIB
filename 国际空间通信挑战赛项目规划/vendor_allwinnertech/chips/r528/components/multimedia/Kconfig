@@ -1,0 +1,12 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config AW_MULTIMEDIA
+	bool "Allwinner multimedia support"
+	default n
+
+#source '../vendor/allwinnertech/chips/r528/components/multimedia/src/libcedarc/Kconfig'
+source '../vendor/allwinnertech/chips/r528/components/multimedia/src/libcedarx/Kconfig'
+source '../vendor/allwinnertech/chips/r528/components/multimedia/src/tplayer/Kconfig'

@@ -1,0 +1,25 @@
+ifeq ($(CONFIG_COMPONENTS_AW_TINY_ALSA_LIB),y)
+# Include platform's table.
+# Include build support
+AW_TINY_ALSA_LIB_PATH=$(DRV_SOURCE_PATH)/sound/component/aw-tiny-alsa-lib
+
+DEPPATH+=--dep-path $(AW_TINY_ALSA_LIB_PATH)
+VPATH+=:chip/$(AW_TINY_ALSA_LIB_PATH)
+
+# Include the  module.
+ARCH_TINY_ALSA_LIB_SRC_PATH:=$(AW_SRCDIR)/$(AW_TINY_ALSA_LIB_PATH)
+ARCH_TINY_ALSA_LIB_SOUND_PATH:=$(AW_SRCDIR)/drivers/rtos-hal/include/hal
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TINY_ALSA_LIB_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TINY_ALSA_LIB_SOUND_PATH)
+
+# Soundcards Register Select
+CHIP_CSRCS += $(AW_TINY_ALSA_LIB_PATH)/pcm.c
+CHIP_CSRCS += $(AW_TINY_ALSA_LIB_PATH)/control.c
+CHIP_CSRCS += $(AW_TINY_ALSA_LIB_PATH)/pcm_config.c
+CHIP_CSRCS += $(AW_TINY_ALSA_LIB_PATH)/pcm_hw.c
+CHIP_CSRCS += $(AW_TINY_ALSA_LIB_PATH)/pcm_mmap.c
+
+CHIP_CSRCS += $(AW_TINY_ALSA_LIB_PATH)/alsa_config.c
+
+
+endif

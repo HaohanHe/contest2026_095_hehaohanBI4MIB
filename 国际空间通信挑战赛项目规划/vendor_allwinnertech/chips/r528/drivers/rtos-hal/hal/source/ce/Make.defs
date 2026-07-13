@@ -1,0 +1,7 @@
+CE_PATH=drivers/rtos-hal/hal/source/ce
+
+ifeq ($(CONFIG_DRIVERS_CE), y)
+CHIP_CSRCS += $(CE_PATH)/hal_ce.c
+CHIP_CSRCS += $(CE_PATH)/ce_common.c
+CHIP_CSRCS += $(CE_PATH)/dev_rng.c
+endif

@@ -1,0 +1,42 @@
+ifeq ($(CONFIG_DRIVERS_USB),y)
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+USB_PATH=drivers/rtos-hal/hal/source/usb
+
+DEPPATH+=--dep-path $(USB_PATH)
+VPATH+=:chip/$(USB_PATH)
+
+ARCH_USB_SRC_PATH:=$(ARCH_SRC)/chip/$(USB_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/include
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/common
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/sun20iw1
+
+#CHIP_CSRCS += $(USB_PATH)/common/usb_init.c
+CHIP_CSRCS += $(USB_PATH)/common/list_head_ext.c
+CHIP_CSRCS += $(USB_PATH)/common/usb_phy.c
+CHIP_CSRCS += $(USB_PATH)/platform/sun20iw1/usb_sun20iw1.c
+
+endif
+
+ifeq ($(CONFIG_USB_DEVICE),y)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/udc
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/include
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/common
+CHIP_CSRCS += $(USB_PATH)/udc/udc.c
+CHIP_CSRCS += $(USB_PATH)/udc/udc_hal.c
+CHIP_CSRCS += $(USB_PATH)/udc/usb_dma.c
+endif
+
+ifeq ($(CONFIG_USB_GADGET),y)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/include
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/gadget
+CHIP_CSRCS += $(USB_PATH)/gadget/gadget.c
+#CHIP_CSRCS += $(USB_PATH)/gadget/gadget_hal.c
+endif
+
+#ifeq ($(CONFIG_DRIVERS_USB_GADGET_ADB),y)
+#CFLAGS += ${INCDIR_PREFIX}$(ARCH_USB_SRC_PATH)/gadget
+#CHIP_CSRCS += $(USB_PATH)/gadget/function/adb.c
+#endif

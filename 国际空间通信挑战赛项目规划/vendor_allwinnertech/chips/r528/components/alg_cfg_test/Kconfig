@@ -1,0 +1,5 @@
+config AW_SUNXI_ALG_CFG_TEST
+	bool "Allwinner algorithm cfg test"
+	depends on SND_COMMON_SUNXI_ALG_CFG
+	default n
+

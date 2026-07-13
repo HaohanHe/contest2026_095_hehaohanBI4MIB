@@ -1,0 +1,18 @@
+ifeq ($(CONFIG_DRIVERS_SOUND),y)
+# Include platform's table.
+# Include build support
+
+include $(wildcard $(AW_SRCDIR)/drivers/rtos-hal/hal/source/sound/*/Make.defs)
+# include $(AW_SRCDIR)/drivers/rtos-hal/hal/source/Make.defs
+
+SOUND_PATH=$(DRV_SOURCE_PATH)/sound
+
+DEPPATH+=--dep-path $(SOUND_PATH)
+VPATH+=:chip/$(SOUND_PATH)
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(SOUND_PATH)/card_default.c
+
+endif
+

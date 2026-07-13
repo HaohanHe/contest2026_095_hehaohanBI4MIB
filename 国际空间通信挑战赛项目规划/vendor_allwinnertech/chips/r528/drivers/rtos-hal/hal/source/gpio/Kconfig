@@ -1,0 +1,21 @@
+menu "GPIO Devices"
+
+config DRIVERS_GPIO
+    bool "enable gpio driver"
+        default n
+
+config DRIVERS_GPIO_IOEXPANDER_INTERRUPT
+    bool "support nuttx ioexpander interrupt"
+    default n
+	select IOEXPANDER_INT_ENABLE
+
+config HAL_TEST_GPIO
+    bool "enable gpio hal APIs test command"
+	depends on DRIVERS_GPIO
+        default n
+
+config DRIVERS_GPIO_SHARE_IRQ
+    bool "enable amp gpio irq"
+        default n
+
+endmenu

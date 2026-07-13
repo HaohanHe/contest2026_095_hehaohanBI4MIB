@@ -18,6 +18,7 @@
 #include <nuttx/audio/audio.h>
 
 #include <lvgl.h>
+#include <src/drivers/nuttx/lv_nuttx_entry.h>
 
 #include "agent_bridge.h"
 #include "radio_config.h"
@@ -26,9 +27,11 @@
 #include "input_lradc.h"
 #include "wifi_auto_connect.h"
 #include "audio_i2s.h"
+#include "sensor_env.h"
 #include "ui_ai_radio.h"
+#include "spacelog_settings.h"
 
-#define UI_REFRESH_MS       200
+/* UI_REFRESH_MS is defined in radio_config.h (100ms) */
 #define LCD_W               320
 #define LCD_H               240
 
@@ -69,11 +72,8 @@
 #define COLOR_NOISE         lv_color_hex(0x405060)
 #define COLOR_PEAK          lv_color_hex(0x00ffff)
 
-#define BTN_VOL_DOWN        0x01
-#define BTN_VOL_UP          0x02
-#define BTN_MENU            0x04
-#define BTN_ENTER           0x08
-#define BTN_HOME            0x10
+/* Button constants from input_lradc.h (LRADC_BTN_xxx) are used below.
+ * Do NOT duplicate button bit definitions here. */
 
 #define BTN_POLL_MS         50
 #define BTN_DEBOUNCE_MS     200
@@ -132,8 +132,8 @@ static const morse_char_t MORSE_TABLE[] = {
     {"--..", 'Z'}, {".----", '1'}, {"..---", '2'}, {"...--", '3'}, {"....-", '4'},
     {".....", '5'}, {"-....", '6'}, {"--...", '7'}, {"---..", '8'}, {"----.", '9'},
     {"-----", '0'}, {"...---...", '!'}, {".-.-.", '+'}, {"-...-", '='},
-    {"-..-.", '/'}, {"-.--.", '('}, {"-.--.-", ')'}, {".-.-.", '>'},
-    {"...-.-", 'V'}, {NULL, 0}
+    {"-..-.", '/'}, {"-.--.", '('}, {"-.--.-", ')'},
+    {NULL, 0}
 };
 
 static lv_obj_t *g_scr = NULL;
@@ -141,6 +141,7 @@ static lv_obj_t *g_time_label = NULL;
 static lv_obj_t *g_freq_label = NULL;
 static lv_obj_t *g_mode_label = NULL;
 static lv_obj_t *g_s_meter_label = NULL;
+static lv_obj_t *g_env_label = NULL;
 static lv_obj_t *g_spec_bars[SPEC_BARS];
 static lv_obj_t *g_noise_line = NULL;
 static lv_obj_t *g_peak_line = NULL;
@@ -180,15 +181,27 @@ static bool g_audio_ready = false;
 static char g_audio_status[32];
 
 static int g_audio_fd = -1;
-static int g_btn_fd = -1;
-static btn_buttonset_t g_btn_last = 0;
-static uint32_t g_btn_last_time = 0;
-static uint32_t g_btn_press_time = 0;
-static btn_buttonset_t g_btn_current = 0;
+/* Button input is handled by input_lradc module (see g_pending_btn above) */
 static volatile bool g_running = true;
 static pthread_t g_audio_thread;
 static bool g_audio_thread_created = false;
 static pthread_mutex_t g_dsp_mutex;
+static bool g_ai_screen_active = false;
+
+/* Pending button event from input_lradc thread (thread-safe) */
+typedef struct {
+    btn_buttonset_t btn;
+    bool long_press;
+    volatile bool pending;
+} pending_btn_event_t;
+
+static pending_btn_event_t g_pending_btn = {0, false, false};
+static pthread_mutex_t g_btn_event_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static lv_timer_t *g_ui_update_timer = NULL;
+static lv_timer_t *g_mayday_flash_timer = NULL;
+static lv_timer_t *g_button_poll_timer = NULL;
+static bool g_disp_available = true;
 
 static int16_t g_ring_buffer[AUDIO_RING_SIZE];
 static volatile int g_ring_head = 0;
@@ -525,14 +538,11 @@ static void *audio_thread_func(void *arg)
         }
 
         if (g_audio_fd < 0) {
-            snprintf(g_audio_status, sizeof(g_audio_status), "WAITING FOR AUDIO...");
+            snprintf(g_audio_status, sizeof(g_audio_status), "等待音频...");
             g_audio_ready = false;
             sleep(2);
 
-            g_audio_fd = open("/dev/audio/pcm0c", O_RDWR);
-            if (g_audio_fd < 0) {
-                g_audio_fd = open("/dev/pcmC0D0c", O_RDWR);
-            }
+            g_audio_fd = open(AUDIO_CAPTURE_DEV, O_RDWR);
             if (g_audio_fd < 0) {
                 g_audio_fd = open("/dev/audio_in", O_RDWR);
             }
@@ -541,7 +551,7 @@ static void *audio_thread_func(void *arg)
                 printf("[AUDIO] Failed to open device, retries=%d\n", retries);
                 if (retries >= 3) {
                     audio_failed = true;
-                    snprintf(g_audio_status, sizeof(g_audio_status), "NO AUDIO HW");
+                    snprintf(g_audio_status, sizeof(g_audio_status), "无音频硬件");
                     g_audio_ready = false;
                     printf("[AUDIO] No audio hardware, disabling\n");
                 }
@@ -683,7 +693,7 @@ static void *audio_thread_func(void *arg)
             }
 
             g_audio_ready = true;
-            snprintf(g_audio_status, sizeof(g_audio_status), "AUDIO OK");
+            snprintf(g_audio_status, sizeof(g_audio_status), "音频正常");
             printf("[AUDIO] Capture started fd=%d, bufs=%d, size=%d, rate=%d\n",
                    g_audio_fd, num_bufs, buf_info.buffer_size, AUDIO_SAMPLE_RATE);
             continue;
@@ -844,13 +854,13 @@ static void open_overlay(const char *title, const char *text)
     lv_obj_t *title_lbl = lv_label_create(g_overlay);
     lv_label_set_text(title_lbl, title);
     lv_obj_set_style_text_color(title_lbl, COLOR_ACCENT, 0);
-    lv_obj_set_style_text_font(title_lbl, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_font(title_lbl, NULL, 0);
     lv_obj_align(title_lbl, LV_ALIGN_TOP_MID, 0, 0);
 
     g_overlay_text = lv_label_create(g_overlay);
     lv_label_set_text(g_overlay_text, text);
     lv_obj_set_style_text_color(g_overlay_text, COLOR_TEXT, 0);
-    lv_obj_set_style_text_font(g_overlay_text, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_font(g_overlay_text, NULL, 0);
     lv_label_set_long_mode(g_overlay_text, LV_LABEL_LONG_WRAP);
     lv_obj_set_size(g_overlay_text, 260, 90);
     lv_obj_align(g_overlay_text, LV_ALIGN_TOP_MID, 0, 20);
@@ -858,7 +868,7 @@ static void open_overlay(const char *title, const char *text)
     lv_obj_t *hint = lv_label_create(g_overlay);
     lv_label_set_text(hint, "HOME: Back");
     lv_obj_set_style_text_color(hint, COLOR_TEXT_DIM, 0);
-    lv_obj_set_style_text_font(hint, &lv_font_montserrat_10, 0);
+    lv_obj_set_style_text_font(hint, NULL, 0);
     lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, 0);
 
     update_card_highlight();
@@ -927,7 +937,7 @@ static void update_cards_display(void)
         lv_obj_set_style_text_color(g_card_val_labels[CARD_PTT], COLOR_GREEN, 0);
     }
 
-    lv_label_set_text(g_card_val_labels[CARD_SETUP], "SETUP");
+    lv_label_set_text(g_card_val_labels[CARD_SETUP], "设置");
     lv_obj_set_style_text_color(g_card_val_labels[CARD_SETUP], COLOR_TEXT_DIM, 0);
 }
 
@@ -952,11 +962,8 @@ static void handle_card_enter(void)
         toggle_ptt();
         break;
     case CARD_SETUP:
-        open_overlay("Settings",
-            "Mode: USB/LSB/CW/AM/FM (MENU)\n"
-            "CW Tone: 500-1000Hz\n"
-            "WPM: 10-25\n"
-            "Freq Step: 100Hz-1MHz");
+        /* 打开 SpaceLog 配置与配网页面 */
+        spacelog_settings_show();
         break;
     default:
         break;
@@ -965,15 +972,27 @@ static void handle_card_enter(void)
 
 static void handle_button_press(btn_buttonset_t btn, bool long_press)
 {
+    if (!g_disp_available) {
+        return;
+    }
+
     printf("[BTN] 0x%02x %s\n", (unsigned)btn, long_press ? "LONG" : "SHORT");
 
+    /* SpaceLog 设置页面打开时，HOME 键关闭设置 */
+    if (spacelog_settings_is_visible()) {
+        if (btn == LRADC_BTN_HOME) {
+            spacelog_settings_hide();
+        }
+        return;
+    }
+
     if (g_overlay_open) {
-        if (btn == BTN_HOME) {
+        if (btn == LRADC_BTN_HOME) {
             close_overlay();
             if (g_selected_card == CARD_MAYDAY) {
                 g_mayday_active = false;
             }
-        } else if (btn == BTN_ENTER) {
+        } else if (btn == LRADC_BTN_ENTER) {
             if (g_selected_card == CARD_MAYDAY) {
                 g_mayday_active = false;
                 close_overlay();
@@ -982,8 +1001,30 @@ static void handle_button_press(btn_buttonset_t btn, bool long_press)
         return;
     }
 
-    if (btn == BTN_VOL_UP || btn == BTN_VOL_DOWN) {
-        int dir = (btn == BTN_VOL_UP) ? 1 : -1;
+    /* Screen switching: HOME long press toggles AI radio screen */
+    if (btn == LRADC_BTN_HOME && long_press) {
+        if (g_ai_screen_active) {
+            ui_ai_radio_hide();
+            g_ai_screen_active = false;
+            printf("[BTN] Switched to main screen\n");
+        } else {
+            ui_ai_radio_show();
+            g_ai_screen_active = true;
+            printf("[BTN] Switched to AI radio screen\n");
+        }
+        return;
+    }
+
+    /* When AI radio screen is active, any other button returns to main */
+    if (g_ai_screen_active) {
+        ui_ai_radio_hide();
+        g_ai_screen_active = false;
+        printf("[BTN] AI screen -> main screen\n");
+        return;
+    }
+
+    if (btn == LRADC_BTN_VOLUP || btn == LRADC_BTN_VOLDN) {
+        int dir = (btn == LRADC_BTN_VOLUP) ? 1 : -1;
         if (g_selected_card + dir >= 0 && g_selected_card + dir < NUM_CARDS) {
             g_selected_card += dir;
         } else {
@@ -994,7 +1035,7 @@ static void handle_button_press(btn_buttonset_t btn, bool long_press)
         }
         update_card_highlight();
         update_freq_display();
-    } else if (btn == BTN_MENU) {
+    } else if (btn == LRADC_BTN_MENU) {
         if (long_press) {
             g_cw_tone_freq += 50;
             if (g_cw_tone_freq > 1000) g_cw_tone_freq = 500;
@@ -1002,13 +1043,13 @@ static void handle_button_press(btn_buttonset_t btn, bool long_press)
             g_mode_idx = (g_mode_idx + 1) % NUM_DEMOD_MODES;
         }
         update_freq_display();
-    } else if (btn == BTN_ENTER) {
+    } else if (btn == LRADC_BTN_ENTER) {
         if (long_press) {
             handle_card_enter();
         } else {
             toggle_ptt();
         }
-    } else if (btn == BTN_HOME) {
+    } else if (btn == LRADC_BTN_HOME) {
         if (long_press) {
             g_selected_card = CARD_SETUP;
             handle_card_enter();
@@ -1027,44 +1068,24 @@ static void handle_button_press(btn_buttonset_t btn, bool long_press)
 static void button_poll_timer(lv_timer_t *timer)
 {
     (void)timer;
-    if (g_btn_fd < 0) return;
 
-    btn_buttonset_t val = 0;
-    ssize_t n = read(g_btn_fd, &val, sizeof(val));
-    if (n <= 0) {
-        return;
+    /* Process pending button events from input_lradc thread */
+    btn_buttonset_t btn = 0;
+    bool long_press = false;
+    bool has_event = false;
+
+    pthread_mutex_lock(&g_btn_event_mutex);
+    if (g_pending_btn.pending) {
+        btn = g_pending_btn.btn;
+        long_press = g_pending_btn.long_press;
+        g_pending_btn.pending = false;
+        has_event = true;
     }
+    pthread_mutex_unlock(&g_btn_event_mutex);
 
-    uint32_t now = get_ms();
-    btn_buttonset_t pressed = val & ~g_btn_last;
-    btn_buttonset_t released = g_btn_last & ~val;
-
-    if (pressed && g_btn_current == 0) {
-        g_btn_current = pressed;
-        g_btn_press_time = now;
+    if (has_event) {
+        handle_button_press(btn, long_press);
     }
-
-    if (released & g_btn_current) {
-        uint32_t held = now - g_btn_press_time;
-        bool is_long = (held >= BTN_LONGPRESS_MS);
-
-        btn_buttonset_t single_btn = 0;
-        for (int i = 0; i < 5; i++) {
-            btn_buttonset_t mask = (btn_buttonset_t)1 << i;
-            if (g_btn_current & mask) {
-                single_btn = mask;
-                break;
-            }
-        }
-
-        if (single_btn && now - g_btn_last_time >= BTN_DEBOUNCE_MS) {
-            g_btn_last_time = now;
-            handle_button_press(single_btn, is_long);
-        }
-        g_btn_current = 0;
-    }
-
-    g_btn_last = val;
 }
 
 static void mayday_flash_timer(lv_timer_t *timer)
@@ -1089,6 +1110,27 @@ static void ui_update_timer(lv_timer_t *timer)
         strftime(time_buf, sizeof(time_buf), "%H:%M:%S", tm_info);
         lv_label_set_text(g_time_label, time_buf);
     }
+
+#if SENSOR_ENV_ENABLED
+    {
+        env_sensor_data_t env;
+        sensor_env_get(&env);
+        char env_buf[32];
+        uint32_t required = ENV_VALID_TEMP | ENV_VALID_HUMI | ENV_VALID_LIGHT;
+        if ((env.valid_flags & required) == required) {
+            snprintf(env_buf, sizeof(env_buf), "%.1fC %.0f%% %.0flux",
+                     env.temperature, env.humidity, env.light);
+            lv_obj_set_style_text_color(g_env_label, COLOR_TEXT, 0);
+        } else {
+            snprintf(env_buf, sizeof(env_buf), "-- -- --");
+            lv_obj_set_style_text_color(g_env_label, COLOR_TEXT_DIM, 0);
+        }
+        lv_label_set_text(g_env_label, env_buf);
+    }
+#else
+    lv_label_set_text(g_env_label, "ENV OFF");
+    lv_obj_set_style_text_color(g_env_label, COLOR_TEXT_DIM, 0);
+#endif
 
     char s_str[16];
     int s_total = g_s_units + g_s_plus_db;
@@ -1141,11 +1183,21 @@ static void ui_update_timer(lv_timer_t *timer)
     update_freq_display();
 }
 
+static void lradc_button_handler(btn_buttonset_t btn, bool long_press, void *user_data)
+{
+    (void)user_data;
+    /* Store event for LVGL thread to process (thread-safe) */
+    pthread_mutex_lock(&g_btn_event_mutex);
+    g_pending_btn.btn = btn;
+    g_pending_btn.long_press = long_press;
+    g_pending_btn.pending = true;
+    pthread_mutex_unlock(&g_btn_event_mutex);
+}
+
 static int button_init(void)
 {
-    /* Inline LVGL button polling is disabled; LRADC input is handled
-     * by the input_lradc module to avoid sharing /dev/input/event1. */
-    g_btn_fd = -1;
+    /* LRADC input is handled by the input_lradc module which reads
+     * /dev/input/event1. Events are forwarded to us via g_pending_btn. */
     return 0;
 }
 
@@ -1168,12 +1220,17 @@ static lv_obj_t *create_label(lv_obj_t *parent, int x, int y, const char *txt,
     lv_obj_t *lbl = lv_label_create(parent);
     lv_label_set_text(lbl, txt);
     lv_obj_set_style_text_color(lbl, color, 0);
-    lv_obj_set_style_text_font(lbl, font, 0);
+    if (font) {
+        lv_obj_set_style_text_font(lbl, font, 0);
+    }
     if (x >= 0 && y >= 0) {
         lv_obj_set_pos(lbl, x, y);
     }
     return lbl;
 }
+
+/* 显式引用中文字体，防止链接器丢弃 */
+extern const lv_font_t ai_radio_font;  /* WILL BE DEFINED IN ai_radio_font.c */
 
 static void create_main_screen(void)
 {
@@ -1182,6 +1239,9 @@ static void create_main_screen(void)
     lv_obj_set_style_pad_all(g_scr, 0, 0);
     lv_obj_set_style_radius(g_scr, 0, 0);
     lv_obj_set_style_border_width(g_scr, 0, 0);
+
+    /* 使用中文字体作为主界面默认字体，确保中文正常显示 */
+    lv_obj_set_style_text_font(g_scr, &ai_radio_font, 0);
 
     g_border_flash = lv_obj_create(g_scr);
     lv_obj_set_size(g_border_flash, LCD_W, LCD_H);
@@ -1201,19 +1261,22 @@ static void create_main_screen(void)
     lv_obj_set_style_radius(topbar, 0, 0);
 
     g_time_label = create_label(topbar, 4, 5, "00:00:00",
-                                &lv_font_montserrat_10, COLOR_TEXT);
+                                NULL, COLOR_TEXT);
+
+    g_env_label = create_label(topbar, 56, 5, "-- -- --",
+                               NULL, COLOR_TEXT_DIM);
 
     g_freq_label = create_label(topbar, -1, 2, "14.250.000",
-                                &lv_font_montserrat_16, COLOR_ACCENT);
+                                NULL, COLOR_ACCENT);
     lv_obj_center(g_freq_label);
     lv_obj_set_pos(g_freq_label, -25, 3);
 
     g_mode_label = create_label(topbar, -1, 8, "USB",
-                                &lv_font_montserrat_10, COLOR_ACCENT);
+                                NULL, COLOR_ACCENT);
     lv_obj_align(g_mode_label, LV_ALIGN_CENTER, 52, 0);
 
     g_s_meter_label = create_label(topbar, LCD_W - 38, 7, "S0",
-                                   &lv_font_montserrat_10, COLOR_TEXT_DIM);
+                                   NULL, COLOR_TEXT_DIM);
 
     lv_obj_t *spectrum_bg = lv_obj_create(g_scr);
     lv_obj_set_size(spectrum_bg, LCD_W, SPECTRUM_H);
@@ -1224,13 +1287,13 @@ static void create_main_screen(void)
     lv_obj_set_style_radius(spectrum_bg, 0, 0);
 
     g_spec_status_label = create_label(spectrum_bg, 4, 2, "AUDIO SPECTRUM 0-4kHz",
-                                       &lv_font_montserrat_10, COLOR_TEXT_DIM);
+                                       NULL, COLOR_TEXT_DIM);
 
-    create_label(spectrum_bg, 38, SPECTRUM_H - 12, "0", &lv_font_montserrat_10, COLOR_TEXT_DIM);
-    create_label(spectrum_bg, 80, SPECTRUM_H - 12, "1k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
-    create_label(spectrum_bg, 140, SPECTRUM_H - 12, "2k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
-    create_label(spectrum_bg, 200, SPECTRUM_H - 12, "3k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
-    create_label(spectrum_bg, LCD_W - 28, SPECTRUM_H - 12, "4k", &lv_font_montserrat_10, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, 38, SPECTRUM_H - 12, "0", NULL, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, 80, SPECTRUM_H - 12, "1k", NULL, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, 140, SPECTRUM_H - 12, "2k", NULL, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, 200, SPECTRUM_H - 12, "3k", NULL, COLOR_TEXT_DIM);
+    create_label(spectrum_bg, LCD_W - 28, SPECTRUM_H - 12, "4k", NULL, COLOR_TEXT_DIM);
 
     int bar_w = (LCD_W - 50) / SPEC_BARS;
     for (int i = 0; i < SPEC_BARS; i++) {
@@ -1260,7 +1323,7 @@ static void create_main_screen(void)
     lv_obj_set_style_pad_all(cw_box, 4, 0);
 
     g_cw_status_label = create_label(cw_box, 4, 2, "CW 700Hz 15WPM",
-                                     &lv_font_montserrat_10, COLOR_GREEN);
+                                     NULL, COLOR_GREEN);
 
     g_cw_signal_dot = lv_obj_create(cw_box);
     lv_obj_set_size(g_cw_signal_dot, 6, 6);
@@ -1274,10 +1337,10 @@ static void create_main_screen(void)
     strncpy(g_cw_lines[0], "...", sizeof(g_cw_lines[0]) - 1);
     for (int i = 0; i < CW_LINES; i++) {
         g_cw_labels[i] = create_label(cw_box, 4, 18 + i * 20, g_cw_lines[i],
-                                      &lv_font_montserrat_10, COLOR_TEXT);
+                                      NULL, COLOR_TEXT);
     }
 
-    const char *CARD_TITLES[NUM_CARDS] = {"SIG", "MAYDAY", "AFC", "FILTER", "PTT", "SETUP"};
+    const char *CARD_TITLES[NUM_CARDS] = {"信号", "求救", "频率", "滤波", "发射", "设置"};
     const lv_color_t card_title_colors[NUM_CARDS] = {
         COLOR_GREEN, COLOR_RED, COLOR_CYAN, COLOR_AMBER, COLOR_ACCENT, COLOR_TEXT_DIM
     };
@@ -1297,10 +1360,10 @@ static void create_main_screen(void)
             lv_obj_set_style_pad_all(g_cards[idx], 3, 0);
 
             create_label(g_cards[idx], 3, 1, CARD_TITLES[idx],
-                         &lv_font_montserrat_10, card_title_colors[idx]);
+                         NULL, card_title_colors[idx]);
 
             g_card_val_labels[idx] = create_label(g_cards[idx], 3, 16, "",
-                                                  &lv_font_montserrat_12, COLOR_TEXT);
+                                                  NULL, COLOR_TEXT);
         }
     }
 
@@ -1313,9 +1376,13 @@ static void create_main_screen(void)
     lv_obj_set_style_radius(bottombar, 0, 0);
 
     g_hint_label = create_label(bottombar, -1, -1,
-        "VOL+-:Tune  MENU:Mode  ENTER:PTT  HOME:Hold=Setup",
-        &lv_font_montserrat_10, COLOR_TEXT_DIM);
+        "音量:调频 菜单:模式 回车:PTT 长按:设置",
+        NULL, COLOR_TEXT_DIM);
     lv_obj_center(g_hint_label);
+
+    /* 创建设置页面覆盖层 */
+    spacelog_settings_init();
+    spacelog_settings_create(g_scr);
 
     lv_scr_load(g_scr);
 }
@@ -1332,29 +1399,56 @@ int main(int argc, char *argv[])
     printf("  Voice AI powered by SiliconFlow ASR+LLM\n");
     printf("========================================\n");
 
+    /* wifi_auto_connect_start() retries internally on failure. */
     wifi_auto_connect_start();
 
     pthread_mutex_init(&g_dsp_mutex, NULL);
-    snprintf(g_audio_status, sizeof(g_audio_status), "WAITING FOR AUDIO...");
+    snprintf(g_audio_status, sizeof(g_audio_status), "等待音频...");
 
-    radio_log_init(NULL);
-    agent_bridge_init();
+    if (radio_log_init(NULL) != 0) {
+        printf("[INIT] radio_log_init failed\n");
+    }
+
+    /* Initialize GPS early so location data is available when ASR results arrive */
+    if (location_service_init() != 0) {
+        printf("[INIT] location_service_init failed\n");
+    }
+
+    if (agent_bridge_init() != 0) {
+        printf("[INIT] agent_bridge_init failed\n");
+    }
     agent_bridge_set_frequency((float)g_freq_hz);
     agent_bridge_set_mode(MODE_NAMES[g_mode_idx]);
 
-    if (location_service_init() != 0) {
-        printf("[INIT] location_service_init failed\n");
+    sensor_env_init();
+    if (sensor_env_start() != 0) {
+        printf("[INIT] sensor_env_start failed\n");
     }
 
     printf("[INIT] Starting audio capture thread...\n");
 #if AUDIO_CAPTURE_FROM_I2S
     if (audio_i2s_init() == 0) {
-        audio_i2s_start();
+        if (audio_i2s_start() != 0) {
+            printf("[INIT] audio_i2s_start failed, falling back to mock audio thread\n");
+            if (pthread_create(&g_audio_thread, NULL, audio_thread_func, NULL) == 0) {
+                g_audio_thread_created = true;
+            } else {
+                printf("[INIT] failed to create mock audio thread\n");
+            }
+        }
     } else
 #endif
     {
-        pthread_create(&g_audio_thread, NULL, audio_thread_func, NULL);
-        g_audio_thread_created = true;
+        if (pthread_create(&g_audio_thread, NULL, audio_thread_func, NULL) == 0) {
+            g_audio_thread_created = true;
+        } else {
+            printf("[INIT] failed to create mock audio thread\n");
+        }
+    }
+
+    /* Start GPS early so fix data accumulates before UI/LLM calls */
+    if (location_service_start() != 0) {
+        printf("[INIT] location_service_start failed\n");
     }
 
     printf("[UI] Creating LVGL landscape 320x240 interface...\n");
@@ -1369,7 +1463,8 @@ int main(int argc, char *argv[])
     lv_nuttx_init(&dsc, &nuttx_res);
 
     if (nuttx_res.disp == NULL) {
-        syslog(LOG_ERR, "ai_radio: failed to open /dev/lcd0\n");
+        syslog(LOG_ERR, "ai_radio: failed to open /dev/lcd0, display disabled\n");
+        g_disp_available = false;
     }
     if (nuttx_res.indev == NULL) {
         syslog(LOG_WARNING, "ai_radio: failed to open /dev/input0 (touch)\n");
@@ -1377,24 +1472,29 @@ int main(int argc, char *argv[])
 
     g_cw_dit_ms = 1200 / g_cw_wpm;
 
-    create_main_screen();
-    update_freq_display();
-    update_cards_display();
-    update_card_highlight();
+    if (g_disp_available) {
+        create_main_screen();
+        update_freq_display();
+        update_cards_display();
+        update_card_highlight();
 
-    ui_ai_radio_init();
+        ui_ai_radio_init();
 
-    lv_timer_create(ui_update_timer, UI_REFRESH_MS, NULL);
-    lv_timer_create(mayday_flash_timer, 300, NULL);
+        g_ui_update_timer = lv_timer_create(ui_update_timer, UI_REFRESH_MS, NULL);
+        g_mayday_flash_timer = lv_timer_create(mayday_flash_timer, 300, NULL);
 
-    button_init();
-    lv_timer_create(button_poll_timer, BTN_POLL_MS, NULL);
+        button_init();
+        g_button_poll_timer = lv_timer_create(button_poll_timer, BTN_POLL_MS, NULL);
+    } else {
+        printf("[UI] Display not available, skipping LVGL UI creation\n");
+    }
 
-    input_lradc_init();
-    input_lradc_start();
-
-    if (location_service_start() != 0) {
-        printf("[INIT] location_service_start failed\n");
+    if (input_lradc_init() != 0) {
+        printf("[INIT] input_lradc_init failed\n");
+    }
+    input_lradc_set_button_callback(lradc_button_handler, NULL);
+    if (input_lradc_start() != 0) {
+        printf("[INIT] input_lradc_start failed\n");
     }
 
     printf("[UI] Interface created.\n");
@@ -1402,23 +1502,47 @@ int main(int argc, char *argv[])
     printf("[INFO] Entering main loop...\n");
 
     while (g_running) {
-        uint32_t idle = lv_timer_handler();
-        ui_ai_radio_refresh();
-        if (idle < 1) idle = 1;
-        if (idle > BTN_POLL_MS) idle = BTN_POLL_MS;
-        usleep(idle * 1000);
+        if (g_disp_available) {
+            uint32_t idle = lv_timer_handler();
+            ui_ai_radio_refresh();
+            if (idle < 1) idle = 1;
+            if (idle > BTN_POLL_MS) idle = BTN_POLL_MS;
+            usleep(idle * 1000);
+        } else {
+            usleep(BTN_POLL_MS * 1000);
+        }
     }
 
-    if (g_btn_fd >= 0) close(g_btn_fd);
+    g_running = false;
+
+    if (g_ui_update_timer) {
+        lv_timer_del(g_ui_update_timer);
+        g_ui_update_timer = NULL;
+    }
+    if (g_mayday_flash_timer) {
+        lv_timer_del(g_mayday_flash_timer);
+        g_mayday_flash_timer = NULL;
+    }
+    if (g_button_poll_timer) {
+        lv_timer_del(g_button_poll_timer);
+        g_button_poll_timer = NULL;
+    }
+
     input_lradc_stop();
     audio_i2s_stop();
+
     if (g_audio_thread_created) {
         pthread_join(g_audio_thread, NULL);
+        g_audio_thread_created = false;
     }
+
+    sensor_env_stop();
     location_service_stop();
     agent_bridge_deinit();
     radio_log_deinit();
     pthread_mutex_destroy(&g_dsp_mutex);
+    pthread_mutex_destroy(&g_btn_event_mutex);
+
     printf("[SHUTDOWN] AI Radio Console exiting.\n");
     return 0;
 }

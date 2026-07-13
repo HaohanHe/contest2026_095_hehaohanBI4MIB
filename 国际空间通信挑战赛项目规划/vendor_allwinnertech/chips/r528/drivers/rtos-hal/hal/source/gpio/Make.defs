@@ -1,0 +1,21 @@
+ifeq ($(CONFIG_DRIVERS_GPIO),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+GPIO_PATH=drivers/rtos-hal/hal/source/gpio
+
+DEPPATH+=--dep-path $(GPIO_PATH) 
+VPATH+=:chip/$(GPIO_PATH)
+
+ARCH_GPIO_SRC_PATH:=$(ARCH_SRC)/chip/$(GPIO_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_GPIO_SRC_PATH)/sun8iw20
+
+# Include the  module.
+CHIP_CSRCS += $(GPIO_PATH)/hal_gpio.c
+CHIP_CSRCS += $(GPIO_PATH)/sun8iw20/gpio-sun8iw20.c
+
+endif
+

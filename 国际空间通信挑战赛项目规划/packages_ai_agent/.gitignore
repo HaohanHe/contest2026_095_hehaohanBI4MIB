@@ -1,0 +1,52 @@
+# Test files and utilities
+tools/llm_tool_latency_test.py
+tools/stress_test.py
+tools/*_test.py
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# IDE files
+.vscode/
+.idea/
+
+# Build artifacts
+build/
+*.o
+*.a
+*.su
+
+# ── CMake generated ───────────────────────────────────────────
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+.depend
+_deps/
+
+# ── Runtime data (written by the device at runtime) ──────────
+data/
+
+# ── Editor / OS ───────────────────────────────────────────────
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~
+RUN_GUIDE.md
+*.log
+patches/*.patch
+Make.dep
+logs/*
+# Secrets and credentials
+*secrets*
+*credentials*
+*.key
+*.pem
+.kiro/
+.codewatch/
+
+# Kconfig backup
+Kconfig.orig

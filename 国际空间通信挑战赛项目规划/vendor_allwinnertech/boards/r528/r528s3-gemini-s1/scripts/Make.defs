@@ -1,0 +1,138 @@
+############################################################################
+# boards/r528/r528s3-gemini-s1/scripts/Make.defs
+#
+# Board-level Make.defs for R528S3 Gemini-S1 board.
+# This file defines toolchain, linker scripts, and post-build actions.
+############################################################################
+
+include ${TOPDIR}/.config
+include ${TOPDIR}/tools/Config.mk
+
+# Include common definitions
+include $(TOPDIR)/../vendor/allwinnertech/Common.mk
+
+#---------------------------------------------------------------------------
+# Path Definitions
+#---------------------------------------------------------------------------
+AW_LICHEE_DIR   = $(AW_VENDOR_DIR)/lichee
+
+include $(AW_LICHEE_DIR)/tools/scripts/Config.mk
+include ${TOPDIR}/arch/arm/src/armv7-a/Toolchain.defs
+
+#---------------------------------------------------------------------------
+# Linker Script
+#---------------------------------------------------------------------------
+LDSCRIPT    = sdram.ld.S
+ARCHSCRIPT += $(BOARD_DIR)/scripts/$(LDSCRIPT)
+
+#---------------------------------------------------------------------------
+# Compiler Flags
+#---------------------------------------------------------------------------
+ARCHPICFLAGS = -fpic -msingle-pic-base -mpic-register=r10
+ARCHDEFINES += -DNAME_MAX=32
+
+# Enable Bluetooth Connection Manager (no Kconfig definition available)
+CONFIG_BLUETOOTH_CONNECTION_MANAGER := y
+
+CFLAGS   := $(ARCHCFLAGS) $(ARCHOPTIMIZATION) $(ARCHCPUFLAGS) $(ARCHINCLUDES) $(ARCHDEFINES) $(EXTRAFLAGS) -pipe
+CPICFLAGS = $(ARCHPICFLAGS) $(CFLAGS)
+CXXFLAGS := $(ARCHCXXFLAGS) $(ARCHOPTIMIZATION) $(ARCHCPUFLAGS) $(ARCHXXINCLUDES) $(ARCHDEFINES) $(EXTRAFLAGS) -pipe
+CXXPICFLAGS = $(ARCHPICFLAGS) $(CXXFLAGS)
+CPPFLAGS := $(ARCHINCLUDES) $(ARCHDEFINES) $(EXTRAFLAGS)
+AFLAGS   := $(CFLAGS) -D__ASSEMBLY__
+
+NXFLATLDFLAGS1 = -r -d -warn-common
+NXFLATLDFLAGS2 = $(NXFLATLDFLAGS1) -T$(TOPDIR)/binfmt/libnxflat/gnu-nxflat-pcrel.ld -no-check-sections
+LDNXFLATFLAGS  = -e main -s 2048
+
+#---------------------------------------------------------------------------
+# PNS (Voice Processing) Library Linking
+#---------------------------------------------------------------------------
+ifeq ($(CONFIG_SERVICES_PNS),y)
+  PRODUCT_NAME := $(shell echo $(CONFIG_PNS_PRODUCT_SERIES) | sed -e "s/\"//g")
+  PNS_BASE_DIR  = $(AW_VENDOR_DIR)/xiaomi/miai/pns/thirdparty/$(PRODUCT_NAME)
+
+  # LIBVPM
+  ifeq ($(CONFIG_PNS_LIBVPM_ENABLE),y)
+    ifneq ($(wildcard $(PNS_BASE_DIR)/vpm/libs/xiaomi),)
+      EXTRA_LIBPATHS += -L $(PNS_BASE_DIR)/vpm/libs/xiaomi
+      ifeq ($(CONFIG_ARM_THUMB),y)
+        ifeq ($(CONFIG_MM_KASAN),y)
+          EXTRA_LIBS += -lvpm_thumb_kasan
+        else
+          EXTRA_LIBS += -lvpm_thumb
+        endif
+      else
+        EXTRA_LIBS += -lvpm
+      endif
+    endif
+  endif
+
+  # LIBMDSPEECH
+  ifeq ($(CONFIG_PNS_LIBMDSPEECH_ENABLE),y)
+    ifneq ($(wildcard $(PNS_BASE_DIR)/mdspeech/libs),)
+      EXTRA_LIBPATHS += -L $(PNS_BASE_DIR)/mdspeech/libs
+      ifeq ($(CONFIG_ARM_THUMB),y)
+        ifeq ($(CONFIG_MM_KASAN),y)
+          EXTRA_LIBS += -lmdspeech_thumb_kasan -liotdcm_thumb_kasan
+        else
+          EXTRA_LIBS += -lmdspeech_thumb -liotdcm_thumb
+        endif
+      else
+        EXTRA_LIBS += -lmdspeech -liotdcm
+      endif
+    endif
+  endif
+endif
+
+#---------------------------------------------------------------------------
+# Board-specific Pre-built Libraries
+#---------------------------------------------------------------------------
+EXTRA_LIBS += $(wildcard $(shell readlink -f $(TOPDIR)/$(CONFIG_ARCH_BOARD_CUSTOM_DIR))/libs/$(CONFIG_ARCH_BOARD_CUSTOM_NAME)/*.a)
+
+#---------------------------------------------------------------------------
+# Realtek WiFi Library Linking
+#---------------------------------------------------------------------------
+ifeq ($(CONFIG_IEEE80211_REALTEK_WIFI_RTL8733BS),y)
+  ifeq ($(CONFIG_MM_KASAN),y)
+    EXTRA_LIBPATHS += -L$(AW_WIFI_DIR)/wlan_lib_kasan/
+  else ifeq ($(CONFIG_X4B_FACTEST),y)
+    EXTRA_LIBPATHS += -L$(AW_WIFI_DIR)/wlan_lib_factory/
+  else
+    EXTRA_LIBPATHS += -L$(AW_WIFI_DIR)/wlan_lib/
+  endif
+  EXTRA_LIBS += -lrtl8733bs
+endif
+
+#---------------------------------------------------------------------------
+# Voice Change Library (FFmpeg related)
+#---------------------------------------------------------------------------
+ifneq ($(findstring achange,$(CONFIG_LIB_FFMPEG_CONFIGURATION)),)
+  VOICE_CHANGE_DIR = $(AW_VENDOR_DIR)/xiaomi/vela/libs/voice_change
+  CFLAGS += ${INCDIR_PREFIX}$(VOICE_CHANGE_DIR)/inc
+  ifeq ($(CONFIG_MM_KASAN),y)
+    EXTRA_LIBPATHS += -L "$(VOICE_CHANGE_DIR)/r528/kasan"
+  else
+    EXTRA_LIBPATHS += -L "$(VOICE_CHANGE_DIR)/r528"
+  endif
+  EXTRA_LIBS += -lvoice_change
+endif
+
+#---------------------------------------------------------------------------
+# Post-build Actions
+#---------------------------------------------------------------------------
+define POSTBUILD
+    cp nuttx nuttx.elf
+    $(Q)echo "Generating: nuttx.bin";
+    $(TOPDIR)/../prebuilts/gcc/linux-x86_64/arm-none-eabi/bin/arm-none-eabi-strip --remove-section=.note.gnu.build-id nuttx
+    $(TOPDIR)/../prebuilts/gcc/linux-x86_64/arm-none-eabi/bin/arm-none-eabi-objcopy -v -O binary nuttx vela.bin
+    $(Q)echo "Firmware is being converted: vela.bin";
+
+    @if [ "$(CONFIG_ARCH_BOARD_CUSTOM_NAME)" = "nsh" ]; then \
+        echo "Copy nsh.fex to lichee board dir"; \
+        cp vela.bin $(AW_LICHEE_DIR)/board/r528s3/gemini-s1_nand/configs/nsh.fex; \
+    elif [ "$(CONFIG_ARCH_BOARD_CUSTOM_NAME)" = "bl" ]; then \
+        echo "Copy bl.fex to lichee board dir"; \
+        cp vela.bin $(AW_LICHEE_DIR)/board/r528s3/gemini-s1_nand/configs/bl.fex; \
+    fi
+endef

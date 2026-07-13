@@ -19,9 +19,12 @@ extern "C" {
 #define LRADC_POLL_MS        50   /* ~20 Hz */
 #define LRADC_LONGPRESS_MS   200
 
+typedef void (*lradc_button_cb_t)(btn_buttonset_t btn, bool long_press, void *user_data);
+
 int input_lradc_init(void);
 int input_lradc_start(void);
 int input_lradc_stop(void);
+void input_lradc_set_button_callback(lradc_button_cb_t cb, void *user_data);
 
 #ifdef __cplusplus
 }

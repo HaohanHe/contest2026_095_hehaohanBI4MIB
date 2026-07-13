@@ -1,0 +1,515 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+config ARCH_CHIP_R528
+	bool "Allwinner R528"
+	select ARCH_CORTEXA7
+	select ARCH_HAVE_FPU
+	select ARMV7A_HAVE_GICv2
+	select ARCH_HAVE_MULTICPU
+	select ARCH_HAVE_HEAPCHECK
+	select ARCH_HAVE_IRQPRIO
+	select ARCH_HAVE_LOWVECTORS
+	select ARCH_HAVE_SDRAM
+	select ARCH_HAVE_ADDRENV
+	select ARCH_NEED_ADDRENV_MAPPING
+	select ARM_HAVE_NEON
+	select GIC_NOT_SUPPORT_DEACTIVATION
+	---help---
+		Allwinner R528 architectures (Cortex-A7*2)
+
+if ARCH_CHIP_R528
+
+config ARCH_SUN8IW20P1
+	bool
+	default y
+
+config ARCH_SUN8IW20
+	bool
+	default y
+
+config OS_NUTTX
+	bool
+	default y
+
+config ARCH_HAVE_DCACHE
+	bool
+	default n if !ARCH_DCACHE
+	default y if ARCH_DCACHE
+
+config ARCH_HAVE_ICACHE
+	bool
+	default n if !ARCH_ICACHE
+	default y if ARCH_ICACHE
+
+comment "R528 Configuration Options"
+
+config ALLWINNER_BINARY_ONLY
+	bool "Use pre-compiled libraries for Allwinnertech (Hides source code)"
+	default n
+	help
+		If enabled, the build system will use libarch_allwinner.a and libboard_allwinner.a
+		instead of compiling source files in vendor/allwinnertech.
+
+
+config IMAGE_PACK_PATH
+	string "Image position to be packed"
+	default ""
+
+menu "Allwinner R528 Peripheral Support"
+
+config R528_UART0
+	bool "UART 0"
+	default n
+	select UART0_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_UART1
+	bool "UART 1"
+	default n
+	select UART1_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_UART2
+	bool "UART 2"
+	default n
+	select UART2_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_UART3
+	bool "UART 3"
+	default n
+	select UART3_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_UART4
+	bool "UART 4"
+	default n
+	select UART4_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_UART5
+	bool "UART 5"
+	default n
+	select UART5_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_UART6
+	bool "UART 6"
+	default n
+	select UART6_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_UART7
+	bool "UART 7"
+	default n
+	select UART7_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+
+config R528_IR0
+	bool "IR 0"
+	default n
+
+config R528_IR1
+	bool "IR 1"
+	default n
+
+config R528_TWI0
+	bool "TWI 0"
+	depends on DRIVERS_TWI
+	default n
+
+config R528_TWI1
+	bool "TWI 1"
+	depends on DRIVERS_TWI
+	default n
+
+config R528_TWI2
+	bool "TWI 2"
+	depends on DRIVERS_TWI
+	default n
+
+config R528_SPI0
+	bool "SPI 0"
+	default n
+
+config R528_SPI1
+	bool "SPI 1"
+	default n
+
+config R528_SPI2
+	bool "SPI 2"
+	default n
+
+config R528_SPI3
+	bool "SPI3"
+	default n
+
+config R528_NC
+	bool "NC"
+	default n
+
+config R528_AC97
+	bool "AC97"
+	default n
+
+config R528_TS
+	bool "TS"
+	default n
+
+config R528_IIS
+	bool "Digital Audio Controller"
+	default n
+
+config R528_KEYPAD
+	bool "Keypad"
+	default n
+
+config R528_ONESHOT0
+	bool "Oneshot 0"
+	default n
+
+config R528_ONESHOT1
+	bool "Oneshot 1"
+	default n
+
+config R528_WATCHDOG
+	bool "r528 Watchdog"
+	default n
+	select WATCHDOG
+	select ARCH_HAVE_RESET
+
+config R528_RESET
+	bool "r528 reset system"
+	default y
+	select ARCH_HAVE_RESET
+
+config R528_WDOG_BOOTON
+	depends on R528_WATCHDOG
+	bool "Start watchdog when watchdog is initialized (timeout 16 second)"
+	default n
+
+config R528_IRQ_Alarm
+	bool "Alarm"
+	default n
+
+config R528_IRQ_WD
+	bool "Watchdog"
+	default n
+
+config R528_CAN
+	bool "CAN Bus controller"
+	default n
+
+config R528_DMA
+	bool "DMA"
+	default n
+
+config R528_PIO
+	bool "PIO"
+	default n
+
+config R528_TOUCH
+	bool "Touch Panel"
+	default n
+
+config R528_AUDIO
+	bool "Analog Audio Codec"
+	default n
+
+config R528_LRADC
+	bool "LRADC"
+	default n
+
+config R528_SDMMC0
+	bool "SD/MMC Host Controller 0"
+	default n
+
+config R528_SDMMC1
+	bool "SD/MMC Host Controller 1"
+	default n
+
+config R528_SDMMC2
+	bool "SD/MMC Host Controller 2"
+	default n
+
+config R528_SDMMC3
+	bool "SD/MMC Host Controller 3"
+	default n
+
+config R528_NAND
+	bool "NAND Flash Controller (NFC)"
+	default n
+
+config R528_USB0
+	bool "USB 0"
+	default n
+
+config R528_USB1
+	bool "USB 1"
+	default n
+
+config R528_USB2
+	bool "USB 2"
+	default n
+
+config R528_USB3
+	bool "USB 3"
+	default n
+
+config R528_USB4
+	bool "USB 4"
+	default n
+
+config R528_SCR
+	bool "SCR"
+	default n
+
+config R528_CSI0
+	bool "CSI 0"
+	default n
+
+config R528_CSI1
+	bool "CSI 1"
+	default n
+
+config R528_LCDC0
+	bool "LCD Controller 0"
+	default n
+
+config R528_LCDC1
+	bool "LCD Controller 1"
+	default n
+
+config R528_MP
+	bool "MP"
+	default n
+
+config R528_DEFE0
+	bool "DE-FE0"
+	default n
+
+config R528_IRQ_DEBE0
+	bool "DE-BE0"
+	default n
+
+config R528_DEFE1
+	bool "DE-FE1"
+	default n
+
+config R528_IRQ_DEBE1
+	bool "DE-BE1"
+	default n
+
+config R528_PMU
+	bool "PMU"
+	default n
+
+config R528_TZASC
+	bool "TZASC"
+	default n
+
+config R528_PATA
+	bool "PATA"
+	default n
+
+config R528_VE
+	bool "VE"
+	default n
+
+config R528_SS
+	bool "Security System"
+	default n
+
+config R528_EMAC
+	bool "EMAC"
+	default n
+
+config R528_HDMI
+	bool "HDMI"
+	default n
+
+config R528_TVE
+	bool "TV encoder 0/1"
+	default n
+
+config R528_ACE
+	bool "ACE"
+	default n
+
+config R528_TVD
+	bool "TV decoder"
+	default n
+
+config R528_PS20
+	bool "PS2-0"
+	default n
+
+config R528_PS21
+	bool "PS2-1"
+	default n
+
+config R528_PLE
+	bool "PLE"
+	default n
+
+config R528_IRQ_PERFMU
+	bool "Performance monitor"
+	default n
+
+config R528_GPU
+	bool "GPU"
+	default n
+
+config R528_PROTECT_BROM
+	bool "Protect BROM from accessing"
+	default n
+	help
+		Enable this option to facility the debug monitor to setup breakpoint
+		and watchpoint on BROM range to avoid data read/write to address range
+		of 0x00000000-0x0001FFFF. And avoid executing from address 0.
+
+endmenu
+
+menu "Allwinner Dirvers Options"
+source '../vendor/allwinnertech/chips/r528/drivers/Kconfig'
+endmenu
+
+menu "Allwinner Components Options"
+source '../vendor/allwinnertech/chips/r528/components/Kconfig'
+endmenu
+
+config R528_PIO_IRQ
+	bool "External PIO interrupts"
+	default n
+	---help---
+		Select to enable support for 32 external PIO interrupts.  These will
+		be handled through a second level of interrupt decoding and will
+		otherwise appear as any other interrupt.
+
+choice
+	prompt "Boot device"
+	default R528_BOOT_SDCARD
+
+config R528_BOOT_NAND
+	bool "NAND FLASH"
+
+config R528_BOOT_SPINOR
+	bool "SPI NOR FLASH"
+
+config R528_BOOT_SDCARD
+	bool "SD card"
+
+config R528_BOOT_USB
+	bool "USB"
+
+endchoice # Boot device
+
+config R528_DDR_MAPOFFSET
+	int "Installed SDRAM offset"
+	default 0
+	---help---
+		The size of the installed SRAM memory is required in order to
+		properly configure memory mapping.  The mapping will begin at the
+		start of SDRAM plus R528_DDR_MAPOFFSET and extend for DDR_MAPSIZE
+		bytes.  NOTE typically R528_MAP_OFFSET is zero and R528_DDR_MAPSIZE is
+		the full, installed size of the DRAM.  But these values can be
+		modified to set aside memory at the beginning or end of SRAM that is
+		unmapped (or mapped differently).  NOTE also that this value relates
+		closely to other settings:
+
+			RAM_START and RAM_VSTART give this physical and virtual addresses
+			of the start of usable memory (begining with .text).  NOTE that
+			this may not necessarily be the actual start of the mapped SDRAM
+			region.  It will be larger if NuttX begins at an offset from
+			beginning of mapped SDRAM (which is the normal case).
+
+			RAM_SIZE gives the size of the .text, .data, and .bss sections
+			plus the size of the available heap.  NOTE that RAM_SIZE may not
+			include all of SDRAM up to the end of mapped region.
+
+config R528_DDR_MAPSIZE
+	int "Installed SDRAM size"
+	default 1073741824
+	---help---
+		The size of the installed SRAM memory is required in order to
+		properly configure memory mapping.  The mapping will begin at the
+		start of SDRAM plus R528_DDR_MAPOFFSET and extend for DDR_MAPSIZE
+		bytes.  NOTE typically R528_MAP_OFFSET is zero and R528_DDR_MAPSIZE is
+		the full, installed size of the DRAM.  But these values can be
+		modified to set aside memory at the beginning or end of SRAM that is
+		unmapped (or mapped differently).  NOTE also that this value relates
+		closely to other settings:
+
+			RAM_START and RAM_VSTART give this physical and virtual addresses
+			of the start of usable memory (begining with .text).  NOTE that
+			this may not necessarily be the actual start of the mapped SDRAM
+			region.  It will be larger if NuttX begins at an offset from
+			beginning of mapped SDRAM (which is the normal case).
+
+			RAM_SIZE gives the size of the .text, .data, and .bss sections
+			plus the size of the available heap.  NOTE that RAM_SIZE may not
+			include all of SDRAM up to the end of mapped region.
+
+endif # ARCH_CHIP_R528
+
+menu "Allwinner Rptun Support"
+
+config AW_RPTUN
+	bool "Support rptun Component"
+	depends on RPTUN
+	default n
+
+config AW_RPTUN_DEBUG
+	bool "rptun debug info"
+	depends on AW_RPTUN
+	default n
+
+config AW_RPTUN_FIRMWARE
+	string "firmware path"
+	depends on AW_RPTUN
+	default "/resource/etc/dsp.bin"
+
+config AW_RPTUN_REMOTE_NAME
+	string "remote core name"
+	depends on AW_RPTUN
+	default "dsp"
+
+config AW_RPTUN_STACKSIZE
+	int "rptun thread stack size(default 4096)"
+	depends on AW_RPTUN
+	default 4096
+
+config AW_RPTUN_PRIORITY
+	int "rptun thread priority (default 100)"
+	depends on AW_RPTUN
+	default 200
+
+config MBOX_CHANNEL
+	int "msgbox channel"
+	depends on AW_RPTUN
+	default 0
+
+config MBOX_QUEUE_LENGTH
+	int "msgbox recv queue len"
+	depends on AW_RPTUN
+	default 16
+
+config AW_RPTUN_SECURE
+	bool "r528 rptun secure support"
+	default n
+	---help---
+		This is for r528 secure rptun support.
+
+endmenu
+
+menuconfig ONESHOT_AS_TICK
+	bool "use oneshot timer as tick timer"
+	default y
+
+config ONESHOT_TICK_TIMER_INDEX
+	int "oneshot tick timer index"
+	range 0 1
+	depends on ONESHOT_AS_TICK
+	default 0

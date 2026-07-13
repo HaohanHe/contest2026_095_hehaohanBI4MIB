@@ -1,0 +1,41 @@
+一、编译说明
+1. 下载openvela源码
+2. 将当前目录内容拷贝到vendor/allwinnertech
+3. cd lichee; source envsetup.sh
+4. lunch_nuttx r528s3-evb4_bootloader
+5. 执行m编译, m distclean清理; 或者参考vela文档，顶层目录执行 ./build.sh vendor/allwinnertech/boards/r528/r528s3-evb4/configs/bootloader -e -Wno-error V=s -j32进行编译
+6. 执行pack打包
+
+二、[RV-Gemini-S1]R528开发板编译打包说明
+1. 下载源码
+2. Gemini SDK位于/vendor/allwinnertech目录下
+        SDK目录结构：
+        vendor/allwinnertech/
+        ├── apps/                 # 核心应用与 Demo (如 luncher_mini)
+        ├── boards/               # 板级支持包 (包含启动代码、引脚配置)
+        │   └── r528/             # R528 平台
+        │       └── r528s3-gemini-s1/ # 本开发板核心目录
+        ├── chips/                # 芯片级驱动 (GPIO, SPI, TWI, etc.)
+        │   └── r528/
+        │       ├── drivers/      # 底层 HAL 与 RTOS 适配层
+        │       └── drv/          # NuttX 驱动实现层
+        ├── lichee/               # 固件打包与产线工具 (Pack tools)
+        ├── Make.defs             # 全局构建规则
+        └── Kconfig               # 全局配置入口
+3.编译说明
+    2.8寸spi屏 编译命令
+    ./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay/ distclean -j8
+    ./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay/ -j8
+
+
+    7寸mipi屏 编译命令如下
+    #可选，只有menuconfig 改变之后，才需要clean
+    ./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh/ -j8 distclean
+    #编译
+    ./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh/ -j8
+
+4.打包
+    cd vendor/allwinnertech/lichee/
+    source envsetup.sh
+    lunch_nuttx #选择2 r528s3-gemini-s1
+    pack

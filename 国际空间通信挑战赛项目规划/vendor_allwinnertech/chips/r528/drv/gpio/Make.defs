@@ -1,0 +1,5 @@
+DRV_GPIO_PATH=drv/gpio
+
+ifeq ($(CONFIG_DRIVERS_GPIO), y)
+CHIP_CSRCS += $(DRV_GPIO_PATH)/drv_gpio.c
+endif

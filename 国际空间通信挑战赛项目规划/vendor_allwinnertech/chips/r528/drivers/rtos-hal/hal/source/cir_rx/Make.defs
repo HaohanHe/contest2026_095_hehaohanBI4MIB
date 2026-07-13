@@ -1,0 +1,15 @@
+ifeq ($(CONFIG_DRIVERS_CIR_RX),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+CIR_RX_PATH=$(DRV_SOURCE_PATH)/cir_rx
+
+DEPPATH+=--dep-path $(CIR_RX_PATH)
+VPATH+=:chip/$(CIR_RX_PATH)
+
+# Include the  module.
+CHIP_CSRCS += $(CIR_RX_PATH)/hal_cir_rx.c
+
+endif
+

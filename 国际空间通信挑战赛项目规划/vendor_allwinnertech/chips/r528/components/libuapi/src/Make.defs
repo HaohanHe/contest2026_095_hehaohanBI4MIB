@@ -1,0 +1,19 @@
+ifeq ($(CONFIG_LIBUAPI),y)
+LIBUAPI_SOURCE_PATH=components/libuapi
+
+DEPPATH+=--dep-path $(LIBUAPI_SOURCE_PATH) 
+VPATH+=:chip/$(LIBUAPI_SOURCE_PATH)
+
+
+ARCH_SRC := $(TOPDIR)/arch/$(CONFIG_ARCH)/src
+ARCH_INC := $(TOPDIR)/arch/$(CONFIG_ARCH)/include
+ARCH_CUR_SRC_PATH:=$(AW_SRCDIR)/$(LIBUAPI_SOURCE_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)/components/libuapi/inc/
+CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)/components/libuapi/src/include
+    
+CHIP_CSRCS += $(LIBUAPI_SOURCE_PATH)/src/yuv_rotate.c
+CHIP_CSRCS += $(LIBUAPI_SOURCE_PATH)/src/videoOutPort.c
+CHIP_CSRCS += $(LIBUAPI_SOURCE_PATH)/src/ion_alloc.c
+CHIP_CSRCS += $(LIBUAPI_SOURCE_PATH)/src/gpu_yuv2rgb.c
+endif

@@ -1,0 +1,35 @@
+ifeq ($(CONFIG_AW_DRIVERS_AUDIO),y)
+# Include Audio drivers support
+AW_AUDIO_DRV_PATH=components/audio
+AW_AUDIO_RPMSG_PATH=components/audio/include
+
+AW_ALSA_UTILS_PATH=drivers/rtos-hal/hal/test/sound
+
+DEPPATH+=--dep-path $(AW_AUDIO_DRV_PATH)
+VPATH+=:chip/$(AW_AUDIO_DRV_PATH)
+
+ARCH_AW_AUDIO_DRV_SRC_PATH:=$(AW_SRCDIR)/$(AW_AUDIO_DRV_PATH)
+ARCH_ALSA_UTILS_SRC_PATH:=$(AW_SRCDIR)/$(AW_ALSA_UTILS_PATH)
+ARCH_AUDIO_RPMSG_PATH:=$(AW_SRCDIR)/$(AW_AUDIO_RPMSG_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_AW_AUDIO_DRV_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(AW_SRCDIR)/drivers/rtos-hal/include/hal
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_ALSA_UTILS_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_AUDIO_RPMSG_PATH)
+ifneq ($(CONFIG_AW_AUDIO_DMIC)$(CONFIG_AW_AUDIO_CODEC),)
+CHIP_CSRCS += $(AW_AUDIO_DRV_PATH)/sunxi_alsa.c
+endif
+
+ifeq ($(CONFIG_AW_AUDIO_AUDIO_I2S),y)
+CHIP_CSRCS += $(AW_AUDIO_DRV_PATH)/audio_i2s.c
+endif
+
+ifeq ($(CONFIG_AW_AUDIO_RPMSG_CTRL),y)
+CHIP_CSRCS += $(AW_AUDIO_DRV_PATH)/sunxi_audio_rpmsg.c
+endif
+
+ifeq ($(CONFIG_AW_AUDIO_X4B_DRIVER),y)
+CHIP_CSRCS += $(AW_AUDIO_DRV_PATH)/sunxi_x4b_alsa.c
+endif
+
+endif

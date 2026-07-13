@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-void config_set_defaults(ai_config_t *config)
+void radio_config_set_defaults(ai_config_t *config)
 {
     if (!config) return;
     memset(config, 0, sizeof(*config));
@@ -54,10 +54,15 @@ static void set_str_field(ai_config_t *c, const char *key, const char *val)
     else if (strcmp(key, "chat_endpoint") == 0) strncpy(c->chat_endpoint, val, MAX_ENDPOINT_LEN - 1);
 }
 
-int config_store_load(ai_config_t *config)
+static void set_int_field(ai_config_t *c, const char *key, const char *val)
+{
+    if (strcmp(key, "provider") == 0) c->provider = (int)strtol(val, NULL, 10);
+}
+
+int radio_config_store_load(ai_config_t *config)
 {
     if (!config) return -1;
-    config_set_defaults(config);
+    radio_config_set_defaults(config);
 
     FILE *f = fopen(CONFIG_PATH, "r");
     if (!f) return -1;
@@ -76,6 +81,7 @@ int config_store_load(ai_config_t *config)
             set_bool_field(config, key, false);
         } else {
             set_str_field(config, key, val);
+            set_int_field(config, key, val);
         }
     }
     fclose(f);
@@ -95,16 +101,20 @@ static void ensure_dir(const char *path)
     }
 }
 
-int config_store_init(void)
+int radio_config_store_init(void)
 {
-    ensure_dir(CONFIG_PATH);
+    /* Create /data/radio/ directory (not the file itself) */
+    mkdir("/data", 0755);
+    mkdir("/data/radio", 0755);
     return 0;
 }
 
-int config_store_save(const ai_config_t *config)
+int radio_config_store_save(const ai_config_t *config)
 {
     if (!config) return -1;
-    ensure_dir(CONFIG_PATH);
+    /* Ensure /data/radio/ directory exists before writing config.ini */
+    mkdir("/data", 0755);
+    mkdir("/data/radio", 0755);
     FILE *f = fopen(CONFIG_PATH, "w");
     if (!f) return -1;
 
@@ -123,5 +133,6 @@ int config_store_save(const ai_config_t *config)
     fprintf(f, "realtime_translation=%s\n", config->realtime_translation ? "true" : "false");
 
     fclose(f);
+    chmod(CONFIG_PATH, 0600);
     return 0;
 }

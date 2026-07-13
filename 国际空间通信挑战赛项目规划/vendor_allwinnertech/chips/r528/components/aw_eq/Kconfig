@@ -1,0 +1,14 @@
+menu "Allwinner eq"
+
+config COMPONENTS_AW_EQ
+    bool "Enable AW eq"
+    default y
+
+config COMPONENTS_AW_EQ_TEST
+    bool "Enable AW eq test"
+    depends on COMPONENTS_AW_EQ
+    default n
+    help
+        "Enable allwinner eq test."
+
+endmenu

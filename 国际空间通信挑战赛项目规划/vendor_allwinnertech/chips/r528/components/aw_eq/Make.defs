@@ -1,0 +1,24 @@
+ifeq ($(CONFIG_COMPONENTS_AW_EQ),y)
+ifneq ($(AW_SRCDIR),)
+
+AW_EQ_PATH=components/aw_eq
+
+DEPPATH+=--dep-path $(AW_EQ_PATH)
+VPATH+=:chip/$(AW_EQ_PATH)
+
+ARCH_AW_EQ_PATH:=$(ARCH_SRC)/chip/$(AW_EQ_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_AW_EQ_PATH)/include
+
+# Include the  module.
+CHIP_CSRCS += $(AW_EQ_PATH)/eq.c
+CHIP_CSRCS += $(AW_EQ_PATH)/aweq_interface.c
+
+endif
+endif
+
+ifneq ($(CONFIG_COMPONENTS_AW_EQ_TEST),)
+ifeq ($(AW_SRCDIR),)
+include $(APPDIR)/vendor/allwinnertech/chips/r528/components/aw_eq/test_aw_eq/Make.defs
+endif
+endif

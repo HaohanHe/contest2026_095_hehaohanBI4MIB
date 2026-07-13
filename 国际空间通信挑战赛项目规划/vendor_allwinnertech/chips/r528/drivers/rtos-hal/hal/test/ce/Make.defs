@@ -1,0 +1,4 @@
+ifneq ($(CONFIG_HAL_TEST_CE),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/ce
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/ce
+endif

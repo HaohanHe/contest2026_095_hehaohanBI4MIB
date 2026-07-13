@@ -1,0 +1,91 @@
+/* Copyright (c) 2019-2025 Allwinner Technology Co., Ltd. ALL rights reserved.
+
+ * Allwinner is a trademark of Allwinner Technology Co.,Ltd., registered in
+ * the the People's Republic of China and other countries.
+ * All Allwinner Technology Co.,Ltd. trademarks are used with permission.
+
+ * DISCLAIMER
+ * THIRD PARTY LICENCES MAY BE REQUIRED TO IMPLEMENT THE SOLUTION/PRODUCT.
+ * IF YOU NEED TO INTEGRATE THIRD PARTY’S TECHNOLOGY (SONY, DTS, DOLBY, AVS OR MPEGLA, ETC.)
+ * IN ALLWINNERS’SDK OR PRODUCTS, YOU SHALL BE SOLELY RESPONSIBLE TO OBTAIN
+ * ALL APPROPRIATELY REQUIRED THIRD PARTY LICENCES.
+ * ALLWINNER SHALL HAVE NO WARRANTY, INDEMNITY OR OTHER OBLIGATIONS WITH RESPECT TO MATTERS
+ * COVERED UNDER ANY REQUIRED THIRD PARTY LICENSE.
+ * YOU ARE SOLELY RESPONSIBLE FOR YOUR USAGE OF THIRD PARTY’S TECHNOLOGY.
+
+
+ * THIS SOFTWARE IS PROVIDED BY ALLWINNER"AS IS" AND TO THE MAXIMUM EXTENT
+ * PERMITTED BY LAW, ALLWINNER EXPRESSLY DISCLAIMS ALL WARRANTIES OF ANY KIND,
+ * WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING WITHOUT LIMITATION REGARDING
+ * THE TITLE, NON-INFRINGEMENT, ACCURACY, CONDITION, COMPLETENESS, PERFORMANCE
+ * OR MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * IN NO EVENT SHALL ALLWINNER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS, OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+#ifndef DISP_WAVEFORM_H
+#define DISP_WAVEFORM_H
+
+#include "../include.h"
+#if 0
+typedef enum update_mode {
+	/* ALL AREA flush mode */
+	EINK_INIT_MODE	= 0x01,
+	EINK_DU_MODE		= 0x02,
+	EINK_GC16_MODE	= 0x04,
+	EINK_A2_MODE		= 0x10,
+	EINK_GC16_LOCAL_MODE	= 0x84,
+
+	/* RECTANGLE flush mode */
+	EINK_DU_RECT_MODE	= 0x402,
+	EINK_GC16_RECT_MODE	= 0x404,
+	EINK_A2_RECT_MODE	= 0x410,
+	EINK_GC16_LOCAL_RECT_MODE = 0x484
+} EINK_UPDATE_MODE;
+#endif
+typedef enum  {
+	ED060SC4 = 0x01,
+	ED060SC7 = 0x02,
+	OPM060A1 = 0x03,
+	ED060XD4 = 0x04
+} EINK_PANEL_TYPE;
+/*
+typedef enum  {
+	EINK_BIT_1 = 0x01,
+	EINK_BIT_2 = 0x02,
+	EINK_BIT_3 = 0x03,
+	EINK_BIT_4 = 0x04,
+	EINK_BIT_5 = 0x05
+}EINK_BIT_NUM;
+*/
+
+#if 0
+#define DEBUG_WAVEFILE
+#ifdef DEBUG_WAVEFILE
+#define WF_DBG(msg, fmt...)		pr_warn(msg, ##fmt)
+#define WF_INFO(msg, fmt...)		pr_warn(msg, ##fmt)
+#define WF_WRN(msg, fmt...)		pr_warn(msg, ##fmt)
+#define WF_ERR(msg, fmt...)		pr_err(msg, ##fmt)
+#else
+#define WF_DBG(msg, fmt...)
+#define WF_INFO(msg, fmt...)
+#define WF_WRN(msg, fmt...)		pr_warn(msg, ##fmt)
+#define WF_ERR(msg, fmt...)		pr_err(msg, ##fmt)
+#endif
+#endif
+
+extern __s32 init_waveform(const char *path);
+extern int get_eink_panel_type(EINK_PANEL_TYPE *type);
+extern int get_eink_panel_bit_num(enum  eink_bit_num *bit_num);
+extern int get_waveform_data(u32 mode,
+			u32 temp, u32 *total_frames, u32 *wf_buf);
+extern void free_waveform(void);
+#endif
+

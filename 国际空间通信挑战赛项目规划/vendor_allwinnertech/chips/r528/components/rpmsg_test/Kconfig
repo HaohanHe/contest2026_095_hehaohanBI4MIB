@@ -1,0 +1,23 @@
+menu "Allwinner rpmsg test"
+
+config AW_RPMSG_TEST
+	bool "Enable rpmsg test"
+	depends on RPTUN
+	default n
+
+config AW_RPMSG_TEST_STACKSIZE
+	int "thread stack size(default 4096)"
+	depends on AW_RPMSG_TEST
+	default 4096
+
+config AW_RPMSG_TEST_PRIORITY
+	int "rptun thread priority (default 100)"
+	depends on AW_RPMSG_TEST
+	default 100
+
+config AW_RPMSG_TEST_QUEUE_LENGTH
+	int "recv queue len"
+	depends on AW_RPMSG_TEST
+	default 4
+
+endmenu

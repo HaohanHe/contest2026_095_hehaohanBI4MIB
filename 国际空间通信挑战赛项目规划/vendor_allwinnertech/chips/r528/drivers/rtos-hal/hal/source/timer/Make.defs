@@ -1,0 +1,24 @@
+TIMER_PATH=drivers/rtos-hal/hal/source/timer
+
+DEPPATH+=--dep-path $(TIMER_PATH)
+VPATH+=:chip/$(TIMER_PATH)
+
+ARCH_TIMER_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(TIMER_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TIMER_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_TIMER_SRC_PATH)/platform
+
+ifeq ($(CONFIG_DRIVERS_TIMER), y)
+CHIP_CSRCS += $(TIMER_PATH)/hal_timer.c
+CHIP_CSRCS += $(TIMER_PATH)/sunxi_timer.c
+endif
+
+ifeq ($(CONFIG_DRIVERS_TIMER_AVS), y)
+CHIP_CSRCS += $(TIMER_PATH)/hal_avs.c
+endif
+
+ifeq ($(CONFIG_DRIVERS_HTIMER), y)
+CHIP_CSRCS += $(TIMER_PATH)/hal_htimer.c
+CHIP_CSRCS += $(TIMER_PATH)/sunxi_htimer.c
+endif
+

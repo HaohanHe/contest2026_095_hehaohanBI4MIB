@@ -1,0 +1,148 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+menuconfig AW_DRIVERS_AUDIO
+	bool "Audio Device Support"
+	default n
+	---help---
+		Enable support for audio device drivers.  This includes drivers for
+		MP3, WMA and Ogg Vorbis encoding, decoding, as well as drivers for
+		interfacing with external DSP chips to perform custom audio functions.
+
+		NOTE: All of these drivers depend on support from the audio subsystem
+		enabled with the AUDIO selection.
+
+if AW_DRIVERS_AUDIO
+
+config AW_AUDIO_CODEC
+	bool "Support audio codec adc in R528 chip"
+	default n
+	depends on AUDIO
+	---help---
+		Select to enable support for the audiocodec by Allwinner.
+		Dmic is built into the R528 chip.
+		It includes no built-in support for audio CODECS
+		The ADC provides:
+
+			- Support stereo microphone input
+			- Support 8~192KHz sampling rate
+			- Supports 16/24bit sampling accuracy
+		The DAC provides:
+
+			- Support stereo speaker output
+			- Support 8~192KHz sampling rate
+			- Supports 16/24/32bit sampling accuracy
+
+		NOTE: This driver also depends on tiny-alsa-lib support although
+		that dependency is not explicit here.
+
+if AW_AUDIO_CODEC
+
+config AW_AUDIO_CODEC_ADC_INITVOLUME
+	int "CODEC ADC init digtal volume"
+	default 160
+	---help---
+		min value is 0, max value is 255.
+
+config AW_AUDIO_CODEC_MSG_PRIO
+	int "CODEC message priority"
+	default 1
+
+config AW_AUDIO_CODEC_BUFFER_SIZE
+	int "CODEC preferred buffer size"
+	default 4096
+
+config AW_AUDIO_CODEC_NUM_BUFFERS
+	int "CODEC preferred number of buffers"
+	default 4
+
+config AW_AUDIO_CODEC_WORKER_STACKSIZE
+	int "CODEC worker thread stack size"
+	default 2048
+
+config AW_AUDIO_CODEC_DEFAULT_CARDNAME
+	string "Default audiocodec card name"
+	default "audiocodec"
+	---help---
+		Specifies card name for audiocodec.
+
+endif # AW_AUDIO_CODEC
+
+
+config AW_AUDIO_DMIC
+	bool "Support audio dmic in R528 chip"
+	default n
+	depends on AUDIO
+	---help---
+		Select to enable support for the Dmic by Allwinner.
+		Dmic is built into the R528 chip.
+		It includes no built-in support for audio CODECS
+		The dmic provides:
+
+			- Support Eight digital microphone input
+			- Support 8~48KHz sampling rate
+			- Supports 16/24bit sampling accuracy
+
+		NOTE: This driver also depends on tiny-alsa-lib support although
+		that dependency is not explicit here.
+
+if AW_AUDIO_DMIC
+
+config AW_AUDIO_DMIC_MSG_PRIO
+	int "DMIC message priority"
+	default 1
+
+config AW_AUDIO_DMIC_BUFFER_SIZE
+	int "DMIC preferred buffer size"
+	default 4096
+
+config AW_AUDIO_DMIC_NUM_BUFFERS
+	int "DMIC preferred number of buffers"
+	default 4
+
+config AW_AUDIO_DMIC_WORKER_STACKSIZE
+	int "DMIC worker thread stack size"
+	default 2048
+
+config AW_AUDIO_DMIC_REGDUMP
+	bool "DMIC register dump"
+	default n
+	select SUNXI_DMIC_DEBUG_REG
+	---help---
+		Enable logic to dump the contents of all DMIC registers.
+
+config AW_AUDIO_DMIC_DEFAULT_CARDNAME
+	string "Default dmic card name"
+	default "snddmic"
+	---help---
+		Specifies card name for dmic.
+
+endif # AW_AUDIO_AUDIO_DMIC
+
+config AW_AUDIO_AUDIO_I2S
+	bool "Audio I2S"
+	depends on AUDIO
+	depends on I2S
+
+config AW_AUDIO_RPMSG_CTRL
+	bool "Audio rpmsg ctrl"
+	depends on AUDIO
+	depends on AW_RPTUN
+	---help---
+		Select to enable support for the audio rpmsg by Allwinner.
+
+		NOTE: This code is also depends on dsp rpmsg audio support although
+		that dependency is not explicit here.
+
+config AW_AUDIO_X4B_DRIVER
+	bool "Audio x4b driver support"
+	depends on AW_AUDIO_RPMSG_CTRL
+	depends on AW_RPMSG_MEMBLK
+	depends on COMPONENTS_RING_BUFFER
+	---help---
+		Select to enable support for the audio driver of x4b solution.
+
+
+endif # AW_DRIVERS_AUDIO

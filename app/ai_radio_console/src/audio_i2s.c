@@ -61,9 +61,9 @@ int audio_i2s_init(void)
         return 0;
     }
 
-    g_i2s_fd = open("/dev/pcmC0D0c", O_RDONLY | O_NONBLOCK);
+    g_i2s_fd = open(AUDIO_CAPTURE_DEV, O_RDONLY | O_NONBLOCK);
     if (g_i2s_fd < 0) {
-        printf("[I2S] cannot open /dev/pcmC0D0c: %d\n", errno);
+        printf("[I2S] cannot open %s: %d\n", AUDIO_CAPTURE_DEV, errno);
         return -1;
     }
 
@@ -105,16 +105,29 @@ int audio_i2s_start(void)
 
     if (ioctl(g_i2s_fd, AUDIOIOC_START, 0) < 0) {
         printf("[I2S] start failed: %d\n", errno);
+        if (ioctl(g_i2s_fd, AUDIOIOC_STOP, 0) < 0) {
+            printf("[I2S] rollback stop failed: %d\n", errno);
+        }
+        if (ioctl(g_i2s_fd, AUDIOIOC_RELEASE, 0) < 0) {
+            printf("[I2S] rollback release failed: %d\n", errno);
+        }
         return -1;
     }
 
     g_i2s_running = 1;
 
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&g_i2s_thread, &attr, audio_i2s_thread, NULL);
-    pthread_attr_destroy(&attr);
+    int ret = pthread_create(&g_i2s_thread, NULL, audio_i2s_thread, NULL);
+    if (ret != 0) {
+        printf("[I2S] pthread_create failed: %d\n", ret);
+        g_i2s_running = 0;
+        if (ioctl(g_i2s_fd, AUDIOIOC_STOP, 0) < 0) {
+            printf("[I2S] stop failed: %d\n", errno);
+        }
+        if (ioctl(g_i2s_fd, AUDIOIOC_RELEASE, 0) < 0) {
+            printf("[I2S] release failed: %d\n", errno);
+        }
+        return -1;
+    }
 
     printf("[I2S] capture started, rate=%d, channels=%d, bits=%d\n",
            AUDIO_SAMPLE_RATE, AUDIO_CHANNELS, AUDIO_BITS_PER_SAMPLE);
@@ -129,9 +142,17 @@ int audio_i2s_stop(void)
 
     g_i2s_running = 0;
 
+    if (pthread_join(g_i2s_thread, NULL) != 0) {
+        printf("[I2S] pthread_join failed: %d\n", errno);
+    }
+
     if (g_i2s_fd >= 0) {
-        ioctl(g_i2s_fd, AUDIOIOC_STOP, 0);
-        ioctl(g_i2s_fd, AUDIOIOC_RELEASE, 0);
+        if (ioctl(g_i2s_fd, AUDIOIOC_STOP, 0) < 0) {
+            printf("[I2S] stop failed: %d\n", errno);
+        }
+        if (ioctl(g_i2s_fd, AUDIOIOC_RELEASE, 0) < 0) {
+            printf("[I2S] release failed: %d\n", errno);
+        }
         close(g_i2s_fd);
         g_i2s_fd = -1;
     }

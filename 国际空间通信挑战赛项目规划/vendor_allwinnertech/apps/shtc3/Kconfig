@@ -1,0 +1,35 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXAMPLES_SHTC3
+	bool "SHTC3 sensor example"
+	default n
+	---help---
+		Enable the SHTC3 sensor example
+
+if EXAMPLES_SHTC3
+
+config EXAMPLES_SHTC3_PROGNAME
+	string "Program name"
+	default "shtc3_uorb"
+	---help---
+		This is the name of the program that will be used when the NSH ELF
+		program is installed.
+
+config EXAMPLES_SHTC3_PRIORITY
+	int "SHTC3 task priority"
+	default 100
+
+config EXAMPLES_SHTC3_STACKSIZE
+	int "SHTC3 stack size"
+	default 2048
+
+config EXAMPLES_SHTC3_UORB
+	bool "Use UORB interface"
+	default n
+	depends on UORB
+	---help---
+		Use UORB interface to access SHTC3 sensor data
+endif

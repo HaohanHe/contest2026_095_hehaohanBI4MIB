@@ -1,0 +1,30 @@
+config COMPONENTS_BLUETOOTH
+	bool "Bluetooth component"
+	depends on UART_BTH5 || (BLUETOOTH_BRIDGE && BLUETOOTH_SLIP)
+	default n
+	help
+		Say y here to enable support for the bluetooth component.
+
+if COMPONENTS_BLUETOOTH
+
+config BLUETOOTH_LMP_SUBVER
+	hex "bluetooth class of device"
+	default 0x8723
+	help
+		bluetooth lmp subversion
+
+config BLUETOOTH_HCI_RECV_PRIORITY
+	int "bluetooth hci recv thread priority"
+	default 100
+
+config BLUETOOTH_HCI_RECV_STACKSIZE
+	int "bluetooth hci recv thread stacksize"
+	default 4096
+
+config BLUETOOTH_UART_DEV
+	string "the name of bluetooth uart path"
+	default "/dev/uart1"
+	help
+		bluetooth uart bt device path
+
+endif #COMPONENTS_BLUETOOTH

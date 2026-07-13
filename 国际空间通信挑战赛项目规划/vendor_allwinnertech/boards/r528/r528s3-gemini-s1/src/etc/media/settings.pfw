@@ -1,0 +1,88 @@
+domain: MicDomain
+	conf: enable
+		UsingDevices Includes mic
+		FFmpegCommand = pcm0c,unmute,;
+	conf: disable
+		ALL
+		FFmpegCommand = pcm0c,mute,;
+
+domain: MusicVolumeDomain
+	conf: mute
+		ANY
+			MuteMode   Is on
+			MusicVolume In 0
+		FFmpegCommand = Music,volume,0;
+	conf: index-%MusicVolume
+		MusicVolume In [1,9]
+		FFmpegCommand = Music,volume,10^(-4*(10-%MusicVolume%)/20);
+	conf: 10
+		MusicVolume In 10
+		FFmpegCommand = Music,volume,1;
+
+domain: MediaVolumeDomain
+	conf: mute
+		MediaVolume In 0
+		FFmpegCommand = Media,volume,0;
+	conf: index-%MediaVolume
+		MediaVolume In [1,9]
+		FFmpegCommand = Media,volume,10^(-4*(10-%MediaVolume%)/20);
+	conf: 10
+		MediaVolume In 10
+		FFmpegCommand = Media,volume,1;
+
+domain: RingVolumeDomain
+	conf: mute
+		ANY
+			MuteMode   Is on
+			RingVolume In 0
+		FFmpegCommand = Ring,volume,0;
+	conf: index-%RingVolume
+		RingVolume In [1,9]
+		FFmpegCommand = Ring,volume,10^(-4*(10-%RingVolume%)/20);
+	conf: 10
+		RingVolume In 10
+		FFmpegCommand = Ring,volume,1;
+
+domain: AlarmVolumeDomain
+	conf: mute
+		AlarmVolume In 0
+		FFmpegCommand = Alarm,volume,0;
+	conf: index-%AlarmVolume
+		AlarmVolume In [1,9]
+		FFmpegCommand = Alarm,volume,10^(-4*(10-%AlarmVolume%)/20);
+	conf: 10
+		AlarmVolume In 10
+		FFmpegCommand = Alarm,volume,1;
+
+domain: NotifyVolumeDomain
+	conf: mute
+		NotifyVolume In 0
+		FFmpegCommand = Notify,volume,0;
+	conf: index-%NotifyVolume
+		NotifyVolume In [1,9]
+		FFmpegCommand = Notify,volume,10^(-4*(10-%NotifyVolume%)/20);
+	conf: 10
+		NotifyVolume In 10
+		FFmpegCommand = Notify,volume,1;
+
+domain: TTSVolumeDomain
+	conf: mute
+		TTSVolume In 0
+		FFmpegCommand = TTS,volume,0;
+	conf: index-%TTSVolume
+		TTSVolume In [1,9]
+		FFmpegCommand = TTS,volume,10^(-4*(10-%TTSVolume%)/20);
+	conf: 10
+		TTSVolume In 10
+		FFmpegCommand = TTS,volume,1;
+
+domain: SportVolumeDomain
+	conf: mute
+		SportVolume In 0
+		FFmpegCommand = Sport,volume,0;
+	conf: index-%SportVolume
+		SportVolume In [1,9]
+		FFmpegCommand = Sport,volume,10^(-4*(10-%SportVolume%)/20);
+	conf: 10
+		SportVolume In 10
+		FFmpegCommand = Sport,volume,1;

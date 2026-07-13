@@ -1,0 +1,13 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config MICRO_TF
+	bool "Micro TF chip support"
+	depends on USE_SD
+	depends on DRIVERS_SDMMC
+	depends on USE_SDIO
+	depends on DETECT_CARD
+	default n
+

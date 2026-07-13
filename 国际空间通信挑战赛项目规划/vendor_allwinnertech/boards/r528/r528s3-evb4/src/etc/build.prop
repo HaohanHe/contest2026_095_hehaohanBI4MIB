@@ -1,0 +1,9 @@
+ro.build.manufacturer=Xiaomi
+persist.ota.active_slot=A
+persist.reboot_flag=0
+ro.build.version=1.51.32
+ro.product.name=ASX4B
+ro.build.channel=current
+ro.build.id=1.51.32
+ro.product.device.screenshape=rect
+ro.product.device.devicetype=smartspeaker

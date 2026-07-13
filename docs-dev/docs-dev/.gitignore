@@ -1,0 +1,15 @@
+# Sphinx build artifacts (deprecated)
+doxygen/_build/
+doxygen/doxygen/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

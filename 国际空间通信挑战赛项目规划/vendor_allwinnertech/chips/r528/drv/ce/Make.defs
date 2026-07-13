@@ -1,0 +1,7 @@
+DRV_CE_PATH=drv/ce
+
+ifeq ($(CONFIG_DRIVERS_CE), y)
+CHIP_CSRCS += $(DRV_CE_PATH)/drv_ce.c
+CHIP_CSRCS += $(DRV_CE_PATH)/hw_hash.c
+CHIP_CSRCS += $(DRV_CE_PATH)/hw_aes.c
+endif

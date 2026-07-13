@@ -1,0 +1,46 @@
+
+PLATFORM_PATH=$(DRV_SOURCE_PATH)/sound/platform
+
+DEPPATH+=--dep-path $(PLATFORM_PATH)
+VPATH+=:chip/$(PLATFORM_PATH)
+
+ifeq ($(CONFIG_SND_PLATFORM_SUNXI_CPUDAI),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(PLATFORM_PATH)/sunxi-dummy-cpudai.c
+
+endif
+
+ifeq ($(CONFIG_SND_PLATFORM_SUNXI_PCM),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(PLATFORM_PATH)/sunxi-pcm.c
+
+endif
+
+ifeq ($(CONFIG_SND_PLATFORM_SUNXI_DAUDIO),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(PLATFORM_PATH)/sunxi-daudio.c
+
+endif
+
+ifeq ($(CONFIG_SND_PLATFORM_SUNXI_DMIC),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(PLATFORM_PATH)/sunxi-dmic.c
+
+endif
+

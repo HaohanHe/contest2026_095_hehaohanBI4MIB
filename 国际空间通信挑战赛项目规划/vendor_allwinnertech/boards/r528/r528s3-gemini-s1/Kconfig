@@ -1,0 +1,70 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+config ARCH_BOARD_R528S3_GEMINI_S1
+	bool "r528 gemini s1"
+	depends on ARCH_CHIP_R528
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		This is the port of NuttX to the Allwinner A10-based pcDuino v1
+		board.  See http://www.pcduino.com/ for information about pcDuino Lite, v1,
+		and v2.  I have not compared these boards in detail, but I believe that
+		the differences are cosmetic.  This port was developed on the v1 board,
+		but the others may be compatible.
+
+config ARCH_BOARD_R528S3_GEMINI_XTS
+	bool "Gemini XTS"
+	default n
+	depends on ARCH_BOARD_R528S3_GEMINI_S1
+
+config ARCH_BOARD_PARTITION_TABLE
+        string "board partition table path"
+        default ""
+        ---help---
+                This is a path for the board.
+
+choice
+prompt "choose system fucntion"
+
+config GEMINI_S1_NSH
+	bool "Enable the NSH fucntion on the 'GEMINI-S1' board"
+
+config X4B_BL
+	bool "Enable the BOOTLOADER fucntion on the 'X4B' board"
+
+config X4B_TEE
+	bool "Enable the TEE fucntion on the 'X4B' board"
+if X4B_TEE
+config X4B_TEE_AVB_ROLLBACK_INDEX
+	int "TEE AVB rollback index"
+	default 0
+endif
+
+config X4B_OTA
+	bool "Enable the OTA fucntion on the 'X4B' board"
+if X4B_OTA
+config X4B_OTA_AVB_ROLLBACK_INDEX
+	int "OTA AVB rollback index"
+	default 0
+endif
+
+config X4B_AP
+	bool "Enable the AP fucntion on the 'X4B' board"
+if X4B_AP
+config X4B_AP_AVB_ROLLBACK_INDEX
+	int "AP AVB rollback index"
+	default 0
+endif
+
+config X4B_FACTEST
+        bool "Enable the FACTEST fucntion on the 'X4B' board"
+
+endchoice
+
+config X4B_NO_VERIFY
+	bool "Boot tee directly without verify"
+	default n
+	depends on X4B_BL

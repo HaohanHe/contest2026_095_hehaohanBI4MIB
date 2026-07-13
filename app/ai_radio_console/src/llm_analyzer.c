@@ -50,7 +50,6 @@ static int parse_analysis_result(const char *response, analysis_result_t *result
     memset(result, 0, sizeof(*result));
     result->type = ANALYSIS_NORMAL_QSO;
 
-    char mayday_str[16] = {0};
     char viol_str[64] = {0};
     float conf = 0.5f;
 
@@ -136,6 +135,7 @@ typedef struct {
     size_t response_len;
     gps_fix_t fix;
     bool has_fix;
+    volatile bool task_freed;  /* Set to true when task is freed in callback */
 } stream_analysis_task_t;
 
 static void build_analysis_prompt(const char *transcript, float frequency, const char *mode,
@@ -165,14 +165,23 @@ static void *analysis_thread(void *arg)
 
     const char *model = g_config.llm_model[0] ? g_config.llm_model : DEFAULT_LLM_MODEL;
 
-    char user_msg[MAX_TRANSCRIPT_LEN + 256];
-    build_analysis_prompt(task->transcript, task->frequency, task->mode,
-                          task->has_fix ? &task->fix : NULL, user_msg, sizeof(user_msg));
+    /* Heap-allocate large buffers to avoid stack overflow on small-thread stacks */
+    char *user_msg = (char *)malloc(MAX_TRANSCRIPT_LEN + 256);
+    char *response = (char *)malloc(MAX_LLM_RESPONSE_LEN);
+    if (!user_msg || !response) {
+        free(user_msg);
+        free(response);
+        free(task);
+        return NULL;
+    }
 
-    char response[MAX_LLM_RESPONSE_LEN];
+    build_analysis_prompt(task->transcript, task->frequency, task->mode,
+                          task->has_fix ? &task->fix : NULL, user_msg, MAX_TRANSCRIPT_LEN + 256);
+
     float conf = 0;
     int ret = sf_client_chat_completion(model, SYSTEM_PROMPT_ANALYSIS, user_msg,
-                                         response, sizeof(response), &conf);
+                                         response, MAX_LLM_RESPONSE_LEN, &conf);
+    free(user_msg);
 
     analysis_result_t result;
     if (ret == 0) {
@@ -190,6 +199,7 @@ static void *analysis_thread(void *arg)
         snprintf(result.summary, sizeof(result.summary), "[LLM调用失败: %s]",
                  sf_client_get_last_error());
     }
+    free(response);
 
     if (task->cb) {
         task->cb(&result, task->user_data);
@@ -216,6 +226,7 @@ static void stream_analysis_chunk_cb(const char *chunk_text, bool is_done, void 
         if (task->final_cb) {
             task->final_cb(&result, task->user_data);
         }
+        task->task_freed = true;
         free(task);
         return;
     }
@@ -239,12 +250,19 @@ static void *stream_analysis_thread(void *arg)
 
     const char *model = g_config.llm_model[0] ? g_config.llm_model : DEFAULT_LLM_MODEL;
 
-    char user_msg[MAX_TRANSCRIPT_LEN + 256];
+    /* Heap-allocate large buffer to avoid stack overflow on small-thread stacks */
+    char *user_msg = (char *)malloc(MAX_TRANSCRIPT_LEN + 256);
+    if (!user_msg) {
+        free(task);
+        return NULL;
+    }
+
     build_analysis_prompt(task->transcript, task->frequency, task->mode,
-                          task->has_fix ? &task->fix : NULL, user_msg, sizeof(user_msg));
+                          task->has_fix ? &task->fix : NULL, user_msg, MAX_TRANSCRIPT_LEN + 256);
 
     int ret = sf_client_chat_completion_stream(model, SYSTEM_PROMPT_ANALYSIS, user_msg,
                                                 stream_analysis_chunk_cb, task);
+    free(user_msg);
     if (ret != 0) {
         analysis_result_t result;
         memset(&result, 0, sizeof(result));
@@ -255,6 +273,11 @@ static void *stream_analysis_thread(void *arg)
         if (task->final_cb) {
             task->final_cb(&result, task->user_data);
         }
+        task->task_freed = true;
+        free(task);
+    }
+    /* Defensive free for edge cases where is_done is never received */
+    if (!task->task_freed) {
         free(task);
     }
     return NULL;
@@ -326,9 +349,9 @@ int llm_analyzer_translate(const char *text, translate_lang_t from, translate_la
     if (!g_enabled || !text || !translated) return -1;
     const char *model = g_config.llm_model[0] ? g_config.llm_model : DEFAULT_LLM_MODEL;
 
-    char user_msg[MAX_TRANSCRIPT_LEN + 64];
+    char *user_msg = (char *)malloc(MAX_TRANSCRIPT_LEN + 64);
+    if (!user_msg) return -1;
     const char *to_lang = "中文";
-    const char *from_lang = "原文";
     switch (to) {
         case TRANSLATE_ZH: to_lang = "中文"; break;
         case TRANSLATE_EN: to_lang = "English"; break;
@@ -336,9 +359,11 @@ int llm_analyzer_translate(const char *text, translate_lang_t from, translate_la
         case TRANSLATE_RU: to_lang = "Русский"; break;
         default: break;
     }
-    snprintf(user_msg, sizeof(user_msg), "将以下文本翻译成%s：%s", to_lang, text);
-    return sf_client_chat_completion(model, SYSTEM_PROMPT_TRANSLATE, user_msg,
+    snprintf(user_msg, MAX_TRANSCRIPT_LEN + 64, "将以下文本翻译成%s：%s", to_lang, text);
+    int ret = sf_client_chat_completion(model, SYSTEM_PROMPT_TRANSLATE, user_msg,
                                       translated, max_len, NULL);
+    free(user_msg);
+    return ret;
 }
 
 bool llm_analyzer_is_enabled(void)

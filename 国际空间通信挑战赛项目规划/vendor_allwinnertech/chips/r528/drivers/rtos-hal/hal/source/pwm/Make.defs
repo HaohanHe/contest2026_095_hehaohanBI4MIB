@@ -1,0 +1,22 @@
+ifeq ($(CONFIG_DRIVERS_PWM),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+PWM_PATH=drivers/rtos-hal/hal/source/pwm
+
+DEPPATH+=--dep-path $(PWM_PATH)
+VPATH+=:chip/$(PWM_PATH)
+
+ARCH_SRC := $(TOPDIR)/arch/$(CONFIG_ARCH)/src
+ARCH_INC := $(TOPDIR)/arch/$(CONFIG_ARCH)/include
+ARCH_PWM_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(PWM_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_PWM_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_PWM_SRC_PATH)/platform
+
+# Include the  module.
+CHIP_CSRCS += $(PWM_PATH)/hal_pwm.c
+
+endif
+

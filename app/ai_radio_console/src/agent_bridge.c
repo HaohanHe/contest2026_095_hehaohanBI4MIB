@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <time.h>
 
 static ai_config_t g_config;
 static bool g_initialized = false;
@@ -144,7 +145,7 @@ static void on_asr_error(int error_code, const char *message, void *user_data)
 
 int agent_bridge_init(void)
 {
-    config_store_load(&g_config);
+    radio_config_store_load(&g_config);
     g_current_utt_text[0] = '\0';
 
     if (g_config.api_key[0] != '\0') {
@@ -299,7 +300,7 @@ int agent_bridge_update_config(const ai_config_t *config)
     bool was_enabled = g_config.asr_enabled;
     memcpy(&g_config, config, sizeof(g_config));
     g_current_utt_text[0] = '\0';
-    config_store_save(&g_config);
+    radio_config_store_save(&g_config);
 
     asr_engine_stop();
     asr_engine_deinit();

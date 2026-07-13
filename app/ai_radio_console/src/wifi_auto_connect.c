@@ -19,25 +19,15 @@
 
 static int run_shell_cmd(const char *cmd)
 {
-    FILE *fp = popen(cmd, "r");
-    if (!fp) {
-        printf("[WIFI] popen failed for: %s\n", cmd);
+    int ret = system(cmd);
+    if (ret == -1) {
+        printf("[WIFI] system() failed for: %s\n", cmd);
         return -1;
     }
-
-    char line[OUTPUT_BUF_SIZE];
-    while (fgets(line, sizeof(line), fp) != NULL) {
-        /* consume output */
-    }
-
-    int status = pclose(fp);
-    if (status == -1) {
+    if (!WIFEXITED(ret)) {
         return -1;
     }
-    if (!WIFEXITED(status)) {
-        return -1;
-    }
-    return WEXITSTATUS(status);
+    return WEXITSTATUS(ret);
 }
 
 static void shell_escape(const char *src, char *dst, size_t dst_size)

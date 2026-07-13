@@ -1,0 +1,38 @@
+# 参考文件不推 GitHub
+参考/
+
+# 编译产物
+build/
+out/
+*.o
+*.a
+*.elf
+*.hex
+*.map
+*.img
+*.bin
+
+# 压缩包（太大，不需要版本控制）
+*.zip
+
+# IDE / 工具临时文件
+.trae/
+.mimocode/
+.claude/
+.agentsskills/
+
+# 大型文档（已在其它仓库存档）
+feishu_docs_full/
+openvela-docs-gitee/
+openvela-docs-github/
+openvela_build/
+openvela_frameworks/
+openvela_claude_skills/
+sunxi-livesuite-master/
+
+# 临时文件
+tmp_stubs/
+*.csv
+
+# 日志（按需提交 AI coding logs/）
+# logs/ 里面的 jsonl 必须提交，不要忽略

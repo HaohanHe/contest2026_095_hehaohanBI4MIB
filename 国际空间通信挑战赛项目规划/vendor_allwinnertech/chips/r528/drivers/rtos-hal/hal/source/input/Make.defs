@@ -1,0 +1,1 @@
+include $(AW_SRCDIR)/drivers/rtos-hal/hal/source/input/tp/Make.defs
