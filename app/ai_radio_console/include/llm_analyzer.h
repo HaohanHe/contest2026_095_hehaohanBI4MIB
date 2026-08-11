@@ -6,51 +6,20 @@
 #include <stdbool.h>
 #include "radio_config.h"
 
-typedef enum {
-    ANALYSIS_NONE = 0,
-    ANALYSIS_MAYDAY_DETECTED,
-    ANALYSIS_VIOLATION_DETECTED,
-    ANALYSIS_NORMAL_QSO,
-    ANALYSIS_NO_CONTENT
-} analysis_result_type_t;
-
-typedef enum {
-    VIOLATION_NONE = 0,
-    VIOLATION_PROFANITY,
-    VIOLATION_ILLEGAL_CONTENT,
-    VIOLATION_UNLICENSED,
-    VIOLATION_INTERFERENCE,
-    VIOLATION_OTHER
-} violation_type_t;
-
 typedef struct {
-    analysis_result_type_t type;
-    alert_level_t alert_level;
-    violation_type_t violation;
     float confidence;
     char summary[512];
     char keywords[128];
-    char callsigns[128];
-    char translation[512];
-    char location[64];
-    bool needs_alert;
+    bool needs_summary;
 } analysis_result_t;
 
 typedef void (*llm_analysis_cb_t)(const analysis_result_t *result, void *user_data);
-
-/* Stream callback for incremental LLM output.
- * chunk_text: newly generated text delta (empty when is_done == true).
- * is_done:    true when the stream finishes.
- * user_data:  opaque pointer passed by the caller.
- */
 typedef void (*llm_analysis_stream_cb_t)(const char *chunk_text, bool is_done, void *user_data);
 
 int llm_analyzer_init(const ai_config_t *config);
 int llm_analyzer_deinit(void);
-int llm_analyzer_analyze_transcript(const char *transcript, float frequency,
-                                     const char *mode, llm_analysis_cb_t cb, void *user_data);
-int llm_analyzer_analyze_transcript_stream(const char *transcript, float frequency,
-                                            const char *mode,
+int llm_analyzer_analyze_transcript(const char *transcript, llm_analysis_cb_t cb, void *user_data);
+int llm_analyzer_analyze_transcript_stream(const char *transcript,
                                             llm_analysis_stream_cb_t stream_cb,
                                             llm_analysis_cb_t final_cb,
                                             void *user_data);
@@ -58,6 +27,5 @@ int llm_analyzer_summarize_log(const char *context, char *summary, size_t max_le
 int llm_analyzer_translate(const char *text, translate_lang_t from, translate_lang_t to,
                             char *translated, size_t max_len);
 bool llm_analyzer_is_enabled(void);
-const char *llm_violation_type_str(violation_type_t type);
 
 #endif

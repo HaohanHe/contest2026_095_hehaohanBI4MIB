@@ -1,18 +1,16 @@
-# Agent Handoff — AI Radio Console for Gemini-S1
+# Agent Handoff — DayNote for Gemini-S1
 
-> Last updated: 2026-07-11
+> Last updated: 2026-08-01
 > Purpose: Complete context for next AI agent to continue work
 
 ---
 
 ## Goal
 
-Build a working AI Radio Console firmware for Gemini-S1 (R528) board with:
-- Screen display (2.8" SPI ILI9341 resistive LCD, 320x240)
-- LVGL UI with luncher_mini integration
-- AI Radio launches from luncher_mini's 5th window
-- ASR (speech-to-text) via SiliconFlow API
-- WiFi, Bluetooth, sensors (SHTC3, LTR553)
+Build DayNote — a full-day voice memory device for Gemini-S1 (R528) board.
+Product concept: "得到大脑" style voice notes — record throughout the day → ASR → AI summary → highlight extraction.
+
+Based on Xiaomi's openvela AI Agent framework (`packages/ai_agent/`).
 
 ## Board & Hardware
 
@@ -21,178 +19,209 @@ Build a working AI Radio Console firmware for Gemini-S1 (R528) board with:
 - **OS**: openvela (NuttX RTOS)
 - **SPI pins**: CS=PD10, SCK=PD11, MOSI=PD12, MISO=PD13, DC=PD14, Reset=PD19, Backlight=PD20
 - **Touch**: Resistive (TPADC driver), NOT capacitive (GT911)
+- **Audio**: I2S input (16kHz, 16bit, mono)
+- **Buttons**: LRADC (ENTER = record, HOME long press = settings)
 
 ## Repository Structure
 
 ```
 ontest2026_095_hehaohanBI4MIB/     # Contest repo (this directory)
-├── app/ai_radio_console/           # AI Radio app (22 C source files)
-├── hardware/ai_radio_hat/          # PCB design (KiCad)
-├── feishu_docs_full/               # Feishu docs (14 articles)
-├── 国际空间通信挑战赛项目规划/       # Reference materials
+├── app/ai_radio_console/           # DayNote app (source of truth)
+│   ├── src/
+│   │   ├── main.c                  # App entry, audio thread, button handler
+│   │   ├── ui_daynote.c            # DayNote UI (320x240)
+│   │   ├── vad_detector.c          # VAD静音检测（能量阈值法）
+│   │   ├── auto_recorder.c         # 自动分段录音（后台线程+VAD）
+│   │   ├── note_store.c            # 笔记存储（JSON索引+WAV文件）
+│   │   ├── memory_index.c          # HippocampusIndex关键词索引
+│   │   ├── daily_digest.c          # DailyDigest每日摘要
+│   │   ├── http_sync.c             # HTTP同步服务（手机端API）
+│   │   ├── siliconflow_client.c    # SiliconFlow ASR+LLM API
+│   │   ├── wav_encoder.c           # WAV编码
+│   │   ├── audio_i2s.c             # I2S音频采集
+│   │   ├── config_store.c          # 配置存储
+│   │   ├── spacelog_settings.c     # WiFi/API设置
+│   │   └── wifi_auto_connect.c     # WiFi自动连接
+│   ├── include/                    # 头文件
+│   └── Makefile                    # 构建规则
+├── hardware/ai_radio_hat/          # PCB设计（KiCad）
 ├── agent.md                        # THIS FILE
-├── DIAGNOSIS.md                    # Initial diagnosis
-├── DEEP_AUDIT_REPORT.md            # 5-agent deep audit
-├── ACTION_PLAN.md                  # Action plan
-└── TODO.md                         # Task list
+├── DAYNOTE_PLAN_v4.md              # 产品方案v4
+└── gemini-s1_daynote_v2.img        # 最新固件（27MB）
 
-/home/bi4mib/openvela-build/        # openvela source tree (repo synced)
-├── nuttx/                          # NuttX kernel
-├── apps/                           # NuttX apps
-├── vendor/allwinnertech/           # Allwinner R528 BSP
-├── frameworks/                     # openvela frameworks
-├── packages/demos/contest2026_095_ai_radio_console/  # App deployed here
-└── packages/ai_agent/              # AI Agent framework
+/home/bi4mib/openvela-build/ -> 符号链接 -> /run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/openvela-build/
+├── nuttx/                          # NuttX内核
+├── packages/ai_agent/              # 小米AI Agent框架（C语言）
+├── packages/demos/contest2026_095_ai_radio_console/  # App部署副本
+└── vendor/allwinnertech/           # Allwinner R528 BSP
 ```
 
-## Current Status (2026-07-11 v2)
+**重要：编译树在西数500G HDD上！**
+- 符号链接：`/home/bi4mib/openvela-build/` → `/run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/openvela-build/`
+- 所有修改必须在 **ontest2026_095_hehaohanBI4MIB/** 下进行，然后同步到 `openvela-build/`
+- 台式机/其他电脑插上西数硬盘即可继续开发
 
-### Working Firmware Available
-- **v16** (25MB): Latest build, based on official defconfig with minimal changes. **ALL VERIFIED.**
-- **v3-v9** (7.8MB each): Last working firmware before distclean. Screen, luncher_mini, AI Radio all functional.
-- **gemini_s1_mini.img** (27MB): Official baseline firmware.
+## Current Status (2026-08-02 DayNote v2)
 
-### Build System Status
-- Build succeeds with `-j1` flag (14GB RAM machine)
-- **archive order bug**: `libapps.a` is created before apps are compiled. Workaround: manually `arm-none-eabi-ar r` missing objects into archive after build, then re-link.
-- **process-spawn conflict**: `uv__process_init`/`uv__process_close` symbols conflict between `process-spawn.c` and `nuttx.c`. Fixed with `objcopy --redefine-sym`.
-- **LTO disabled**: `CONFIG_LTO_NONE=y` to avoid cross-module symbol resolution failures.
+### Working Firmware
+- **gemini-s1_daynote_v2.img** (27MB): 最新固件，修复音频管线、UI集成、defconfig配置。
 
-### v16 Firmware Verification
-- ✅ `ai_radio_main` symbol in nuttx.elf
-- ✅ `g_builtins` symbol in nuttx.elf
-- ✅ `luncher_mini_main` symbol in nuttx.elf
-- ✅ `nsh_main` symbol in nuttx.elf
-- ✅ All 22 source files synced between contest repo and deployed copy
-- ✅ defconfig synced to contest repo
-- ✅ All boot dependencies satisfied (GEMINI_S1_NSH, KVDB, BOARDCTL_RESET_CAUSE, SYSTEM_ADBD, LUNCHER_MINI_APP, LCD_ILI9341, AUDIO, SENSORS, SCHED_LPWORK, WIRELESS_WAPI)
+### Build System
+- 编译命令：`./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay -j1`
+- pack命令：`cd vendor/allwinnertech/lichee && bash -c 'source envsetup.sh && lunch_nuttx 2 && pack'`
+- 编译产物：`nuttx.bin` ~5MB，`vela.bin` ~5MB，打包后 ~27MB
 
-### Files Created
-- `DEBUG_GUIDE.md` — Flash, debug, and troubleshooting guide
-- `fix_archive_order.sh` — Automated archive order bug fix script
-
----
-
-## What Was Done (Successful)
-
-### Completed Fixes (in build tree)
-1. **Defconfig base**: Replaced with official `gemini-s1_defconfig` from `packages/ai_agent/defconfigs/gemini-s1/`
-2. **Audio patch**: Ran `fix_gemini_s1.sh` for audio framework
-3. **AI Radio enabled**: `CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE=y`
-4. **I2S enabled**: `CONFIG_I2S=y`
-5. **LVGL buffer alignment**: Fixed 64-byte alignment crash in `apps/graphics/lvgl/lvgl/src/drivers/nuttx/lv_nuttx_lcd.c`
-6. **popen→system()**: Fixed in `wifi_auto_connect.c`
-7. **popen→getifaddrs()**: Fixed in `spacelog_settings.c`
-8. **BT A2DP log suppressed**: Removed "Ignoring message ID" log from `sunxi_alsa.c`
-9. **LRADC noise suppressed**: Changed `LOG_INFO` → `LOG_DEBUG` in `drv_lradc.c`
-10. **AI Radio window in luncher**: Added 5th window "AI Radio" in `luncher_mini.c` that launches `system("ai_radio &")`
-11. **Stack size increased**: `CONFIG_INIT_STACKSIZE=40960`
-12. **LTO disabled**: Changed `CONFIG_LTO_FULL=y` → `CONFIG_LTO_NONE=y` in defconfig
-
-### What Works (v3-v9 firmware)
-- Screen display works with `/dev/lcd0`
-- Touchscreen works with `/dev/input0`
-- luncher_mini launches and shows 5 windows
-- AI Radio launches from luncher_mini
-- Audio capture starts (16kHz, 16-bit, mono)
-- Settings page initializes
-
-## Current Blocker
-
-### The Problem
-After `distclean`, the rebuild fails with linker errors:
-- `mbedtls_mpi_*` undefined (Realtek WiFi driver needs mbedtls)
-- `g_builtin_count`/`g_builtins` undefined (builtin app table)
-
-### Root Cause Analysis (compose:debug)
-1. **LTO was enabled** (`CONFIG_LTO_FULL=y`) in defconfig — this causes cross-module symbol resolution failures
-2. **Machine has only 14GB RAM** — build gets OOM-killed before completion
-3. **After disabling LTO in defconfig**, the build progresses further (compiles `builtin_list.c`, creates `libapps.a`), but still gets OOM-killed at bluetooth module compilation
-
-### Key Finding
-The linker errors are NOT caused by LTO directly. They're caused by **the build being OOM-killed before `libapps.a` and `libmbedtls.a` are fully generated**. With LTO disabled, the build gets further but still runs out of memory.
-
-### What Changed in This Session
-- Defconfig `CONFIG_LTO_FULL=y` → `CONFIG_LTO_NONE=y` (line 338)
-- Old .config was deleted, build.sh regenerated it from defconfig
-
-## What The Next Agent Must Do
-
-### Step 1: Flash v16 firmware and test
-1. Flash `gemini-s1_ai_radio_v16.img` using PhoenixSuit (Windows) or LiveSuit (Linux)
-2. Connect UART2 (1500000 baud) for serial debug
-3. Look for "Boot nsh ok" in serial output
-4. Screen should show luncher_mini (5 windows)
-5. Click "AI Radio" to launch the app
-
-### Step 2: If boot fails, diagnose
-1. Check serial output for error messages
-2. Verify UART2 is connected (1500000 baud)
-3. Check if device enumerates as USB ADB device
-4. If serial shows nothing, check power and USB connection
-
-### Step 3: If boot works, add features incrementally
-1. WiFi auto-connect: already configured (`CONFIG_WIRELESS_WAPI=y`)
-2. Sensor data: already configured (`CONFIG_SENSORS_SHTC3=y`, `CONFIG_SENSORS_LTR553=y`)
-3. AI analysis: requires SiliconFlow API key in config
-4. GPS: already configured (`CONFIG_GPS_ENABLED=1`)
-
-### Build commands (for future rebuilds)
-```bash
-cd /home/bi4mib/openvela-build
-rm -rf cmake_out/ nuttx/.config
-export PATH=/home/bi4mib/openvela-build/prebuilts/build-tools/linux-x86_64/bin:/home/bi4mib/openvela-build/prebuilts/gcc/linux-x86_64/arm-none-eabi/bin:$PATH
-./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay -j1
-# If link fails with undefined reference errors:
-bash /run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/fix_archive_order.sh
-./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay -j1
-# Pack:
-cd vendor/allwinnertech/lichee && bash -c 'source envsetup.sh && lunch_nuttx <<< "2" && pack'
+### DayNote 数据流
+```
+[VAD检测到语音]
+    ↓
+[auto_recorder后台线程录音]
+    ↓
+[静音2s自动分段]
+    ↓
+[保存WAV] → /data/daynote/audio/note_YYYYMMDD_HHMMSS.wav
+[调用sf_client_transcribe_audio] → SiliconFlow ASR API
+    ↓ HTTP multipart upload
+[ASR返回text]
+    ↓
+[调用sf_client_chat_completion] → SiliconFlow LLM API
+    ↓ HTTP JSON
+[LLM返回summary + keywords + is_highlight]
+    ↓
+[note_store_add] → 更新JSON索引
+[memory_index_add] → 更新HippocampusIndex
+[daily_digest_refresh] → 刷新每日摘要
+[UI更新] → 时间线 + 关键词 + 高光
 ```
 
-## Key Files (Modified This Session)
+### 新增模块（本次会话）
+| 文件 | 功能 |
+|------|------|
+| `vad_detector.c/h` | VAD静音检测（RMS能量阈值法，20ms帧） |
+| `auto_recorder.c/h` | 自动分段录音（后台线程，VAD驱动，最大5分钟/段） |
+| `note_store.c/h` | 笔记存储（JSON索引 + WAV文件） |
+| `memory_index.c/h` | HippocampusIndex关键词索引 |
+| `daily_digest.c/h` | DailyDigest每日摘要（LLM生成） |
+| `http_sync.c/h` | HTTP同步服务（手机端API框架） |
+| `ui_daynote.c/h` | DayNote UI（320x240适配） |
 
-| File | Change |
-|------|--------|
-| `vendor/.../nsh_minidisplay/defconfig:338` | `CONFIG_LTO_FULL=y` → `CONFIG_LTO_NONE=y` |
-| `apps/graphics/lvgl/lvgl/src/drivers/nuttx/lv_nuttx_lcd.c` | LVGL buffer 64-byte alignment fix |
-| `vendor/allwinnertech/apps/luncher_mini/luncher_mini.c` | Added 5th window "AI Radio" |
-| `vendor/allwinnertech/chips/r528/components/audio/sunxi_alsa.c` | Removed A2DP log |
-| `vendor/allwinnertech/chips/r528/drv/lradc/drv_lradc.c` | LOG_INFO→LOG_DEBUG |
-| `packages/demos/contest2026_095_ai_radio_console/src/wifi_auto_connect.c` | popen→system() |
-| `packages/demos/contest2026_095_ai_radio_console/src/spacelog_settings.c` | popen→getifaddrs() |
+## 硬件能力边界（必须遵守）
 
-## Key Files (Reference)
+### 能做的
+- ✅ I2S录音 (16kHz mono, 16bit PCM)
+- ✅ WAV编码
+- ✅ SiliconFlow云ASR/LLM API
+- ✅ WiFi自动连接
+- ✅ LVGL UI (320x240, 中文显示)
+- ✅ 本地文件存储（/data/daynote/ WAV + JSON索引）
 
-| File | Purpose |
-|------|---------|
-| `vendor/.../nsh_minidisplay/defconfig` | Main defconfig (533 lines, based on official with minimal changes) |
-| `packages/ai_agent/defconfigs/gemini-s1/gemini-s1_defconfig` | Official reference defconfig |
-| `packages/demos/contest2026_095_ai_radio_console/Makefile` | App build rules (STACKSIZE=16384) |
-| `vendor/allwinnertech/lichee/out/r528s3/gemini-s1_nand/` | Image output directory |
-| `gemini-s1_ai_radio_v16.img` | Latest verified firmware (25MB) |
-| `DEBUG_GUIDE.md` | Flash and debug guide |
-| `fix_archive_order.sh` | Archive order bug fix script |
+### 不能做的（硬件限制）
+- ❌ 本地ASR模型（Whisper最小也要~100MB RAM）
+- ❌ 本地LLM（7B模型需要4GB+）
+- ❌ 本地TTS
+- ❌ 流式ASR（同时跑AudioRecord + HTTPS上传 + mbedtls内存不够）
+- ❌ 录音超过5分钟（内存buffer限制）
 
-## Persistent Issue: r528_bl_buttons:retval:63
+## 与小米AI Agent框架的集成
 
-This message keeps appearing in boot log. It's from the bootloader button detection. Not critical but noisy. Suppress it in `drv_lradc.c` or bootloader code if needed.
+### 已有能力（直接复用）
+| 能力 | 文件 | 说明 |
+|------|------|------|
+| ReAct循环 | agent_loop.c | 已有，处理用户query |
+| 多LLM路由 | llm_router.c | 支持MiMo/Kimi/Qwen/DeepSeek |
+| LLM代理 | llm_proxy.c | 已有，支持tools格式 |
+| 消息总线 | message_bus.c | 已有，inbound/outbound双队列 |
+| 长期记忆 | memory_store.c | 已有，读写MEMORY.md + daily笔记 |
+| 会话管理 | session_mgr.c | 已有，JSONL格式 |
+| 工具注册 | tool_registry.c | 已有，30+工具 |
+| 语音通道 | voice_channel.c | 已有，PTT录音 + TTS播放 |
+| ASR抽象层 | voice_asr.c | 已有，支持streaming/batch |
+| 音频采集 | audio_capture.c | 已有，16kHz/16bit/mono |
+| LVGL UI | lvgl_ui_channel.c | 已有，但适配466x466手表屏 |
 
-## Constraints
+### 已有Skills（直接复用或修改）
+| Skill | 文件 | 复用方式 |
+|-------|------|----------|
+| note-taker | agent_skills/note-taker.md | 直接复用，写daily笔记 |
+| daily-briefing | agent_skills/daily-briefing.md | 直接复用，每日摘要 |
+| voice-memo | agent_skills/voice-memo.md | 修改为自动录音模式 |
 
-- **Must use nsh_minidisplay** (not nsh which is for 7" MIPI display)
-- **Must follow official openvela patterns** (AI Agent, uORB, WAPI, media server)
-- **Screen is resistive touch** — do NOT enable GT911 (capacitive)
-- **Build requires `-j1`** — machine has 14GB RAM, higher parallelism causes OOM
-- **LTO should stay disabled** — causes cross-module symbol resolution failures
-- **After clean rebuild, must fix archive order bug** — use `fix_archive_order.sh`
+### 集成方式
+DayNote 作为 ai_agent 的 background service + Skill：
+- 通过 message_bus 通信
+- 复用 llm_proxy 进行 ASR/LLM 调用
+- 复用 memory_store 进行笔记存储
+- 新增 DayNote slash 命令（/daynote, /summary, /search）
 
-## Notes for Next Agent
+## 文件修改清单
 
-1. The build tree at `/home/bi4mib/openvela-build/` has all source code and defconfig changes
-2. The contest repo at `/run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/` has the app source
-3. These are SEPARATE copies — changes in one don't auto-sync to the other
-4. The `packages/demos/contest2026_095_ai_radio_console/` in the build tree is the deployed copy
-5. Previous successful builds (v3-v9) were before distclean — the distclean wiped build artifacts
-6. The `r528_bl_buttons:retval:63` is a bootloader message, not critical
-7. User wants ASR→AI workflow (like "得到大脑" voice notes), not radio modulation/demodulation
+### 需要修改的文件
+1. `app/ai_radio_console/src/main.c` - 集成auto_recorder + memory_index + daily_digest
+2. `app/ai_radio_console/Makefile` - 添加新源文件
+3. `app/ai_radio_console/Kconfig` - 更新描述
+
+### 不需要修改的文件
+- `siliconflow_client.c` - ASR + LLM API 已经完整
+- `audio_i2s.c` - 录音已经完整
+- `wav_encoder.c` - WAV编码已经完整
+- `config_store.c` - 配置存储已经完整
+- `spacelog_settings.c` - WiFi/API设置已经完整
+- `wifi_auto_connect.c` - WiFi连接已经完整
+
+## 实现优先级
+
+### P0（必须）
+1. ✅ VAD静音检测
+2. ✅ 自动分段录音
+3. ✅ HippocampusIndex记忆索引
+4. ✅ DailyDigest每日摘要
+5. ✅ HTTP同步服务基础API
+
+### P1（重要）
+6. 集成ai_agent框架（message_bus + agent_loop + slash命令）
+7. 手机端同步API
+8. UI时间线视图
+
+### P2（锦上添花）
+9. 关键词搜索
+10. 高光标记
+11. 与小米AI Agent框架深度集成
+12. 手机端App
+
+## 关键文件路径
+
+| 文件 | 用途 |
+|------|------|
+| `app/ai_radio_console/src/main.c` | App主入口 |
+| `app/ai_radio_console/src/ui_daynote.c` | DayNote UI |
+| `app/ai_radio_console/src/auto_recorder.c` | 自动录音 |
+| `app/ai_radio_console/src/vad_detector.c` | VAD检测 |
+| `app/ai_radio_console/src/memory_index.c` | 记忆索引 |
+| `app/ai_radio_console/src/daily_digest.c` | 每日摘要 |
+| `app/ai_radio_console/src/http_sync.c` | HTTP服务 |
+| `app/ai_radio_console/Makefile` | 构建规则 |
+| `vendor/.../nsh_minidisplay/defconfig` | 主defconfig |
+| `packages/ai_agent/` | 小米AI Agent框架 |
+| `gemini-s1_daynote_v2.img` | 最新固件 |
+
+## 约束条件
+
+- **必须使用nsh_minidisplay**（不是nsh，那是7寸MIPI屏用的）
+- **必须遵循官方openvela模式**（AI Agent、uORB、WAPI、media server）
+- **屏幕是电阻屏** — 不要启用GT911（电容屏）
+- **编译需要用-j1** — 机器14GB RAM，更高并行度会导致OOM
+- **LTO保持禁用** — 导致跨模块符号解析失败
+- **clean rebuild后需要修复archive order bug** — 使用fix_archive_order.sh
+- **不能跑本地模型** — 128MB RAM跑不了Whisper/LLM，只能用SiliconFlow云API
+- **不能做流式ASR** — 同时跑I2S录音 + HTTPS上传 + mbedtls内存不够
+
+## 给下一任的Notes
+
+1. 编译树已搬到西数500G HDD（sdb1），路径：`/run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/openvela-build/`
+2. 符号链接：`/home/bi4mib/openvela-build/` → 西数HDD真实路径
+3. contest repo也在同一块HDD：`/run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/`
+4. 拔了西数硬盘插别的电脑就能继续开发
+5. 国际空间通信挑战赛已结束，不再需要无线电相关功能
+6. 产品定位已从"AI Radio Console"转为"DayNote全天语音记忆设备"
+7. 手机端同步API已设计但未实现（http_sync.c是框架）
+8. ai_agent框架集成已设计但未深度实现（message_bus + agent_loop + slash命令）

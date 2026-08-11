@@ -4,9 +4,9 @@
 #
 
 config LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE
-	bool "Contest 2026 team 095 AI Radio Console"
+	bool "Contest 2026 team 095 DayNote - Daily Voice Notes"
 	default n
 	---help---
-		Enable the AI Radio Console for openvela - an AI-powered ham radio controller
-		with Mayday detection, CW decoding, interference analysis, AI frequency
-		recommendation, QSO logging, real-time translation, and satellite pass alerts.
+		DayNote: voice memo device for the full day.
+		Hold-to-record -> WAV -> ASR (SiliconFlow) -> LLM summary -> highlight extraction.
+		Stores notes on local filesystem. 2.8" resistive touchscreen + LRADC button.

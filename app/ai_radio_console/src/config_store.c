@@ -18,8 +18,6 @@ void radio_config_set_defaults(ai_config_t *config)
     strncpy(config->chat_endpoint, SILICONFLOW_CHAT_ENDPOINT, MAX_ENDPOINT_LEN - 1);
     config->asr_enabled = false;
     config->llm_enabled = false;
-    config->mayday_detection_via_llm = true;
-    config->violation_detection = true;
     config->auto_logging = true;
     config->realtime_translation = false;
 }
@@ -39,8 +37,6 @@ static void set_bool_field(ai_config_t *c, const char *key, bool val)
 {
     if (strcmp(key, "asr_enabled") == 0) c->asr_enabled = val;
     else if (strcmp(key, "llm_enabled") == 0) c->llm_enabled = val;
-    else if (strcmp(key, "mayday_detection_via_llm") == 0) c->mayday_detection_via_llm = val;
-    else if (strcmp(key, "violation_detection") == 0) c->violation_detection = val;
     else if (strcmp(key, "auto_logging") == 0) c->auto_logging = val;
     else if (strcmp(key, "realtime_translation") == 0) c->realtime_translation = val;
 }
@@ -64,7 +60,7 @@ int radio_config_store_load(ai_config_t *config)
     if (!config) return -1;
     radio_config_set_defaults(config);
 
-    FILE *f = fopen(CONFIG_PATH, "r");
+    FILE *f = fopen(DAYNOTE_CONFIG_PATH, "r");
     if (!f) return -1;
 
     char line[512];
@@ -103,19 +99,19 @@ static void ensure_dir(const char *path)
 
 int radio_config_store_init(void)
 {
-    /* Create /data/radio/ directory (not the file itself) */
+    /* Create /data/daynote/ directory */
     mkdir("/data", 0755);
-    mkdir("/data/radio", 0755);
+    mkdir("/data/daynote", 0755);
     return 0;
 }
 
 int radio_config_store_save(const ai_config_t *config)
 {
     if (!config) return -1;
-    /* Ensure /data/radio/ directory exists before writing config.ini */
+    /* Ensure /data/daynote/ directory exists before writing config.ini */
     mkdir("/data", 0755);
-    mkdir("/data/radio", 0755);
-    FILE *f = fopen(CONFIG_PATH, "w");
+    mkdir("/data/daynote", 0755);
+    FILE *f = fopen(DAYNOTE_CONFIG_PATH, "w");
     if (!f) return -1;
 
     fprintf(f, "# AI Radio Console Configuration\n");
@@ -127,12 +123,10 @@ int radio_config_store_save(const ai_config_t *config)
     fprintf(f, "llm_model=%s\n", config->llm_model);
     fprintf(f, "asr_endpoint=%s\n", config->asr_endpoint);
     fprintf(f, "chat_endpoint=%s\n", config->chat_endpoint);
-    fprintf(f, "mayday_detection_via_llm=%s\n", config->mayday_detection_via_llm ? "true" : "false");
-    fprintf(f, "violation_detection=%s\n", config->violation_detection ? "true" : "false");
     fprintf(f, "auto_logging=%s\n", config->auto_logging ? "true" : "false");
     fprintf(f, "realtime_translation=%s\n", config->realtime_translation ? "true" : "false");
 
     fclose(f);
-    chmod(CONFIG_PATH, 0600);
+    chmod(DAYNOTE_CONFIG_PATH, 0600);
     return 0;
 }

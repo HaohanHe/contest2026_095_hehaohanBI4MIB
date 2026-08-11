@@ -376,7 +376,7 @@ static void build_device_info(char *buf, size_t buf_size)
 
     snprintf(buf, buf_size,
              "FW: %s\nIP: %s\nStorage: %luKB / %luKB\nASR: %s",
-             RADIO_APP_VERSION,
+             DAYNOTE_APP_VERSION,
              ip,
              total_kb - free_kb,
              total_kb,
@@ -434,7 +434,7 @@ int spacelog_settings_init(void)
     load_wifi_config();
 
     /* 加载音频增益（默认 Normal） */
-    ini_get_value(CONFIG_PATH, CFG_KEY_AUDIO_GAIN,
+    ini_get_value(DAYNOTE_CONFIG_PATH, CFG_KEY_AUDIO_GAIN,
                   s_audio_gain, sizeof(s_audio_gain));
     if (s_audio_gain[0] == '\0') {
         snprintf(s_audio_gain, sizeof(s_audio_gain), "Normal");
@@ -514,7 +514,7 @@ int spacelog_settings_set_value(const char *key, const char *val)
         radio_config_store_save(&s_ai_config);
     } else if (strcmp(key, CFG_KEY_AUDIO_GAIN) == 0) {
         snprintf(s_audio_gain, sizeof(s_audio_gain), "%s", val);
-        ini_set_value(CONFIG_PATH, CFG_KEY_AUDIO_GAIN, val);
+        ini_set_value(DAYNOTE_CONFIG_PATH, CFG_KEY_AUDIO_GAIN, val);
     }
 
     /* 触发变更回调 */

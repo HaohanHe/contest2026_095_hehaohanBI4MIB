@@ -1,49 +1,89 @@
 #!/bin/bash
-# Fix archive order bug in openvela-build
-# Usage: bash fix_archive_order.sh
-# Run after build.sh fails with "undefined reference" errors
-# Then re-run build.sh to link successfully
+# fix_archive_order.sh - 自动修复openvela build archive order bug
+# 每次distclean后运行此脚本，然后重新构建即可
+# Usage: ./fix_archive_order.sh [openvela-build路径]
 
-cd /home/bi4mib/openvela-build
-STAGING=nuttx/staging/libapps.a
+# 显示帮助信息
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "用法: $0 [openvela-build路径]"
+    echo ""
+    echo "功能: 自动修复openvela构建系统的archive order bug"
+    echo ""
+    echo "说明:"
+    echo "  1. 每次distclean后构建会报undefined reference错误"
+    echo "  2. 运行此脚本可以自动修复这些问题"
+    echo "  3. 修复后重新构建即可成功"
+    echo ""
+    echo "示例:"
+    echo "  $0                          # 使用默认路径 ~/openvela-build"
+    echo "  $0 /path/to/openvela-build  # 使用指定路径"
+    exit 0
+fi
 
-echo "=== Fixing archive order bug ==="
+BUILD_DIR="${1:-$HOME/openvela-build}"
+STAGING="$BUILD_DIR/nuttx/staging/libapps.a"
+ARM_TOOLS="$BUILD_DIR/prebuilts/gcc/linux-x86_64/arm-none-eabi/bin"
 
-# mbedTLS
-find apps/crypto/mbedtls/mbedtls/library -name "*.o" > /tmp/obj_mbedtls.txt
-arm-none-eabi-ar r $STAGING $(cat /tmp/obj_mbedtls.txt | tr '\n' ' ')
-echo "mbedTLS: $(wc -l < /tmp/obj_mbedtls.txt) objects"
+if [ ! -f "$STAGING" ]; then
+    echo "ERROR: $STAGING 不存在，请先运行一次构建"
+    exit 1
+fi
 
-# c-ares
-find external/c-ares -name "*.o" > /tmp/obj_cares.txt
-arm-none-eabi-ar r $STAGING $(cat /tmp/obj_cares.txt | tr '\n' ' ')
-echo "c-ares: $(wc -l < /tmp/obj_cares.txt) objects"
+export PATH="$ARM_TOOLS:$PATH"
 
-# zlib
-find . -path "*/zlib*" -name "*.o" > /tmp/obj_zlib.txt
-arm-none-eabi-ar r $STAGING $(cat /tmp/obj_zlib.txt | tr '\n' ' ')
-echo "zlib: $(wc -l < /tmp/obj_zlib.txt) objects"
+echo "=== 修复archive order bug ==="
+echo "libapps.a: $STAGING"
+echo ""
 
-# LVGL (all)
-find apps/graphics/lvgl -name "*.o" > /tmp/obj_lvgl.txt
-arm-none-eabi-ar r $STAGING $(cat /tmp/obj_lvgl.txt | tr '\n' ' ')
-echo "LVGL: $(wc -l < /tmp/obj_lvgl.txt) objects"
+# 所有需要添加的模块路径（按依赖顺序）
+MODULE_PATHS=(
+    "apps/crypto/mbedtls"
+    "external/c-ares"
+    "external/unqlite"
+    "apps/netutils/cjson"
+    "apps/graphics/lvgl"
+    "apps/frameworks/system/utils"
+    "apps/external/iperf2"
+    "external/libssh"
+    "external/libpng"
+    "apps/frameworks/connectivity/bluetooth"
+    "apps/external/zblue"
+    "external/zlib"
+)
 
-# libuv (excluding process-spawn)
-find apps/system/libuv -name "*.o" | grep -v "process-spawn" > /tmp/obj_libuv.txt
-arm-none-eabi-ar r $STAGING $(cat /tmp/obj_libuv.txt | tr '\n' ' ')
-echo "libuv: $(wc -l < /tmp/obj_libuv.txt) objects"
+TOTAL=0
+for module in "${MODULE_PATHS[@]}"; do
+    full_path="$BUILD_DIR/$module"
+    if [ -d "$full_path" ]; then
+        count=$(find "$full_path" -name "*.o" 2>/dev/null | wc -l)
+        if [ "$count" -gt 0 ]; then
+            find "$full_path" -name "*.o" 2>/dev/null | xargs arm-none-eabi-ar r "$STAGING" 2>/dev/null
+            echo "  ✅ $module: $count objects"
+            TOTAL=$((TOTAL + count))
+        fi
+    fi
+done
 
-# process-spawn patched
-arm-none-eabi-ar r $STAGING /tmp/process-spawn-patched.o
-echo "process-spawn: patched"
+# 额外查找zlib对象文件（可能在不同位置）
+find "$BUILD_DIR" -path "*/zlib*" -name "*.o" 2>/dev/null | xargs arm-none-eabi-ar r "$STAGING" 2>/dev/null
 
-# libpng
-find external/libpng -name "*.o" > /tmp/obj_libpng.txt
-arm-none-eabi-ar r $STAGING $(cat /tmp/obj_libpng.txt | tr '\n' ' ')
-echo "libpng: $(wc -l < /tmp/obj_libpng.txt) objects"
+# 修复CJK字体：添加到liblvgl.a和libapps.a
+CJK_OBJ=$(find "$BUILD_DIR/apps/graphics/lvgl" -name "*simsun*.o" -not -name "*.su" 2>/dev/null | head -1)
+if [ -n "$CJK_OBJ" ]; then
+    LVGL_LIB="$BUILD_DIR/apps/graphics/lvgl/liblvgl.a"
+    if [ -f "$LVGL_LIB" ]; then
+        arm-none-eabi-ar r "$LVGL_LIB" "$CJK_OBJ" 2>/dev/null
+        echo "  ✅ CJK字体已添加到liblvgl.a"
+    fi
+    arm-none-eabi-ar r "$STAGING" "$CJK_OBJ" 2>/dev/null
+    echo "  ✅ CJK字体已添加到libapps.a"
+    TOTAL=$((TOTAL + 1))
+fi
 
-# Remove conflicting _1.o version
-arm-none-eabi-ar d $STAGING "process-spawn.c.home.bi4mib.openvela-build.apps.system.libuv_1.o" 2>/dev/null
-
-echo "=== Done! Re-run build.sh to link ==="
+echo ""
+echo "=== 修复完成 ==="
+echo "共添加约 $TOTAL 个对象文件到 libapps.a"
+echo ""
+echo "下一步:"
+echo "  1. 重新构建: cd $BUILD_DIR && ./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay/ -j1"
+echo "  2. 打包固件: cd $BUILD_DIR/vendor/allwinnertech/lichee && source envsetup.sh && lunch_nuttx && pack"

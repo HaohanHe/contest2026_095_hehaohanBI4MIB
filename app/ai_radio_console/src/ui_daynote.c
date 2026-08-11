@@ -1,17 +1,19 @@
 /****************************************************************************
- * ui_ai_radio.c - DayNote UI (Daily Voice Notes)
+ * ui_daynote.c - DayNote UI for 320x240 screen
  *
- * Screen layout (320x240):
+ * Main screen layout:
  *   [Time | Note count]     <- top bar 26px
  *   [    RECORD BUTTON    ] <- 40px high, centered
  *   [  Last Note Title     ] <- 20px
- *   [  Transcript text...  ] <- 80px
- *   [  AI Summary...       ] <- 60px
- *   [ENTER:Rec HOME:Set]    <- bottom hint
+ *   [  Transcript text...  ] <- 70px
+ *   [  AI Summary...       ] <- 50px
+ *   [ENTER:Rec HOME(L):Set] <- bottom hint
  ****************************************************************************/
 
-#include "ui_ai_radio.h"
-#include "radio_config.h"
+#include "ui_daynote.h"
+#include "note_store.h"
+#include "daily_summary.h"
+#include "memory_index.h"
 #include <lvgl.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,15 +24,15 @@ extern const lv_font_t ai_radio_font;
 #define LCD_W   320
 #define LCD_H  240
 
-#define COLOR_BG         lv_color_hex(0x0a0e1a)
-#define COLOR_BAR        lv_color_hex(0x0d1220)
-#define COLOR_TEXT       lv_color_hex(0xe0e8f0)
-#define COLOR_TEXT_DIM   lv_color_hex(0x8899aa)
-#define COLOR_ACCENT     lv_color_hex(0x00d4ff)
-#define COLOR_GREEN      lv_color_hex(0x33dd66)
-#define COLOR_RED        lv_color_hex(0xff3344)
-#define COLOR_AMBER      lv_color_hex(0xffaa00)
-#define COLOR_CARD       lv_color_hex(0x141c30)
+#define COLOR_BG          lv_color_hex(0x0a0e1a)
+#define COLOR_BAR         lv_color_hex(0x0d1220)
+#define COLOR_TEXT        lv_color_hex(0xe0e8f0)
+#define COLOR_TEXT_DIM    lv_color_hex(0x8899aa)
+#define COLOR_ACCENT      lv_color_hex(0x00d4ff)
+#define COLOR_GREEN       lv_color_hex(0x33dd66)
+#define COLOR_RED         lv_color_hex(0xff3344)
+#define COLOR_AMBER       lv_color_hex(0xffaa00)
+#define COLOR_CARD        lv_color_hex(0x141c30)
 #define COLOR_CARD_BORDER lv_color_hex(0x253048)
 
 static lv_obj_t *g_screen = NULL;
@@ -45,14 +47,7 @@ static lv_obj_t *g_hint_label = NULL;
 static lv_obj_t *g_main_scr = NULL;
 static bool g_visible = false;
 
-static uint32_t get_ms(void)
-{
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (uint32_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
-}
-
-int ui_ai_radio_init(void)
+int ui_daynote_init(void)
 {
     g_screen = lv_obj_create(NULL);
     if (!g_screen) return -1;
@@ -122,37 +117,39 @@ int ui_ai_radio_init(void)
 
     /* AI Summary area */
     lv_obj_t *sum_panel = lv_obj_create(g_screen);
-    lv_obj_set_size(sum_panel, LCD_W - 8, 60);
+    lv_obj_set_size(sum_panel, LCD_W - 8, 50);
     lv_obj_set_pos(sum_panel, 4, 174);
-    lv_obj_set_style_bg_color(sum_panel, COLOR_CARD, 0);
+    lv_obj_set_style_bg_color(sum_panel, COLOR_BAR, 0);
     lv_obj_set_style_border_color(sum_panel, COLOR_CARD_BORDER, 0);
     lv_obj_set_style_border_width(sum_panel, 1, 0);
-    lv_obj_set_style_pad_all(sum_panel, 4, 0);
     lv_obj_set_style_radius(sum_panel, 4, 0);
+    lv_obj_set_style_pad_all(sum_panel, 4, 0);
 
     g_summary_label = lv_label_create(sum_panel);
-    lv_label_set_text(g_summary_label, "Daily summary will appear here after recordings.");
-    lv_obj_set_style_text_color(g_summary_label, COLOR_TEXT, 0);
+    lv_label_set_text(g_summary_label, "Daily summary loading...");
+    lv_obj_set_style_text_color(g_summary_label, COLOR_TEXT_DIM, 0);
     lv_label_set_long_mode(g_summary_label, LV_LABEL_LONG_WRAP);
-    lv_obj_set_size(g_summary_label, LCD_W - 16, 50);
+    lv_obj_set_size(g_summary_label, LCD_W - 16, 40);
 
     /* Bottom hint */
     g_hint_label = lv_label_create(g_screen);
-    lv_label_set_text(g_hint_label, "ENTER:Rec HOME(L):Settings");
+    lv_label_set_text(g_hint_label, "ENTER:Rec  HOME(L):Settings");
     lv_obj_set_style_text_color(g_hint_label, COLOR_TEXT_DIM, 0);
     lv_obj_align(g_hint_label, LV_ALIGN_BOTTOM_MID, 0, 0);
 
     g_main_scr = lv_scr_act();
 
-    /* Show today's summary if available */
-    if (daily_summary_is_ready()) {
-        lv_label_set_text(g_summary_label, daily_summary_get());
+    /* Update note count */
+    {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%d notes", note_store_count());
+        lv_label_set_text(g_note_count_label, buf);
     }
 
     return 0;
 }
 
-void ui_ai_radio_show(void)
+void ui_daynote_show(void)
 {
     if (!g_screen) return;
     if (g_main_scr == NULL) g_main_scr = lv_scr_act();
@@ -160,19 +157,19 @@ void ui_ai_radio_show(void)
     g_visible = true;
 }
 
-void ui_ai_radio_hide(void)
+void ui_daynote_hide(void)
 {
     if (!g_main_scr || !g_visible) return;
     lv_scr_load(g_main_scr);
     g_visible = false;
 }
 
-bool ui_ai_radio_is_visible(void)
+bool ui_daynote_is_visible(void)
 {
     return g_visible;
 }
 
-void ui_ai_radio_update_recording_state(bool recording)
+void ui_daynote_update_recording_state(bool recording)
 {
     if (!g_record_label) return;
     if (recording) {
@@ -184,7 +181,7 @@ void ui_ai_radio_update_recording_state(bool recording)
     }
 }
 
-void ui_ai_radio_set_result(const char *transcript, const char *summary)
+void ui_daynote_set_result(const char *transcript, const char *summary)
 {
     if (g_transcript_label && transcript) {
         lv_label_set_text(g_transcript_label, transcript);
@@ -199,9 +196,12 @@ void ui_ai_radio_set_result(const char *transcript, const char *summary)
     }
 }
 
-void ui_ai_radio_set_status(const char *status, int color)
+lv_obj_t *ui_daynote_get_count_label(void)
 {
-    /* Reuse status label if needed - currently handled in main */
-    (void)status;
-    (void)color;
+    return g_note_count_label;
+}
+
+lv_obj_t *ui_daynote_get_screen(void)
+{
+    return g_screen;
 }
