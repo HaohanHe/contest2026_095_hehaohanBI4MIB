@@ -6,6 +6,9 @@ if(CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE)
     NAME daynote
     SRCS ${CSRCS} src/main.c
     INCLUDE_DIRECTORIES include
-    STACKSIZE 16384
+    STACKSIZE 49152
     PRIORITY 100)
+  target_include_directories(daynote PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../lvgl
+    ${CMAKE_CURRENT_LIST_DIR}/../lvgl/lvgl)
 endif()

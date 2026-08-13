@@ -24,7 +24,7 @@ CSRCS += agent_bridge.c \
           wav_encoder.c wifi_auto_connect.c \
           vad_detector.c auto_recorder.c \
           note_store.c memory_index.c \
-          daily_digest.c daily_summary.c
+          daily_digest.c daily_summary.c translator.c
 
 MAINSRC = main.c
 

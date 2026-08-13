@@ -86,8 +86,4 @@ typedef enum {
     TRANSLATE_MAX
 } translate_lang_t;
 
-int radio_config_store_load(ai_config_t *config);
-int radio_config_store_save(const ai_config_t *config);
-void radio_config_set_defaults(ai_config_t *config);
-
 #endif
