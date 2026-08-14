@@ -1,207 +1,247 @@
-# DayNote Handoff — 2026-08-01
+# DayNote Handoff — 2026-08-14
 
-## 项目概况
+## 先读我
 
-**项目名称**：DayNote — 全天语音记忆设备  
-**队伍**：095 (hehaohanBI4MIB)  
-**目标板**：Gemini-S1 (Allwinner R528, 双核 Cortex-A7, 128MB DDR3)  
-**竞赛**：2026 首届 openvela AI 硬件开发者大赛  
-**产品定位**："得到大脑"式语音笔记设备 — 全天录音 → AI转写 → 每日摘要 → 高光提取
-
-## 当前状态
-
-### ✅ 已完成
-1. **固件编译成功**：`gemini-s1_daynote_v1.img` (26MB)
-2. **核心模块实现**：
-   - VAD静音检测（能量阈值法）
-   - 自动分段录音（后台线程，VAD驱动）
-   - SiliconFlow ASR API集成
-   - SiliconFlow LLM API集成
-   - WAV编码
-   - 笔记存储（JSON索引 + WAV文件）
-   - HippocampusIndex关键词索引
-   - DailyDigest每日摘要
-   - HTTP同步服务框架
-   - DayNote UI（320x240）
-3. **编译环境**：
-   - 编译树搬到西数500G HDD
-   - 符号链接：`/home/bi4mib/openvela-build/` → 西数HDD
-   - 拔硬盘插别的电脑即可继续开发
-4. **硬件验证**：
-   - 屏幕驱动正常（ILI9341, 320x240）
-   - I2S音频采集正常（16kHz, 16bit, mono）
-   - WiFi自动连接正常
-   - LVGL UI正常
-
-### ⏳ 进行中
-1. **ai_agent框架集成**：DayNote应作为ai_agent的background service + Skill
-   - 通过message_bus通信
-   - 复用llm_proxy进行ASR/LLM调用
-   - 复用memory_store进行笔记存储
-   - 新增DayNote slash命令（/daynote, /summary, /search）
-2. **HTTP同步服务**：http_sync.c是框架，需要实现真实网络监听
-3. **手机端App**：未开始
-
-### ❌ 不能做的（硬件限制）
-- 本地ASR模型（Whisper最小也要~100MB RAM）
-- 本地LLM（7B模型需要4GB+）
-- 本地TTS
-- 流式ASR（同时跑AudioRecord + HTTPS上传 + mbedtls内存不够）
-- 录音超过5分钟（内存buffer限制）
-
-## 文件结构
-
-### 竞赛仓库（西数HDD）
-```
-/run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/
-├── app/ai_radio_console/           # DayNote源码（source of truth）
-│   ├── src/
-│   │   ├── main.c                  # App入口
-│   │   ├── ui_daynote.c            # DayNote UI
-│   │   ├── vad_detector.c          # VAD静音检测
-│   │   ├── auto_recorder.c         # 自动分段录音
-│   │   ├── note_store.c            # 笔记存储
-│   │   ├── memory_index.c          # HippocampusIndex
-│   │   ├── daily_digest.c          # DailyDigest
-│   │   ├── http_sync.c             # HTTP同步服务
-│   │   ├── siliconflow_client.c    # SiliconFlow API
-│   │   ├── wav_encoder.c           # WAV编码
-│   │   ├── audio_i2s.c             # I2S采集
-│   │   ├── config_store.c          # 配置存储
-│   │   ├── spacelog_settings.c     # WiFi/API设置
-│   │   └── wifi_auto_connect.c     # WiFi连接
-│   ├── include/                    # 头文件
-│   ├── Makefile                    # 构建规则
-│   └── Kconfig                     # Kconfig配置
-├── agent.md                        # Agent交接文档（本文件）
-├── DAYNOTE_PLAN_v4.md              # 产品方案v4
-└── gemini-s1_daynote_v1.img        # 最新固件
-```
-
-### 编译树（西数HDD，通过符号链接访问）
-```
-/home/bi4mib/openvela-build/ -> /run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/openvela-build/
-├── nuttx/                          # NuttX内核
-├── packages/ai_agent/              # 小米AI Agent框架
-│   ├── src/
-│   │   ├── agent_main.c            # Agent主入口
-│   │   ├── core/
-│   │   │   ├── agent_loop.c        # ReAct循环
-│   │   │   ├── message_bus.c       # 消息总线
-│   │   │   ├── memory_store.c      # 长期记忆
-│   │   │   └── session_mgr.c       # 会话管理
-│   │   ├── llm/
-│   │   │   ├── llm_router.c        # 多LLM路由
-│   │   │   └── llm_proxy.c         # LLM代理
-│   │   ├── tools/tool_registry.c   # 工具注册
-│   │   ├── voice/
-│   │   │   ├── voice_channel.c     # 语音通道
-│   │   │   ├── voice_asr.c         # ASR抽象层
-│   │   │   └── audio_capture.c     # 音频采集
-│   │   └── ui/lvgl_ui_channel.c    # LVGL UI通道
-│   └── agent_skills/               # 30+ Skills
-├── packages/demos/contest2026_095_ai_radio_console/  # App部署副本
-└── vendor/allwinnertech/           # Allwinner R528 BSP
-```
-
-## 快速开始（新电脑）
-
-### 1. 环境准备
-```bash
-# 安装交叉编译工具链
-sudo apt install arm-none-eabi-gcc arm-none-eabi-gdb
-
-# 或使用openvela预编译工具链（推荐）
-# 工具链已在openvela-build/prebuilts/目录下
-```
-
-### 2. 挂载西数HDD
-```bash
-# 西数HDD通常自动挂载到 /run/media/你的用户名/新加卷/
-# 如果没有自动挂载：
-sudo mount /dev/sdb1 /run/media/你的用户名/新加卷/
-```
-
-### 3. 重建符号链接
-```bash
-ln -s /run/media/你的用户名/新加卷/ontest2026_095_hehaohanBI4MIB/openvela-build ~/openvela-build
-```
-
-### 4. 编译
-```bash
-export PATH=~/openvela-build/prebuilts/gcc/linux-x86_64/arm-none-eabi/bin:~/openvela-build/prebuilts/build-tools/linux-x86_64/bin:$PATH
-cd ~/openvela-build
-./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay -j1
-```
-
-### 5. 打包
-```bash
-cd vendor/allwinnertech/lichee
-bash -c 'source envsetup.sh && lunch_nuttx 2 && pack'
-```
-
-### 6. 刷写
-```bash
-# 使用PhoenixSuit (Windows) 或 LiveSuit (Linux)
-# 镜像路径：~/openvela-build/vendor/allwinnertech/lichee/out/r528s3/gemini-s1_nand/rtos_nuttx_r528s3-gemini-s1_uart0_128Mnand.img
-```
-
-## 关键配置
-
-### defconfig路径
-```
-vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay/defconfig
-```
-
-### 重要配置项
-- `CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE=y` - DayNote app
-- `CONFIG_LTO_NONE=y` - LTO禁用
-- `# CONFIG_UTILS_CURL is not set` - 禁用curl工具
-- `CONFIG_I2S=y` - I2S音频
-- `CONFIG_DRIVERS_TPADC=y` - 电阻触摸屏
-- `# CONFIG_GT911_IIC_TOUCH is not set` - 禁用电容触摸
-
-## 已知问题
-
-1. **VAD阈值需要调整**：当前是固定阈值，实际使用中需要根据环境噪声自适应调整
-2. **HTTP服务未实现**：http_sync.c是框架，需要实现真实网络监听
-3. **ai_agent集成未完成**：message_bus + agent_loop + slash命令需要实现
-4. **手机端App未开始**：需要开发Flutter/Compose App
-5. **内存优化**：128MB RAM下需要优化内存使用，避免OOM
-
-## 下一步计划
-
-### 短期（1-2周）
-1. 集成ai_agent框架（message_bus + agent_loop）
-2. 实现HTTP同步服务真实网络监听
-3. 优化VAD算法（自适应阈值）
-4. 添加关键词提取功能
-
-### 中期（2-4周）
-1. 实现手机端App（Flutter/Compose）
-2. WiFi发现（mDNS）
-3. 自动同步（后台服务）
-4. 通知推送（新录音完成）
-
-### 长期（1-2月）
-1. 与小米AI Agent框架深度集成
-2. 本地TTS（如果内存允许）
-3. 多模态输入（图片+语音）
-4. 知识图谱构建
-
-## 参考文档
-
-- `DAYNOTE_PLAN_v4.md` - 完整产品方案v4
-- `agent.md` - Agent交接文档
-- `packages/ai_agent/docs/architecture.md` - ai_agent架构文档
-- `packages/ai_agent/agent_skills/` - 30+ Skills参考
-
-## 联系方式
-
-- 项目repo：`ontest2026_095_hehaohanBI4MIB/`
-- 编译树：`openvela-build/`（符号链接）
-- 固件：`gemini-s1_daynote_v1.img`
+本文件是给**下一个 AI 助手**的完整交接文档。不是给人看的。
 
 ---
 
-**祝你好运！** 🚀
+## 项目是什么
+
+**DayNote** — 全天语音记忆设备。运行在 Gemini-S1 (Allwinner R528, 双核 Cortex-A7, 128MB DDR3) 开发板上。产品概念："得到大脑"式语音笔记——全天候录音 → AI 转写 → 每日摘要 → 高光提取。
+
+**不是"AI 无线电"**。项目从 AI Radio 转型而来，`app/ai_radio_console/` 这个目录名是历史遗留。代码里很多文件、注释、TODO 说的"无线电"、"CW 解码"、"CAT 串口"、"PTT"等都是过时的，不要被误导。
+
+**"095"** 是比赛报名编号，不是"队伍 095"。用户对这类说法敏感。
+
+---
+
+## 仓库结构
+
+### 竞赛仓库（source of truth）
+
+```
+/run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/
+├── app/ai_radio_console/        # DayNote 源码（唯一真实来源！）
+│   ├── src/                     # 19 个 .c 源文件
+│   │   ├── main.c               # 入口，完整实现
+│   │   ├── ui_daynote.c         # 320x240 LVGL UI（完整，但 REC 按钮缺点击回调）
+│   │   ├── vad_detector.c       # VAD 静音检测（完整）
+│   │   ├── auto_recorder.c      # 自动分段录音（完整，自动触发 ASR+LLM）
+│   │   ├── note_store.c         # 笔记存储 JSON 持久化（完整但 JSON 解析脆弱）
+│   │   ├── memory_index.c       # 海马体关键词索引（完整，线程安全）
+│   │   ├── daily_digest.c       # 每日摘要（完整，同步调用 LLM）
+│   │   ├── daily_summary.c      # 每日摘要（与 daily_digest 功能重复）
+│   │   ├── siliconflow_client.c # SiliconFlow API HTTPS 客户端（最完整的模块 ~645行）
+│   │   ├── llm_analyzer.c       # LLM 异步分析 + 翻译（完整）
+│   │   ├── agent_bridge.c       # 统一 API 封装（完整，但 install_skills 是桩）
+│   │   ├── daynote_agent.c      # AI Agent 集成层（半桩：init/start/stop 空壳）
+│   │   ├── audio_i2s.c          # I2S 音频采集（完整，与 audio_capture 重叠）
+│   │   ├── audio_capture.c      # 音频采集封装（完整，与 audio_i2s 重叠）
+│   │   ├── wav_encoder.c        # WAV 编码器（完整但似乎未被任何模块引用）
+│   │   ├── config_store.c       # INI 配置读写（完整，与 spacelog_settings 重叠）
+│   │   ├── spacelog_settings.c  # WiFi/API 设置 UI（最大的文件 ~906行，完整）
+│   │   ├── wifi_auto_connect.c  # WiFi 自动连接（完整，shell 转义已修复）
+│   │   ├── input_lradc.c        # LRADC 按键处理（完整，ENTER 长按触发 ASR）
+│   │   └── translator.c         # 翻译模块（新建，功能待实现）
+│   ├── include/                 # 19 个对应的 .h 文件
+│   ├── Makefile                 # 构建规则
+│   └── CMakeLists.txt           # CMake 构建规则
+├── HANDOFF.md                   # 本文件
+├── AGENTS.md                    # AI 助手快速指南
+├── TODO.md                      # 任务跟踪（过时，需要更新）
+├── DAYNOTE_PLAN_v4.md           # 产品方案 v4
+├── .agentsskills/               # openvela 官方 AI 技能
+└── feishu_docs_full/            # 飞书文档（Gemini-S1 开发板资料）
+```
+
+### 编译树（西数 HDD，通过符号链接访问）
+
+```
+/home/bi4mib/openvela-build/
+  → /run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB/openvela-build/
+├── nuttx/                       # NuttX 内核源代码
+├── apps/                        # NuttX 应用层
+├── vendor/allwinnertech/        # Allwinner R528 BSP + 驱动
+├── frameworks/                  # openvela 框架
+└── packages/demos/contest2026_095_ai_radio_console/  # App 部署副本
+```
+
+---
+
+## 关键原则（必须遵守）
+
+### 1. 两个副本需要手动同步
+
+代码改动在 `app/ai_radio_console/` 后，必须手动复制到 `openvela-build/packages/demos/contest2026_095_ai_radio_console/`。**不会自动同步。**
+
+```bash
+for f in src/*.c include/*.h Makefile CMakeLists.txt; do
+  cp app/ai_radio_console/$f openvela-build/packages/demos/contest2026_095_ai_radio_console/$f
+done
+```
+
+### 2. 不要滥用禁用来修复编译错误
+
+之前犯过错误：禁用 `CONFIG_MEDIA_SERVER`、`CONFIG_DRIVERS_TPADC` 来逃避编译错误。这是**砍头砍脚**。正确做法：
+- 找到根因（比如 `touch_lowerhalf_s` 缺少定义 → 加 `CONFIG_INPUT_TOUCHSCREEN=y`）
+- 链接错误（`localtime_r` 重复定义 → 加 `--allow-multiple-definition`）
+- 配置缺失（`arm_cpuhead.S` 找不到 → 加 `CONFIG_ARCH_ARMV7A=y`）
+
+**永远不要为了编译通过而禁用功能。**
+
+### 3. DayNote 需要所有功能在线
+
+DayNote 依赖音频采集、触摸屏、WiFi、LLM API。禁用任何一项都会让产品变砖。
+
+### 4. 不要修改驱动代码
+
+`hal_dma.c`、`sunxi_alsa.c`、`drv_lradc.c` 等驱动文件不要碰。驱动问题在 defconfig 中解决。
+
+### 5. 用户风格
+
+- 说中文，语气直接
+- 要结果不要解释——修好它，不要说为什么修不好
+- 期望 AI 能编译、构建、烧录，不只是给建议
+- 用户对"砍头砍脚"式的修复非常反感
+
+---
+
+## 当前编译状态
+
+### 已应用到 openvela-build 的修复
+
+**defconfig 修改**（`vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay/defconfig`）：
+
+| 配置 | 值 | 原因 |
+|------|-----|------|
+| `CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE` | =y | 启用 DayNote app |
+| `CONFIG_LTO_NONE` | =y | 禁用 LTO 避免链接错误 |
+| `CONFIG_I2S` | =y | I2S 音频 |
+| `CONFIG_DRIVERS_TPADC` | =y | 电阻触摸屏 |
+| `CONFIG_INPUT_TOUCHSCREEN` | =y | **关键修复**：定义 `touch_lowerhalf_s` 结构体 |
+| `CONFIG_ARM_TOOLCHAIN_GNU_EABI` | =y | 选择 arm-none-eabi 交叉编译器 |
+| `CONFIG_STACK_USAGE_WARNING` | =0 | 修复 `-Wstack-usage=` 空参数错误 |
+| `CONFIG_SCHED_WORKQUEUE` | =y | 修复 worker thread 支持 |
+| `CONFIG_ARCH_ARMV7A` | =y | **关键修复**：修复 `arm_cpuhead.S` 找不到 |
+| `# CONFIG_GT911_IIC_TOUCH` | is not set | 禁用电容触摸（我们是电阻屏） |
+| `# CONFIG_UTILS_CURL` | is not set | 禁用 curl |
+
+**board Make.defs 修改**（`vendor/allwinnertech/boards/r528/r528s3-gemini-s1/scripts/Make.defs`）：
+- 在第 31 行添加 `LDFLAGS += --allow-multiple-definition` — 修复 `localtime_r` 等函数重复定义链接错误
+
+**lv_conf.h 修改**（`openvela-build/apps/graphics/lvgl/lv_conf.h`）：
+- 第 16 行：`#if 1` — 启用 LVGL 配置（原为 `#if 0`）
+
+### 构建命令
+
+```bash
+export PATH=/home/bi4mib/openvela-build/prebuilts/build-tools/linux-x86_64/bin:/home/bi4mib/openvela-build/prebuilts/gcc/linux-x86_64/arm-none-eabi/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH
+cd /home/bi4mib/openvela-build
+rm -rf cmake_out/ nuttx/.config
+./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay -j1
+```
+
+**固件产物**：`/home/bi4mib/openvela-build/nuttx/nuttx.bin` (7.0MB)
+
+### 打包命令
+
+```bash
+cd /home/bi4mib/openvela-build/vendor/allwinnertech/lichee
+bash -c 'source envsetup.sh && lunch_nuttx 2 && pack'
+# 镜像输出：lichee/out/r528s3/gemini-s1_nand/rtos_nuttx_r528s3-gemini-s1_uart0_128Mnand.img
+```
+
+---
+
+## 代码审计：哪些是真实代码，哪些是空的
+
+### 完整真实实现（可以直接用）
+
+| 文件 | 质量 | 说明 |
+|------|------|------|
+| `siliconflow_client.c` | ⭐⭐⭐⭐⭐ | HTTPS 客户端，ASR + LLM，645 行，最完整的模块 |
+| `auto_recorder.c` | ⭐⭐⭐⭐⭐ | 后台线程录音 + VAD 分段 + ASR/LLM 自动处理 |
+| `main.c` | ⭐⭐⭐⭐ | 完整启动流程，音频 ioctl 配置 |
+| `spacelog_settings.c` | ⭐⭐⭐⭐ | 906 行 WiFi/API 设置 UI，LVGL 交互 |
+| `vad_detector.c` | ⭐⭐⭐⭐ | 自适应能量阈值 VAD，完整状态机 |
+| `note_store.c` | ⭐⭐⭐⭐ | JSON 持久化笔记存储 |
+| `memory_index.c` | ⭐⭐⭐⭐ | 海马体索引，线程安全，JSON 持久化 |
+| `wifi_auto_connect.c` | ⭐⭐⭐⭐ | WiFi 连接，shell 转义，重试机制 |
+| `input_lradc.c` | ⭐⭐⭐⭐ | LRADC 按键，ENTER 长按触发 ASR |
+| `llm_analyzer.c` | ⭐⭐⭐⭐ | 异步 LLM 分析 + 翻译 |
+| `agent_bridge.c` | ⭐⭐⭐⭐ | 统一 API 封装 |
+
+### 有功能重复的
+
+| 文件 | 问题 |
+|------|------|
+| `daily_digest.c` 和 `daily_summary.c` | 功能完全重复，都是"今日笔记→LLM→摘要"，二选一 |
+| `audio_i2s.c` 和 `audio_capture.c` | 功能重叠，都是音频采集 |
+| `config_store.c` 和 `spacelog_settings.c` | INI 读写功能重复 |
+| `wav_encoder.c` | 实现完整但未被其他模块引用（auto_recorder 内联写入 WAV） |
+
+### 半桩/需要补全
+
+| 文件 | 问题 |
+|------|------|
+| `daynote_agent.c` | `init/start/stop` 是空壳，`/daynote search` 返回 "not yet implemented" |
+| `translator.c` | 新建文件，`translator_translate_text()` 返回原文 |
+| `http_sync.c` | 框架代码，真实网络监听未实现 |
+| `ui_daynote.c` | REC 按钮**缺少点击事件回调**，点它什么都没发生 |
+
+---
+
+## 已知问题（必须修）
+
+### P0（编译/运行）
+
+1. **构建系统**：`openvela-build` 的 git 不跟踪 defconfig。`nsh_minidisplay/defconfig` 是手动从 `nsh/defconfig` 复制 + 修改的。如果 `git checkout` 或 `git clean`，defconfig 会丢失。需要定期备份到竞赛仓库。
+2. **archive order bug**：`libapps.a` 在 app 编译前就创建了，目标文件存在但未归档。如果编译到链接阶段报 `undefined reference` 且符号属于 `libapps.a`，手动补入：`arm-none-eabi-ar r staging/libapps.a missing_object.o`
+
+### P1（功能）
+
+1. **REC 按钮无回调** — UI 上的录音按钮没有注册点击事件，用户点了没反应。修复方法：在 `ui_daynote_init()` 中加 `lv_obj_add_event_cb(g_record_btn, record_btn_cb, LV_EVENT_CLICKED, NULL)`，回调中调用 `auto_recorder_start/stop` 和 `ui_daynote_update_recording_state()`。
+2. **daynote_agent.c 是空壳** — 需要实现 message_bus 集成，让 DayNote 通过 ai_agent 框架发布消息。
+3. **JSON 解析脆弱** — 全部用 `strstr` 逐行搜索，不支持嵌套对象，不支持转移字符反转义。
+4. **daily_digest 同步阻塞** — 调用 LLM 时阻塞调用者。需要改成异步 + 回调。
+
+### P2（健壮性）
+
+1. **note_store deinit 没释放内存** — `transcript` 和 `summary` 是 malloc 的，但 deinit 只 `memset` 清零了结构体数组。
+2. **input_lradc 线程退出不优雅** — `input_lradc_stop()` 靠 sleep 等线程退出，没有用条件变量。
+3. **TLS 证书验证被禁用** — `MBEDTLS_SSL_VERIFY_NONE`，有中间人攻击风险。
+
+---
+
+## 下一步做什么
+
+### 短期（下一轮）
+
+1. **REC 按钮点击回调** — 让用户能通过 UI 控制录音
+2. **清理重复代码** — daily_digest/daily_summary 合并，audio_i2s/audio_capture 合并
+3. **打包 .img 并烧录测试** — 验证屏幕、触摸、录音是否能真的工作
+
+### 中期
+
+1. **daynote_agent.c** — 实现 message_bus 集成
+2. **http_sync.c** — 实现真实 HTTP server
+3. **VAD 自适应阈值** — 当前是固定阈值，需要根据环境噪声动态调整
+
+### 长期
+
+1. **手机端 App** — Flutter/Compose
+2. **WiFi 发现（mDNS）**
+3. **自动同步**
+
+---
+
+## 对 AI 助手的忠告
+
+1. 用户中文交流，语气直接。**不要解释为什么有问题，直接修。**
+2. **不要砍头砍脚**。禁用功能来通过编译是最蠢的修复方式，用户会发火。
+3. 编译问题要找根因：配置缺失加配置，结构体未定义加包含头文件或定义宏。
+4. 这个项目是比赛作品，所有代码都需要**真正工作**，不只是编译通过。
+5. `feishu_docs_full/` 目录下有 Gemini-S1 开发板的完整文档，包含 defconfig 配置方法、烧录教程。
+6. `.agentsskills/` 目录下有 openvela 官方 AI 技能，包含编译、构建、Kconfig 修改等工具。
+7. **先审查，再动手。** 不要假设文件是干什么的，Read 它。
