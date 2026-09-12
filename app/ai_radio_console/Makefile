@@ -1,38 +1,36 @@
-############################################################################
-# Contest 2026 team 095 DayNote - Daily Voice Notes
-############################################################################
+#
+# Copyright (C) 2026 Xiaomi Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 include $(APPDIR)/Make.defs
 
+ifeq ($(CONFIG_LVX_USE_DEMO_DAYNOTE), y)
 PROGNAME  = daynote
 PRIORITY  = 100
-STACKSIZE = 49152
+STACKSIZE = 40960
+MODULE    = $(CONFIG_LVX_USE_DEMO_DAYNOTE)
 
-MODULE    = $(CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE)
+# AI Agent client SDK include path + local headers (flat structure)
+CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/packages/ai_agent/include
+CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/packages/ai_agent/src
+CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/packages/demos/contest2026_095_ai_radio_console
+CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/include/netutils
+CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/frameworks/connectivity/bluetooth/framework/include
 
-# Source files live under src/
-VPATH += $(CURDIR)/src
-
-CSRCS += agent_bridge.c \
-          asr_engine.c audio_capture.c audio_i2s.c \
-          ai_radio_font.c \
-          config_store.c \
-          daynote_agent.c \
-          input_lradc.c json_minimal.c llm_analyzer.c \
-          siliconflow_client.c spacelog_settings.c \
-          ui_daynote.c \
-          wav_encoder.c wifi_auto_connect.c \
-          vad_detector.c auto_recorder.c \
-          note_store.c memory_index.c \
-          daily_digest.c daily_summary.c translator.c
-
-MAINSRC = main.c
-
-CFLAGS += -I$(CURDIR)/include
-CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/graphics/lvgl
-CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/graphics/lvgl/lvgl
-CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/../frameworks/system/topics/include
-CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/../frameworks/system/utils/include
-LDLIBS += -lm
+CSRCS   = daynote_core.c daynote_ui.c daynote_mmdvm.c daynote_asr.c
+MAINSRC = daynote_main.c
+endif
 
 include $(APPDIR)/Application.mk
