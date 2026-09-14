@@ -1,0 +1,18 @@
+ExclusiveCriterion Music                   : abufsrc@Music
+ExclusiveCriterion Ring Info Health        : abufsrc@Ring
+ExclusiveCriterion Media                   : abufsrc@Media
+ExclusiveCriterion Alarm                   : abufsrc@Alarm
+ExclusiveCriterion Enforced                : abufsrc@Enforced
+ExclusiveCriterion TTS                     : abufsrc@TTS
+ExclusiveCriterion Sport                   : abufsrc@Sport
+ExclusiveCriterion Notify                  : abufsrc@Notify
+ExclusiveCriterion Capture                 : abufsink@Capture
+ExclusiveCriterion AudioMode        : normal ringtone phone = normal
+ExclusiveCriterion MicMode          : off on = on
+InclusiveCriterion UsingDevices     : mic = mic
+InclusiveCriterion AvailableDevices : spk
+ExclusiveCriterion persist.media.MuteMode    MuteMode : off on = off
+NumericalCriterion persist.media.MediaVolume RecordVolume TTSVolume MusicVolume MediaVolume : [0,10] = 6
+NumericalCriterion persist.media.RingVolume  RingVolume NotifyVolume HealthVolume InfoVolume  : [0,10] = 6
+NumericalCriterion persist.media.AlarmVolume AlarmVolume : [0,10] = 6
+NumericalCriterion persist.media.SportVolume SportVolume : [0,10] = 6

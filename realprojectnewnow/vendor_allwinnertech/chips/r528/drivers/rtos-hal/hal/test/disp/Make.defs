@@ -1,0 +1,5 @@
+ifneq ($(CONFIG_HAL_TEST_DISP),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/disp
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/disp
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)/arch/arm/include/armv7-a/
+endif

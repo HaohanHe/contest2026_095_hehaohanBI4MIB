@@ -1,0 +1,6 @@
+DRV_TIMER_PATH=drv/timer
+
+ifeq ($(CONFIG_DRIVERS_TIMER), y)
+#CHIP_CSRCS += $(DRV_TIMER_PATH)/drv_timer.c
+CHIP_CSRCS += $(DRV_TIMER_PATH)/drv_timer_ng.c
+endif

@@ -1,0 +1,13 @@
+menu "TWI Devices"
+
+config DRIVERS_TWI
+    bool "enable twi driver"
+    depends on I2C
+        default n
+
+config HAL_TEST_TWI
+    bool "enable twi hal APIs test command"
+    depends on DRIVERS_TWI
+        default n
+
+endmenu

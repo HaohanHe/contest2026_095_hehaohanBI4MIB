@@ -1,0 +1,31 @@
+ifeq ($(CONFIG_DRIVERS_G2D),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+G2D_PATH=drivers/rtos-hal/hal/source/g2d_rcq
+
+DEPPATH+=--dep-path $(G2D_PATH) 
+VPATH+=:chip/$(G2D_PATH)
+
+ARCH_SRC := $(TOPDIR)/arch/$(CONFIG_ARCH)/src
+ARCH_INC := $(TOPDIR)/arch/$(CONFIG_ARCH)/include
+ARCH_G2D_SRC_PATH:=$(ARCH_SRC)/chip/$(G2D_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_G2D_SRC_PATH)
+
+CHIP_CSRCS += $(G2D_PATH)/g2d_mixer.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_ovl_v.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_ovl_u.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_rcq.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_scal.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_wb.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_bld.c
+CHIP_CSRCS += $(G2D_PATH)/g2d.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_top.c
+CHIP_CSRCS += $(G2D_PATH)/g2d_rotate.c
+CHIP_CSRCS += $(G2D_PATH)/simple_idr.c
+CHIP_CSRCS += $(G2D_PATH)/simple_idr_vela.c
+
+endif
+

@@ -1,0 +1,12 @@
+menu "Nand Flash Devices"
+
+config DRIVERS_NAND_FLASH
+    bool "enable nand flash driver"
+        default n
+
+config NAND_FLASH_DEBUG
+    bool "enable nand flash debug log"
+    depends on DRIVERS_NAND_FLASH
+        default n
+
+endmenu

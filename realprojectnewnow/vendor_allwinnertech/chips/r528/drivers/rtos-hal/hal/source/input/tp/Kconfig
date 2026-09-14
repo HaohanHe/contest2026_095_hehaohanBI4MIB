@@ -1,0 +1,3 @@
+menuconfig DRIVERS_TP
+	bool "touch panel devices"
+source '../vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/source/input/tp/tlsc6x/Kconfig'

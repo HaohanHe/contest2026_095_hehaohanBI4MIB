@@ -1,0 +1,69 @@
+menu "SDMMC Devices"
+
+config DRIVERS_SDMMC
+    bool "enable SDMMC drivers"
+        default n
+
+if DRIVERS_SDMMC
+
+config USE_SDMMC_MULT
+	bool "enable SD_MULT"
+	default n
+
+config USE_SD
+	bool "enable SD"
+	default n
+
+config USE_SDIO
+	bool "enable SDIO"
+	default n
+	select ARCH_HAVE_SDIO
+
+config USE_MMC
+	bool "enable mmc"
+	default n
+
+config eMMC_SUPPORT_SUN20IW2
+	bool "enable emmc for r128/xr875"
+	select USE_MMC
+	default n
+
+config DETECT_CARD
+	bool "enable detect card"
+	default n
+
+config SDC_DMA_USED
+	bool "enable dma transmission"
+	default y
+	select SDIO_DMA
+
+config SDIO_IRQ_SUPPORT
+	bool "enable sdio irq"
+	default n
+
+config SD_TEST
+	select USE_SD
+	bool "enable SD Card test case."
+	default n
+
+config SDC_DMA_BUF_SIZE
+	int "SD Card Align DMA Buffer Size(Kbyte)."
+	depends on SDC_DMA_USED
+	default 64
+
+config DRIVERS_SDC_CDPIN_PRESENT_VAL
+	int "sdc card detect pin present value"
+	default 0
+
+config DRIVERS_SDMMC_FS
+	bool "support SDMMC filesystem"
+	select COMPONENT_ELMFAT
+	default n
+
+config HAL_TEST_SDMMC
+    bool "enable dma hal APIs test command"
+	depends on DRIVERS_DMA
+        default n
+
+endif
+endmenu

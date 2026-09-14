@@ -1,0 +1,19 @@
+ifeq ($(CONFIG_DRIVERS_TLSC6X), y)
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+TLSC6X_PATH=drivers/rtos-hal/hal/source/input/tp/tlsc6x
+
+DEPPATH+=--dep-path $(DISP_PATH) 
+VPATH+=:chip/$(DISP_PATH)
+
+ARCH_DISP_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(DISP_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_DISP_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_DISP_SRC_PATH)/soc
+
+CHIP_CSRCS += $(TLSC6X_PATH)/tlsc6x.c
+CHIP_CSRCS += $(TLSC6X_PATH)/tlsc6x_comp.c
+
+CFLAGS += -Wno-stringop-overflow
+
+endif
+

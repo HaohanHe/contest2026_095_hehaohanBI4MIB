@@ -1,0 +1,10 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+menu "tplayer api"
+config TPLAYER
+	bool "allwinner tplayer support"
+	default n
+endmenu

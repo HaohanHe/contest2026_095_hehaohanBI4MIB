@@ -1,0 +1,1 @@
+include $(AW_SRCDIR)/$(SDMMC_PATH)/osal/os/Make.defs

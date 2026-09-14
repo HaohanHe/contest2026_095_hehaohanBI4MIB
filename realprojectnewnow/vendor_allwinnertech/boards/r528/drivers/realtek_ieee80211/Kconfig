@@ -1,0 +1,79 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config IEEE80211_REALTEK_WIFI
+	bool "Realtek wifi chip support"
+	depends on DRIVERS_IEEE80211
+	default n
+	select CRYPTO_MBEDTLS
+	select MBEDTLS_SSL_PROTO_DTLS
+	select MBEDTLS_PLATFORM_MEMORY
+
+config USER_WIFIMAC
+	bool "Realtek wifi config use user MAC"
+	depends on IEEE80211_REALTEK_WIFI
+	default n
+
+if USER_WIFIMAC
+config USER_WIFIMAC_PATH
+	string "Realtek wifi Configure MAC File Path"
+	default "/data/wifi/wifimac.txt"
+
+endif
+
+config USER_PHY_REG_PG
+	bool "Realtek wifi config use user PHY_REG_PG"
+	depends on IEEE80211_REALTEK_WIFI
+	default n
+
+if USER_PHY_REG_PG
+config USER_PHY_REG_PG_PATH
+	string "Realtek wifi Configure PHY_REG_PG File Path"
+	default "/data/PHY_REG_PG.txt"
+endif
+
+config EFUSE_CONFIG_FILE
+	bool "Realtek wifi config use user efuse map"
+	depends on IEEE80211_REALTEK_WIFI
+	default n
+
+if EFUSE_CONFIG_FILE
+config EFUSE_MAP_PATH
+	string "Realtek wifi Configure user efuse map File Path"
+	default "/etc/wifi_factest/rtl8733bs_wifi.map"
+endif
+
+
+config CCV_WIFI_FW_PATH
+	string "Realtek wifi Configure user efuse map File Path"
+	default "/resource/etc/wifi/FW_NIC_ACUT.bin"
+
+config WIFI_FW_PATH
+	string "Realtek wifi Configure user efuse map File Path"
+	default "/resource/etc/wifi/FW_NIC_BCUT.bin"
+
+config IEEE80211_REALTEK_WIFI_RTL8733BS
+	bool "Realtek wifi rtl8733bs chip support"
+	depends on IEEE80211_REALTEK_WIFI
+	default n
+
+config WIFI_STATISTICS
+	bool "wifi link statistics"
+	depends on IEEE80211_REALTEK_WIFI
+	default n
+
+if WIFI_STATISTICS
+config WIFI_STATISTICS_PERIOD
+	int "wifi link statistics period (s)"
+	depends on WIFI_STATISTICS
+	default 30
+endif
+
+config CONFIG_MM_FOREACH_DEBUG
+    bool "Enable heap foreach debug"
+    default n
+    help
+      Enable debug heap traversal in mm_foreach().
+      Should be OFF in init stage to avoid crash.

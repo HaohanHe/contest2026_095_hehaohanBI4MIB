@@ -1,0 +1,19 @@
+ifeq ($(CONFIG_DRIVERS_SPI),y)
+# Include platform's table.
+# Include build support
+
+SPI_PATH=$(DRV_SOURCE_PATH)/spi
+
+DEPPATH+=--dep-path $(SPI_PATH)
+VPATH+=:chip/$(SPI_PATH)
+
+SPI_CUR_SRC_PATH:=$(ARCH_SRC)/chip/$(SPI_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(SPI_CUR_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(SPI_CUR_SRC_PATH)/sun8iw20
+
+# Include the  module.
+CHIP_CSRCS += $(SPI_PATH)/hal_spi.c
+
+endif
+

@@ -1,0 +1,166 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+menu "libcedarx"
+
+config LIBCEDARX
+	bool "allwinner libcedarx support"
+	default n
+
+config FILE_STREAM_ENABLE
+	bool "enable file stream"
+	depends on LIBCEDARX
+	default y
+
+config HTTP_STREAM_ENABLE
+	bool "enable http stream"
+	depends on LIBCEDARX
+	default n
+
+config ASF_PARSER_ENABLE
+	bool "enable asf parser"
+	depends on LIBCEDARX
+	default n
+
+config AVI_PARSER_ENABLE
+	bool "enable avi parser"
+	depends on LIBCEDARX
+	default y
+
+config FLV_PARSER_ENABLE
+	bool "enable flv parser"
+	depends on LIBCEDARX
+	default y
+
+config TS_PARSER_ENABLE
+	bool "enable ts parser"
+	depends on LIBCEDARX
+	default y
+
+config MKV_PARSER_ENABLE
+	bool "enable mkv parser"
+	depends on LIBCEDARX
+	default y
+
+config MOV_PARSER_ENABLE
+	bool "enable mov parser"
+	depends on LIBCEDARX
+	default y
+
+config MPG_PARSER_ENABLE
+	bool "enable mpg parser"
+	depends on LIBCEDARX
+	default n
+
+config AAC_PARSER_ENABLE
+	bool "enable aac parser"
+	depends on LIBCEDARX
+	default y
+
+config AMR_PARSER_ENABLE
+	bool "enable amr parser"
+	depends on LIBCEDARX
+	default n
+
+config ATRAC_PARSER_ENABLE
+	bool "enable atrac parser"
+	depends on LIBCEDARX
+	default n
+
+config FLAC_PARSER_ENABLE
+	bool "enable flac parser"
+	depends on LIBCEDARX
+	default n
+
+config ID3V2_PARSER_ENABLE
+	bool "enable id2v2 parser"
+	depends on LIBCEDARX
+	default y
+
+config MP3_PARSER_ENABLE
+	bool "enable mp3 parser"
+	depends on LIBCEDARX
+	default y
+
+config OGG_PARSER_ENABLE
+	bool "enable ogg parser"
+	depends on LIBCEDARX
+	default y
+
+config PLS_PARSER_ENABLE
+	bool "enable pls parser"
+	depends on LIBCEDARX
+	default y
+
+config WAV_PARSER_ENABLE
+	bool "enable wav parser"
+	depends on LIBCEDARX
+	default y
+
+config HLS_PARSER_ENABLE
+	bool "enable hls parser"
+	depends on LIBCEDARX
+	default n
+
+config PMP_PARSER_ENABLE
+	bool "enable pmp parser"
+	depends on LIBCEDARX
+	default n
+
+config HTTPS_SUPPORT
+	bool "enable https stream"
+	depends on LIBCEDARX
+	default y
+
+config HTTP_STREAM_SET_PROTECT_AREA_SIZE
+	bool "http stream set protect area size"
+	depends on LIBCEDARX
+	default y
+
+config HTTP_STREAM_SUPPORT_FREE_BUFFER
+	bool "http stream support free buffer"
+	depends on LIBCEDARX
+	default y
+
+config HTTP_STREAM_RECONNECT_RELOAD
+	int "http stream reconnect reload"
+	depends on LIBCEDARX
+	default 1
+	
+config HTTP_STREAM_IGNORE_DATA_SEEK
+	int "http stream ignore data seek"
+	depends on LIBCEDARX
+	default 1
+
+config HTTP_STREAM_IGNORE_DATA_FAST_SEEK
+	int "http stream ignore data fast seek"
+	depends on LIBCEDARX
+	default 1
+
+config ADEC_CONFIG_COMPILE_STATIC_LIB
+	int "adecode use static lib"
+	depends on LIBCEDARX
+	default 1
+
+config CONFIG_COMPILE_STATIC_LIB
+	bool "compile use static lib"
+	depends on LIBCEDARX
+	default y
+
+config ONLINE_SUPPORT
+	int "online support"
+	depends on LIBCEDARX
+	default 1
+
+config LIVEMODE_VIDEO
+	depends on LIBCEDARX
+	int "livemode video"
+	default 1
+
+config ONLY_DISABLE_AUDIO
+	int "disable audio"
+	depends on LIBCEDARX
+	default 1
+endmenu

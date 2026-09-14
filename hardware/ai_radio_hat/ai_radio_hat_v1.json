@@ -1,0 +1,48 @@
+{
+  "head": {
+    "docType": "1",
+    "editorVersion": "6.5.42",
+    "newgId": true,
+    "c_para": {
+      "name": "ai_radio_hat_v1",
+      "title": "AI Radio HAT for Gemini-S1",
+      "version": "v1.0"
+    },
+    "x": 400,
+    "y": 300,
+    "hasIdFlag": true
+  },
+  "canvas": "CA~1000~1000~#FFFFFF~yes~#CCCCCC~10~1000~1000~line~0.5~mm~1~45~~visible#",
+  "shape": [
+    "R~400~200~~~~~80~50~#000000~1~0~none~gge1~0~",
+    "T~L~440~210~2~#0000FF~~0.8~normal~7000~arial~AI Radio HAT v1.0~gge2",
+    "T~L~450~225~1.5~#000000~~0.6~normal~4000~arial~Gemini-S1~gge3",
+    "LIB~420~250~0~~gge4~3.5mm_AudioJack~Connector_Audio:Jack_3.5mm_PJ320D_Horizontal~1~1~1~~1",
+    "T~L~400~230~1~#000000~~0.5~normal~3000~arial~J1 3.5mm Audio~gge5",
+    "LIB~460~250~0~~gge6~PC817~Package_DIP:SMDIP-4_W7.62mm~1~1~1~~1",
+    "T~L~460~230~1~#000000~~0.5~normal~3000~arial~U1 PC817~gge7",
+    "LIB~500~250~0~~gge8~2N7002~Package_TO_SOT_SMD:SOT-23~1~1~1~~1",
+    "T~L~500~230~1~#000000~~0.5~normal~3000~arial~Q1 2N7002~gge9",
+    "LIB~420~300~0~~gge10~Conn_01x04~Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical~1~1~1~~1",
+    "T~L~400~290~1~#000000~~0.5~normal~3000~arial~J2 CAT UART~gge11",
+    "LIB~470~300~0~~gge12~Conn_01x04~Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical~1~1~1~~1",
+    "T~L~460~290~1~#000000~~0.5~normal~3000~arial~J3 I2C EXT~gge13",
+    "LIB~520~300~0~~gge14~Conn_01x02~Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical~1~1~1~~1",
+    "T~L~510~290~1~#000000~~0.5~normal~3000~arial~J4 PTT OUT~gge15",
+    "LIB~420~350~0~~gge16~10k~Resistor_SMD:R_0805_2012Metric~1~1~1~~1",
+    "LIB~440~350~0~~gge17~10k~Resistor_SMD:R_0805_2012Metric~1~1~1~~1",
+    "LIB~460~350~0~~gge18~1k~Resistor_SMD:R_0805_2012Metric~1~1~1~~1",
+    "LIB~480~350~0~~gge19~330R~Resistor_SMD:R_0805_2012Metric~1~1~1~~1",
+    "LIB~500~350~0~~gge20~10uF~Capacitor_SMD:C_0805_2012Metric~1~1~1~~1",
+    "LIB~520~350~0~~gge21~100nF~Capacitor_SMD:C_0805_2012Metric~1~1~1~~1",
+    "LIB~420~380~0~~gge22~RED~LED_SMD:LED_0805_2012Metric~1~1~1~~1",
+    "T~L~400~370~1~#000000~~0.5~normal~3000~arial~LED1 Power~gge23"
+  ],
+  "BBox": {
+    "x": 390,
+    "y": 190,
+    "width": 150,
+    "height": 210
+  },
+  "units": "mm"
+}

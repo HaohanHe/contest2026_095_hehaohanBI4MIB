@@ -1,0 +1,31 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+config ARCH_BOARD_R528S3_EVB4
+	bool "r528 evb4"
+	depends on ARCH_CHIP_R528
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	select ARCH_HAVE_TRUSTZONE if X4B_AP || X4B_TEE
+	---help---
+		This is the port of NuttX to the Allwinner A10-based pcDuino v1
+		board.  See http://www.pcduino.com/ for information about pcDuino Lite, v1,
+		and v2.  I have not compared these boards in detail, but I believe that
+		the differences are cosmetic.  This port was developed on the v1 board,
+		but the others may be compatible.
+
+config ARCH_BOARD_PARTITION_TABLE
+        string "board partition table path"
+        default ""
+        ---help---
+                This is a path for the board.
+
+choice
+prompt "choose system fucntion"
+
+config VELAEVB1_NSH
+	bool "Enable the NSH fucntion on the 'VELAEVB1' board"
+
+endchoice

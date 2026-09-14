@@ -1,0 +1,55 @@
+ifeq ($(CONFIG_DRIVERS_NAND_FLASH),y)
+# Include platform's table.
+# Include build support
+
+NAND_FLASH_PATH=$(DRV_SOURCE_PATH)$(DELIM)nand_flash
+
+DEPPATH+=--dep-path $(NAND_FLASH_PATH)
+VPATH+=:chip$(DELIM)$(NAND_FLASH_PATH)
+
+ARCH_NAND_FLASH_SRC_PATH:=$(ARCH_SRC)$(DELIM)chip$(DELIM)$(NAND_FLASH_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_NAND_FLASH_SRC_PATH)$(DELIM)include
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_NAND_FLASH_SRC_PATH)$(DELIM)lib$(DELIM)include
+
+# Include the  module.
+EXTRA_LIBPATHS += -L $(ARCH_SRC)$(DELIM)chip$(DELIM)$(NAND_FLASH_PATH)
+EXTRA_LIBS += -lnuttx_sun8iw20p1_nandflash
+
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)nuttx_nand_init.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)nuttx_nand_debug.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)req_proxy.c
+
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_osal_for_rtos.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_format.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_phy.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_scan.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_global.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/uboot_tail_spinand.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_id.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_physic_interface_spinand.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/spic_op.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_ecc_op.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/spi_nand2.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/build_nand_partition.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/build_phy_partition.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_info_init.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_physic_interface.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_secure_storage.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/nand_ota.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)src/uboot_tail.c
+
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_build.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_cache.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_common.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_crc.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_gc.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_hexdump.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_init.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_list.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_logic.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_physic.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_smart.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)$(DELIM)lib/nftl/nftl_start.c
+
+endif
+

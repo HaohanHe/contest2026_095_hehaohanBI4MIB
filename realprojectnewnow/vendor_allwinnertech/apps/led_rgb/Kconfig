@@ -1,0 +1,47 @@
+#
+# Copyright (C) 2024 Xiaomi Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+config LED_RGB_TEST
+	bool "rgb led test"
+	default n
+
+	---help---
+		Enable LED_RGB module.
+
+if LED_RGB_TEST
+
+
+config LED_RGB_WS2812
+	bool "ws2812"
+	default n
+	depends on WS2812 && DRIVERS_LEDC
+
+config LED_RGB_TEST_PROGNAME
+	string "Program name"
+	default "rgb_led"
+	---help---
+		This is the name of the program that will be used when the NSH ELF
+		program is installed.
+
+config LED_RGB_TEST_PRIORITY
+	int "rgb led test task priority"
+	default 100
+
+config LED_RGB_TEST_STACKSIZE
+	int "rgb led test stack size"
+	default DEFAULT_TASK_STACKSIZE
+
+endif

@@ -1,0 +1,33 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXAMPLES_T070S140B_TOUCH_TEST
+	bool "T070S140B LCD IIC Touchscreen Test Application"
+	default n
+	depends on GT911_IIC_TOUCH
+	---help---
+		Enable the T070S140B LCD IIC touchscreen test application.
+		This application tests the T070S140B touchscreen functionality
+		by reading touch events and displaying touch coordinates with
+		percentage positions relative to the 1024x600 LCD screen.
+
+if EXAMPLES_T070S140B_TOUCH_TEST
+
+config EXAMPLES_T070S140B_TOUCH_TEST_PROGNAME
+	string "T070S140B touch test program name"
+	default "t070s140b_touch_test"
+	---help---
+		This is the name of the program that will be used when the NSH ELF
+		program is installed.
+
+config EXAMPLES_T070S140B_TOUCH_TEST_PRIORITY
+	int "T070S140B touch test task priority"
+	default 100
+
+config EXAMPLES_T070S140B_TOUCH_TEST_STACKSIZE
+	int "T070S140B touch test stack size"
+	default DEFAULT_TASK_STACKSIZE
+
+endif # EXAMPLES_T070S140B_TOUCH_TEST

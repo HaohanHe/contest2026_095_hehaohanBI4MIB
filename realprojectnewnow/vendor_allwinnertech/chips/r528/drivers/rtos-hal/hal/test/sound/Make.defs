@@ -1,0 +1,4 @@
+ifneq ($(CONFIG_COMPONENTS_AW_ALSA_UTILS),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/sound
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/sound
+endif

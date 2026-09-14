@@ -1,0 +1,17 @@
+ifeq ($(CONFIG_MICRO_TF),y)
+# src
+CSRCS += micro_sd_driver.c
+
+# include
+$(eval $(AW_ADD_HAL_INCLUDES))
+
+CFLAGS += ${INCDIR_PREFIX}$(AW_CHIP_DIR)/include
+CFLAGS += ${INCDIR_PREFIX}$(AW_HAL_INCDIR)/sdmmc
+CFLAGS += ${INCDIR_PREFIX}$(AW_HAL_INCDIR)/sdmmc/osal
+CFLAGS += ${INCDIR_PREFIX}$(AW_HAL_INCDIR)/sdmmc/hal
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)/arch/arm/src/armv7-a
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)/arch/arm/include/armv7-a
+
+CFLAGS += -Wno-attributes
+
+endif

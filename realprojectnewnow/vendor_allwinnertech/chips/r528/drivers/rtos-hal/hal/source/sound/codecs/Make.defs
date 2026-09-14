@@ -1,0 +1,18 @@
+
+CODECS_PATH=$(DRV_SOURCE_PATH)/sound/codecs
+
+DEPPATH+=--dep-path $(CODECS_PATH)
+VPATH+=:chip/$(CODECS_PATH)
+
+ifeq ($(CONFIG_SND_CODEC_SUN8IW20_AUDIOCODEC),y)
+# Include platform's table.
+# Include build support
+
+# Include the  module.
+# Soundcards Register Select
+CHIP_CSRCS += $(CODECS_PATH)/sun8iw20-codec.c
+
+endif
+
+
+CHIP_CSRCS += $(CODECS_PATH)/dummy_codec.c

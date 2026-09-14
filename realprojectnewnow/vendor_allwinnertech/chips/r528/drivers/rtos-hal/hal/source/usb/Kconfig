@@ -1,0 +1,56 @@
+menu "USB Drivers"
+
+config USB
+	bool "enable USB Drivers"
+	select DRIVERS_USB
+	default n
+
+config DRIVERS_USB
+	bool
+	default n
+
+config USB_UDC
+	bool
+	default n
+
+config HAL_TEST_USB
+	bool
+	default n
+
+if USB
+
+menuconfig USB_DEVICE
+	bool "USB DEVICE"
+	select USB_UDC
+	default n
+
+if USB_DEVICE
+config HAL_TEST_UDC
+	bool
+	select HAL_TEST_USB
+	default n
+
+config UDC_USE_DMA
+	bool "enable dma for udc driver"
+	default n
+
+config USB_GADGET
+	bool "Support usb gadget driver"
+	select HAL_TEST_UDC
+	default n
+
+if USB_GADGET
+choice
+	prompt "usb gadget driver"
+	default DRIVERS_USB_GADGET_ADB
+
+	config DRIVERS_USB_GADGET_ADB
+		bool "adb gadget driver"
+		#select COMPONENTS_USB_GADGET_ADBD
+
+endchoice
+endif
+endif
+endif
+endmenu
+

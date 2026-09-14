@@ -1,0 +1,16 @@
+ifeq ($(CONFIG_DRIVERS_MSGBOX),y)
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+MSGBOX_PATH=drivers/rtos-hal/hal/source/msgbox
+
+DEPPATH+=--dep-path $(MSGBOX_PATH)
+VPATH+=:chip/$(MSGBOX_PATH)
+
+ARCH_MSGBOX_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(MSGBOX_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_MSGBOX_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_MSGBOX_SRC_PATH)/platform
+
+CHIP_CSRCS += $(MSGBOX_PATH)/msgbox_amp.c
+
+endif

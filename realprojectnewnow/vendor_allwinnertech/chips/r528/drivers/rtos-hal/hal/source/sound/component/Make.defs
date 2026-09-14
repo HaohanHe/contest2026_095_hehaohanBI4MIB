@@ -1,0 +1,3 @@
+ifeq ($(CONFIG_COMPONENTS_AW_TINY_ALSA_LIB),y)
+include $(AW_SRCDIR)/drivers/rtos-hal/hal/source/sound/component/aw-tiny-alsa-lib/Make.defs
+endif

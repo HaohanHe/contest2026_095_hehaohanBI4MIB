@@ -1,0 +1,5 @@
+DRV_RTC_PATH=drv/rtc
+
+ifeq ($(CONFIG_DRIVERS_RTC), y)
+CHIP_CSRCS += $(DRV_RTC_PATH)/drv_rtc.c
+endif

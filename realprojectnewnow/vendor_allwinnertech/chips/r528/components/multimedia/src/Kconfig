@@ -1,0 +1,11 @@
+menuconfig MULTIMEDIA_SUPPORT
+	bool "RTOS Multimedia support"
+	help
+	  enable rtos multimedia support, use it to implement multimedia function.
+
+if MULTIMEDIA_SUPPORT
+
+comment "Multimedia core support"
+
+
+endif # MULTIMEDIA_SUPPORT

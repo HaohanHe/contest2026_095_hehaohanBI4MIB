@@ -1,0 +1,6 @@
+CHIP_CSRCS += $(SDMMC_PATH)/osal/os/nuttx/os_mutex.c
+CHIP_CSRCS += $(SDMMC_PATH)/osal/os/nuttx/os_queue.c
+CHIP_CSRCS += $(SDMMC_PATH)/osal/os/nuttx/os_semaphore.c
+CHIP_CSRCS += $(SDMMC_PATH)/osal/os/nuttx/os_thread.c
+CHIP_CSRCS += $(SDMMC_PATH)/osal/os/nuttx/os_timer.c
+CHIP_CSRCS += $(SDMMC_PATH)/osal/os/nuttx/os_debug.c

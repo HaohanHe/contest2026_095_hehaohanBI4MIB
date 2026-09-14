@@ -1,0 +1,19 @@
+ifeq ($(CONFIG_SND_CORE_TINY),y)
+# Include platform's table.
+# Include build support
+
+CORE_PATH=$(DRV_SOURCE_PATH)/sound/core
+
+DEPPATH+=--dep-path $(CORE_PATH)
+VPATH+=:chip/$(CORE_PATH)
+
+# Include the  module.
+CHIP_CSRCS += $(CORE_PATH)/snd_core.c
+CHIP_CSRCS += $(CORE_PATH)/snd_dma.c
+CHIP_CSRCS += $(CORE_PATH)/snd_pcm.c
+CHIP_CSRCS += $(CORE_PATH)/snd_misc.c
+CHIP_CSRCS += $(CORE_PATH)/snd_io.c
+CHIP_CSRCS += $(CORE_PATH)/snd_ctl.c
+
+endif
+

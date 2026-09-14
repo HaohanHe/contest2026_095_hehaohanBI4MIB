@@ -1,0 +1,179 @@
+/****************************************************************************
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+
+#include <nuttx/config.h>
+#ifdef CONFIG_X4B_BL
+
+#if !(defined(CONFIG_BOARDCTL_RESET_CAUSE) && !defined(CONFIG_NSH_DISABLE_RESET_CAUSE))
+#error "Deps: defined(CONFIG_BOARDCTL_RESET_CAUSE) && !defined(CONFIG_NSH_DISABLE_RESET_CAUSE)"
+#endif
+#if !defined(CONFIG_KVDB)
+#error "Deps: defined(CONFIG_KVDB)"
+#endif
+
+set -x
+echo "You're running an BL image."
+
+mount -t romfs /dev/res /resource
+mount -t yaffs /dev/usrdata /data
+set errcode $?
+if [ $errcode -ne 0 ]
+then
+  echo "/dev/usrdata mount failed, errcode is" $errcode
+fi
+
+set resetcause `resetcause`
+echo $resetcause
+
+if [ "$resetcause" == "cpu_soft_reset(restore)" ]
+then
+  echo "recovery reset system"
+  sh /etc/factory.sh
+  echo "reboot system now"
+  reboot
+fi
+
+#ifdef CONFIG_SHOW_LOGO
+/* Do not show logo if system crashed or during silient OTA. */
+if [ "$resetcause" == "cpu_soft_reset(panic)" ]
+then
+  echo "System crashed, hide logo"
+else
+  set silent_reboot_flag `getprop persist.silent_reboot.flag`
+
+  /* Show logo firstly before reset system, if rst_btn is pressed.*/
+  if [ -z $silent_reboot_flag -o $silent_reboot_flag == false ]
+  then
+    showlogo -n /resource/logo/logo1.bin
+  fi
+fi
+#endif
+
+setlogmask i
+
+/* Mark kvdb if rst_btn is pressed */
+if [ $btn_ret == 0 ]
+then
+  /* just mark */
+  echo "Mark user btn reset flag"
+  setprop persist.user_btn_reset.flag 1
+fi
+
+/* Always do ota, if ota.zip exists */
+if [ -e /data/ota.zip ]
+then
+#ifndef CONFIG_X4B_NO_VERIFY
+  echo "zip_verify ota.zip"
+  zip_verify /data/ota.zip /etc/key.avb
+  set errcode $?
+  if [ $errcode -ne 0 ]
+  then
+      echo "zip_verify ota.zip failed, will reboot to the old system, errcode is" $errcode
+      rm /data/ota.zip
+      reboot
+  fi
+#endif
+
+  echo "mount ota.zip to /ota"
+  mount -t zipfs -o /data/ota.zip /ota
+  set errcode $?
+  if [ $errcode -ne 0 ]
+  then
+    echo "mount ota.zip failed!!!"
+  else
+    echo "Recovery Mode (OTA).."
+    boot /ota/vela_ota.bin
+  fi
+fi
+
+/* Check if user btn reset flag set */
+/* If user btn reset is interrupted by ota, reset will implement on next boot by marking kvdb */
+set user_btn_reset_flag `getprop persist.user_btn_reset.flag`
+if [ -n $user_btn_reset_flag -a $user_btn_reset_flag == "1" ]
+then
+  echo "Reset system ..."
+  sh /etc/factory.sh
+  reboot
+  /* Reset will clean kvdb */
+fi
+
+/* Only check downloadtool in debug mode. */
+if [ -e /data/debugmode ]
+then
+  if [ "$resetcause" == "cpu_soft_reset(bootloader)" ]
+  then
+    echo "Bootloader Mode (Download).."
+    umount /data
+    fastbootd &
+    /* Show something on screen to indicate we are waiting. */
+    fb &
+    exit
+  fi
+
+  /* Only check panic mode, where we need to pullout memory if waitxfer presents. */
+  if [ -e /data/dumpmode ]
+  then
+    /* If system crashed, check if we need to transfer coredump(memdump) */
+    if [ "$resetcause" == "cpu_soft_reset(panic)" ]
+    then
+      echo "Panic Mode.."
+      umount /data
+      fastbootd &
+      /* Show something on screen to indicate we are waiting. */
+      fb &
+      exit
+    fi
+  fi
+
+  /* Normal reboot, wait fastboot 1.3 second before continue to boot. */
+  umount /data
+  fastbootd 1300 &
+  set pid $!
+  wait $pid
+  mount -t yaffs /dev/usrdata /data
+  set errcode $?
+  if [ $errcode -ne 0 ]
+  then
+    echo "/dev/usrdata mount failed, errcode is" $errcode
+  fi
+fi
+
+echo "System Mode (tee).."
+#ifdef CONFIG_X4B_NO_VERIFY
+boot /dev/tee
+#else
+avb_verify -i /dev/tee /etc/key.avb
+if [ $? -ne 0 ]
+then
+  echo "the /dev/tee verify failed"
+  exit
+fi
+
+avb_verify -i /resource/ap/ap.fex /etc/key.avb
+
+if [ $? -eq 0 ]
+then
+  echo "Boot /dev/tee.."
+  boot /dev/tee
+fi
+#endif
+
+echo "Boot tee failed!"
+
+#endif

@@ -1,0 +1,28 @@
+ifeq ($(CONFIG_DRIVERS_LEDC),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+LEDC_PATH=drivers/rtos-hal/hal/source/ledc
+
+DEPPATH+=--dep-path $(LEDC_PATH)
+VPATH+=:chip/$(LEDC_PATH)
+
+ARCH_SRC := $(TOPDIR)/arch/$(CONFIG_ARCH)/src
+ARCH_INC := $(TOPDIR)/arch/$(CONFIG_ARCH)/include
+ARCH_LEDC_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(LEDC_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_LEDC_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_LEDC_SRC_PATH)/platform
+
+# Include the  module.
+ifeq ($(CONFIG_LED_RGB_WS2812),y)
+CHIP_CSRCS += $(LEDC_PATH)/r528_ws2812.c
+CFLAGS += -Wunused-variable -Wunused-function
+else
+CHIP_CSRCS += $(LEDC_PATH)/hal_ledc.c
+CFLAGS += -Wunused-variable -Wunused-function
+endif
+
+endif
+

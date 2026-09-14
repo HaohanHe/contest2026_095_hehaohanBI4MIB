@@ -1,0 +1,5 @@
+DRV_SPI_PATH=drv/spi
+
+ifeq ($(CONFIG_DRIVERS_SPI), y)
+CHIP_CSRCS += $(DRV_SPI_PATH)/drv_spi.c
+endif

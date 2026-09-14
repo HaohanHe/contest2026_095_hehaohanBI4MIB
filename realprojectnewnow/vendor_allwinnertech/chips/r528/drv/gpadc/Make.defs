@@ -1,0 +1,5 @@
+DRV_GPADC_PATH=drv/gpadc
+
+ifeq ($(CONFIG_DRIVERS_GPADC), y)
+CHIP_CSRCS += $(DRV_GPADC_PATH)/drv_gpadc.c
+endif

@@ -1,0 +1,41 @@
+ifeq ($(CONFIG_DRIVERS_SDMMC),y)
+# Include platform's table.
+# Include build support
+
+DRV_SOURCE_PATH=drivers/rtos-hal/hal/source
+SDMMC_PATH=drivers/rtos-hal/hal/source/sdmmc
+SDMMC_INC_PATH=drivers/rtos-hal/include/hal/sdmmc
+
+DEPPATH+=--dep-path $(SDMMC_PATH) 
+VPATH+=:chip/$(SDMMC_PATH)
+
+#SDMMC_CUR_SRC_PATH:=$(ARCH_SRC)/$(CONFIG_ARCH_CHIP)/$(SDMMC_PATH)
+ARCH_SDMMC_SRC_PATH:=$(AW_SRCDIR)/$(SDMMC_INC_PATH)
+
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_SDMMC_SRC_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_SDMMC_SRC_PATH)/hal
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_SDMMC_SRC_PATH)/sys
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_SDMMC_SRC_PATH)/osal
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_SDMMC_SRC_PATH)/os
+
+# Include the  module.
+
+CHIP_CSRCS += $(SDMMC_PATH)/core.c
+CHIP_CSRCS += $(SDMMC_PATH)/hal_sdpin.c
+CHIP_CSRCS += $(SDMMC_PATH)/hal_sdhost.c
+#CHIP_CSRCS += $(SDMMC_PATH)/mmc.c
+CHIP_CSRCS += $(SDMMC_PATH)/quirks.c
+#CHIP_CSRCS += $(SDMMC_PATH)/sd.c
+#CHIP_CSRCS += $(SDMMC_PATH)/sdio.c
+CHIP_CSRCS += $(SDMMC_PATH)/test.c
+#CHIP_CSRCS += $(SDMMC_PATH)/sdio_irq.c
+ifeq ($(CONFIG_USE_SDMMC_MULT),y)
+    CHIP_CSRCS += $(SDMMC_PATH)/nuttx_sdio_mult.c
+else
+    CHIP_CSRCS += $(SDMMC_PATH)/nuttx_sdio.c
+endif
+CHIP_CSRCS += $(SDMMC_PATH)/cmd/cmd_sd.c
+
+include $(AW_SRCDIR)/$(SDMMC_PATH)/osal/Make.defs
+
+endif

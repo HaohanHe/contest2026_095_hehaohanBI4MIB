@@ -1,0 +1,46 @@
+ifeq ($(CONFIG_DRIVERS_NAND_FLASH),y)
+# Include platform's table.
+# Include build support
+
+NAND_FLASH_PATH=$(DRV_SOURCE_PATH)/nand_flash
+
+DEPPATH+=--dep-path $(NAND_FLASH_PATH)
+VPATH+=:chip/$(NAND_FLASH_PATH)
+
+ARCH_NAND_FLASH_SRC_PATH:=$(ARCH_SRC)/chip/$(NAND_FLASH_PATH)
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_NAND_FLASH_SRC_PATH)/include
+CFLAGS += ${INCDIR_PREFIX}$(ARCH_NAND_FLASH_SRC_PATH)/lib/include
+
+# Include the  module.
+EXTRA_LIBPATHS += -L $(ARCH_SRC)/chip/$(NAND_FLASH_PATH)
+ifeq ($(CONFIG_MM_KASAN),y)
+EXTRA_LIBS += -lnuttx_sun8iw20p1_nandflash_kasan
+else
+EXTRA_LIBS += -lnuttx_sun8iw20p1_nandflash
+endif
+
+CHIP_CSRCS += $(NAND_FLASH_PATH)/nuttx_nand_init.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/nuttx_nand_debug.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/req_proxy.c
+
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_osal_for_rtos.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_format.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_phy.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_scan.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_global.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/uboot_tail_spinand.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_id.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_physic_interface_spinand.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/spic_op.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_ecc_op.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/spi_nand2.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/build_nand_partition.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/build_phy_partition.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_info_init.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_physic_interface.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_secure_storage.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/nand_ota.c
+CHIP_CSRCS += $(NAND_FLASH_PATH)/src/uboot_tail.c
+
+endif
+

@@ -1,0 +1,566 @@
+{
+  "total_links": 91,
+  "total_unique_tokens": 13,
+  "all_links": [
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#O3eDdnEOho6IcvxsZP8caY6mnBd",
+      "text": "🎚️\nGemini-S1 开发板"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#BCqmdSNyyoipXAxIfdRcobYsnUb",
+      "text": "▶ 强劲内核，稳定可靠"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#TBIDdmfoqoqquIxB5y8c97nMnue",
+      "text": "▶ 开放系统，生态赋能"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#L34addTTvoXuDExnzqDcihUsnMf",
+      "text": "▶ 直观交互，所见即所得"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#CNI9dcrhsobGUDxIxbvcXU6snvg",
+      "text": "▶ 语音智能，本地响应"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#TsLfdw7GVonvH1xwyYMcOnZ5n2b",
+      "text": "▶ 多模联网，无缝连接"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#WyDedWGybouQbbxqORxc234cnHg",
+      "text": "▶ 接口丰富，扩展无限"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#UoJGdKCcloGEuJxTbD1cNBVvnMf",
+      "text": "▶ 环境感知，万物互联"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#M9Oxd5BQpoMrcSxk0W8cOv4MnfO",
+      "text": "创意无限，应用广泛"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#EK6xdGGhwozC0DxcotZczUJnnPh",
+      "text": "核心特色"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#Nz3SdrLmpoy2AvxJdPOcqmZZnTe",
+      "text": "📚 资料下载"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#P9U9dbzPIopnXUxnx5ucAd1znlb",
+      "text": "📖 开发者使用手册"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#TENLd37AroCSnwxx9nNceAn6nSd",
+      "text": "文档导航"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#HEZUdTfazosOcqxxJm9cLxHZnCe",
+      "text": "1. 入门指南"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#MtCWdmjBXo4m4ExOFxHcCE0Hnzb",
+      "text": "2. 硬件手册"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#BCYJdb6OborGm9xke8qcgNAnnZb",
+      "text": "3. 驱动开发"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#RycYd7rlsoF2cfxNDnzcFKZNn2f",
+      "text": "4. 场景应用"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#OU0NdqcTUoyeZZx3c2pcij0Qn0F",
+      "text": "4. 故障排除"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#XJEcdkDVmo1BlExgW9ecvDHknPf",
+      "text": "5. 板载功能持续更新中"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#TgjZdtmBMoRRhexSwCqcn4NHnqh",
+      "text": "🚀 快速开始"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#EsXWdx2M4oQdXnxWlY9cKNGznfe",
+      "text": "5分钟上手指南"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#G3aydKCreoCtEFx2RKxcVwfbnJb",
+      "text": "开发社区"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#Vad9dl5HooocoGxl2RWcl4tknxS",
+      "text": "技术支持"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Onndw4lmniFBnEk0Rb7cDbwOnTc#R1PLdoTGzofZ4FxhdcBc4vsXncc",
+      "text": "📅 更新日志"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/VTNXw1TiJikp7IkoUIccO4CHnae",
+      "text": "Sensor驱动开发示例1"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/NFZtwKOXMi3z3dkQZlecQaONnBc",
+      "text": "Sensor驱动开发示例2"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Rjp8we1oviCrsgk9OkccFvOhnJh",
+      "text": "按键驱动开发"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/BEuKwE7soiYqpgkfanLc80upnqb",
+      "text": "网络配置"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/JupcwY42yiGBJHkr4v0cs453nje",
+      "text": "蓝牙开发概述"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/ATxowcM8siHkAKkWvLRclI7RnYe?fromScene=spaceOverview",
+      "text": "音频驱动"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/O7P3wW0IhivuEKkSvNXclR8enZc",
+      "text": "led灯控制程序"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/JtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "text": "图形页面开"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/JtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "text": "·"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/JtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "text": "发示例"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/DatswzFGAiPdbSkc5wGc5TVcnhf?fromScene=spaceOverview",
+      "text": "Deepseek工具"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/Ctk2wRJT3iMBPokAV4gcgkltn5c?fromScene=spaceOverview",
+      "text": "常见问题FAQ"
+    },
+    {
+      "type": "a",
+      "href": "https://rivotek.feishu.cn/wiki/TOccwKc3Ni8BZqkPRZWcVPVjnMf?fromScene=spaceOverview",
+      "text": "系统日志分析"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FVTNXw1TiJikp7IkoUIccO4CHnae",
+      "text": "Sensor驱动开发示例1"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FNFZtwKOXMi3z3dkQZlecQaONnBc",
+      "text": "Sensor驱动开发示例2"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FRjp8we1oviCrsgk9OkccFvOhnJh",
+      "text": "按键驱动开发"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FBEuKwE7soiYqpgkfanLc80upnqb",
+      "text": "网络配置"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJupcwY42yiGBJHkr4v0cs453nje",
+      "text": "蓝牙开发概述"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FATxowcM8siHkAKkWvLRclI7RnYe%3FfromScene%3DspaceOverview",
+      "text": "音频驱动"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FO7P3wW0IhivuEKkSvNXclR8enZc",
+      "text": "led灯控制程序"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "text": "图形页面开"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "text": "·"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "text": "发示例"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FDatswzFGAiPdbSkc5wGc5TVcnhf%3FfromScene%3DspaceOverview",
+      "text": "Deepseek工具"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FCtk2wRJT3iMBPokAV4gcgkltn5c%3FfromScene%3DspaceOverview",
+      "text": "常见问题FAQ"
+    },
+    {
+      "type": "data-href",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FTOccwKc3Ni8BZqkPRZWcVPVjnMf%3FfromScene%3DspaceOverview",
+      "text": "系统日志分析"
+    },
+    {
+      "type": "data-href",
+      "href": "mailto%3Aopenvela_team%40rivotek.com",
+      "text": "openvela_team@rivotek.com"
+    },
+    {
+      "type": "data-token",
+      "token": "O3eDdnEOho6IcvxsZP8caY6mnBd",
+      "text": "🎚️"
+    },
+    {
+      "type": "sidebar",
+      "href": "#O3eDdnEOho6IcvxsZP8caY6mnBd",
+      "token": "",
+      "text": "🎚️\nGemini-S1 开发板",
+      "className": "container catalogue__item-title doc-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "",
+      "token": "O3eDdnEOho6IcvxsZP8caY6mnBd",
+      "text": "🎚️",
+      "className": "custom-icon custom-icon-popover-on-picked gpf-biz-suite-custom-icon__icon-wrapper"
+    },
+    {
+      "type": "sidebar",
+      "href": "#BCqmdSNyyoipXAxIfdRcobYsnUb",
+      "token": "",
+      "text": "▶ 强劲内核，稳定可靠",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#TBIDdmfoqoqquIxB5y8c97nMnue",
+      "token": "",
+      "text": "▶ 开放系统，生态赋能",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#L34addTTvoXuDExnzqDcihUsnMf",
+      "token": "",
+      "text": "▶ 直观交互，所见即所得",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#CNI9dcrhsobGUDxIxbvcXU6snvg",
+      "token": "",
+      "text": "▶ 语音智能，本地响应",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#TsLfdw7GVonvH1xwyYMcOnZ5n2b",
+      "token": "",
+      "text": "▶ 多模联网，无缝连接",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#WyDedWGybouQbbxqORxc234cnHg",
+      "token": "",
+      "text": "▶ 接口丰富，扩展无限",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#UoJGdKCcloGEuJxTbD1cNBVvnMf",
+      "token": "",
+      "text": "▶ 环境感知，万物互联",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#M9Oxd5BQpoMrcSxk0W8cOv4MnfO",
+      "token": "",
+      "text": "创意无限，应用广泛",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#EK6xdGGhwozC0DxcotZczUJnnPh",
+      "token": "",
+      "text": "核心特色",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#Nz3SdrLmpoy2AvxJdPOcqmZZnTe",
+      "token": "",
+      "text": "📚 资料下载",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#P9U9dbzPIopnXUxnx5ucAd1znlb",
+      "token": "",
+      "text": "📖 开发者使用手册",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#TENLd37AroCSnwxx9nNceAn6nSd",
+      "token": "",
+      "text": "文档导航",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#HEZUdTfazosOcqxxJm9cLxHZnCe",
+      "token": "",
+      "text": "1. 入门指南",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#MtCWdmjBXo4m4ExOFxHcCE0Hnzb",
+      "token": "",
+      "text": "2. 硬件手册",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#BCYJdb6OborGm9xke8qcgNAnnZb",
+      "token": "",
+      "text": "3. 驱动开发",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#RycYd7rlsoF2cfxNDnzcFKZNn2f",
+      "token": "",
+      "text": "4. 场景应用",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#OU0NdqcTUoyeZZx3c2pcij0Qn0F",
+      "token": "",
+      "text": "4. 故障排除",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#XJEcdkDVmo1BlExgW9ecvDHknPf",
+      "token": "",
+      "text": "5. 板载功能持续更新中",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#TgjZdtmBMoRRhexSwCqcn4NHnqh",
+      "token": "",
+      "text": "🚀 快速开始",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#EsXWdx2M4oQdXnxWlY9cKNGznfe",
+      "token": "",
+      "text": "5分钟上手指南",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#G3aydKCreoCtEFx2RKxcVwfbnJb",
+      "token": "",
+      "text": "开发社区",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#Vad9dl5HooocoGxl2RWcl4tknxS",
+      "token": "",
+      "text": "技术支持",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "#R1PLdoTGzofZ4FxhdcBc4vsXncc",
+      "token": "",
+      "text": "📅 更新日志",
+      "className": "container catalogue__item-title"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FVTNXw1TiJikp7IkoUIccO4CHnae",
+      "token": "",
+      "text": "Sensor驱动开发示例1",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FNFZtwKOXMi3z3dkQZlecQaONnBc",
+      "token": "",
+      "text": "Sensor驱动开发示例2",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FRjp8we1oviCrsgk9OkccFvOhnJh",
+      "token": "",
+      "text": "按键驱动开发",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FBEuKwE7soiYqpgkfanLc80upnqb",
+      "token": "",
+      "text": "网络配置",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJupcwY42yiGBJHkr4v0cs453nje",
+      "token": "",
+      "text": "蓝牙开发概述",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FATxowcM8siHkAKkWvLRclI7RnYe%3FfromScene%3DspaceOverview",
+      "token": "",
+      "text": "音频驱动",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FO7P3wW0IhivuEKkSvNXclR8enZc",
+      "token": "",
+      "text": "led灯控制程序",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "token": "",
+      "text": "图形页面开",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "token": "",
+      "text": "·",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FJtP2wBTl2iVketkcQ8ucFt4Znpd",
+      "token": "",
+      "text": "发示例",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FDatswzFGAiPdbSkc5wGc5TVcnhf%3FfromScene%3DspaceOverview",
+      "token": "",
+      "text": "Deepseek工具",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FCtk2wRJT3iMBPokAV4gcgkltn5c%3FfromScene%3DspaceOverview",
+      "token": "",
+      "text": "常见问题FAQ",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "https%3A%2F%2Frivotek.feishu.cn%2Fwiki%2FTOccwKc3Ni8BZqkPRZWcVPVjnMf%3FfromScene%3DspaceOverview",
+      "token": "",
+      "text": "系统日志分析",
+      "className": "link contextmenu-without-copyperm"
+    },
+    {
+      "type": "sidebar",
+      "href": "mailto%3Aopenvela_team%40rivotek.com",
+      "token": "",
+      "text": "openvela_team@rivotek.com",
+      "className": "link contextmenu-without-copyperm"
+    }
+  ],
+  "all_tokens": [
+    "ATxowcM8siHkAKkWvLRclI7RnYe",
+    "BEuKwE7soiYqpgkfanLc80upnqb",
+    "Ctk2wRJT3iMBPokAV4gcgkltn5c",
+    "DatswzFGAiPdbSkc5wGc5TVcnhf",
+    "JtP2wBTl2iVketkcQ8ucFt4Znpd",
+    "JupcwY42yiGBJHkr4v0cs453nje",
+    "NFZtwKOXMi3z3dkQZlecQaONnBc",
+    "O3eDdnEOho6IcvxsZP8caY6mnBd",
+    "O7P3wW0IhivuEKkSvNXclR8enZc",
+    "Onndw4lmniFBnEk0Rb7cDbwOnTc",
+    "Rjp8we1oviCrsgk9OkccFvOhnJh",
+    "TOccwKc3Ni8BZqkPRZWcVPVjnMf",
+    "VTNXw1TiJikp7IkoUIccO4CHnae"
+  ],
+  "found_keywords": {
+    "烧录": "​\n​\n​\n🚀 快速开始​\n5分钟上手指南​\n1.\n下载资料 - 获取原理图、固件和SDK​\n2.\n烧录系统 - 使用烧录工具烧录openvela image​\n3.\n连接外设 - 接上显示屏和传感器(非必选)​\n4.\n运行示例 - 体验luncher_mini​\n开发社区​\n•\n微信公众号：润芯微",
+    "显示屏": "DK​\n2.\n烧录系统 - 使用烧录工具烧录openvela image​\n3.\n连接外设 - 接上显示屏和传感器(非必选)​\n4.\n运行示例 - 体验luncher_mini​\n开发社区​\n•\n微信公众号：润芯微科技​\n技术支持​\n•\n邮箱：openvela_team@rivotek.com​\n​",
+    "内核": "S1 开发板\n\n最新修改时间为06月11日\n\n登录/注册\n🎚️\nGemini-S1 开发板\n▶ 强劲内核，稳定可靠\n▶ 开放系统，生态赋能\n▶ 直观交互，所见即所得\n▶ 语音智能，本地响应\n▶ 多模联网，无缝连接\n▶ 接口丰富，扩展无限\n▶ 环境感知，万物互联\n创意无限，应用广泛\n核心特色\n📚 资料",
+    "audio": " - 调试与错误诊断​\n5.\n板载功能持续更新中​\n•\nUsb host​\n•\nCamera​\n•\nAudio DSP​\n​\n​\n🚀 快速开始​\n5分钟上手指南​\n1.\n下载资料 - 获取原理图、固件和SDK​\n2.\n烧录系统 - 使用烧录工具烧录openvela image​\n3.\n连接外设 - ",
+    "deepseek": "灯控制程序 - 创建第一个简单的led灯控制程序​\n•\n图形页面开·发示例 -第一个图形页面​\n•\nDeepseek工具 -网络应用开发示例​\n4.\n故障排除​\n•\n常见问题FAQ - 最常遇到的问题​\n•\n系统日志分析 - 调试与错误诊断​\n5.\n板载功能持续更新中​\n•\nUsb host​\n•\n",
+    "工具": "创建第一个简单的led灯控制程序​\n•\n图形页面开·发示例 -第一个图形页面​\n•\nDeepseek工具 -网络应用开发示例​\n4.\n故障排除​\n•\n常见问题FAQ - 最常遇到的问题​\n•\n系统日志分析 - 调试与错误诊断​\n5.\n板载功能持续更新中​\n•\nUsb host​\n•\nCamera​\n",
+    "传感器": "\n🎚️\nGemini-S1 开发板​\n•\nSensor驱动开发示例1 - LTR553 环境光与接近传感器器实现概述​\n•\nSensor驱动开发示例2 - SHTC3 温湿度传感器实现概述​\n•\n按键驱动开发 - 基于adc的按键驱动实现​\n•\n网络配置 - Wi-Fi配置与管理​\n•\n蓝牙开发概述",
+    "sensor": "快速开始\n5分钟上手指南\n开发社区\n技术支持\n📅 更新日志\n🎚️\nGemini-S1 开发板​\n•\nSensor驱动开发示例1 - LTR553 环境光与接近传感器器实现概述​\n•\nSensor驱动开发示例2 - SHTC3 温湿度传感器实现概述​\n•\n按键驱动开发 - 基于adc的按键驱动实现​\n"
+  },
+  "page_text_length": 1007,
+  "page_text_sample": "飞书云文档\nO\nopenvela Rivotek GeminiS1开发板\n目录（暂无内容）\n与我分享\n🎚️\nGemini-S1 开发板\n润芯微智能科技\n\n🎚️\nGemini-S1 开发板\n\n最新修改时间为06月11日\n\n登录/注册\n🎚️\nGemini-S1 开发板\n▶ 强劲内核，稳定可靠\n▶ 开放系统，生态赋能\n▶ 直观交互，所见即所得\n▶ 语音智能，本地响应\n▶ 多模联网，无缝连接\n▶ 接口丰富，扩展无限\n▶ 环境感知，万物互联\n创意无限，应用广泛\n核心特色\n📚 资料下载\n📖 开发者使用手册\n文档导航\n1. 入门指南\n2. 硬件手册\n3. 驱动开发\n4. 场景应用\n4. 故障排除\n5. 板载功能持续更新中\n🚀 快速开始\n5分钟上手指南\n开发社区\n技术支持\n📅 更新日志\n🎚️\nGemini-S1 开发板​\n•\nSensor驱动开发示例1 - LTR553 环境光与接近传感器器实现概述​\n•\nSensor驱动开发示例2 - SHTC3 温湿度传感器实现概述​\n•\n按键驱动开发 - 基于adc的按键驱动实现​\n•\n网络配置 - Wi-Fi配置与管理​\n•\n蓝牙开发概述 - 蓝牙开发概述​\n•\n音频驱动 -介绍音频模块​\n4.\n场景应用​\n•\nled灯控制程序 - 创建第一个简单的led灯控制程序​\n•\n图形页面开·发示例 -第一个图形页面​\n•\nDeepseek工具 -网络应用开发示例​\n4.\n故障排除​\n•\n常见问题FAQ - 最常遇到的问题​\n•\n系统日志分析 - 调试与错误诊断​\n5.\n板载功能持续更新中​\n•\nUsb host​\n•\nCamera​\n•\nAudio DSP​\n​\n​\n🚀 快速开始​\n5分钟上手指南​\n1.\n下载资料 - 获取原理图、固件和SDK​\n2.\n烧录系统 - 使用烧录工具烧录openvela image​\n3.\n连接外设 - 接上显示屏和传感器(非必选)​\n4.\n运行示例 - 体验luncher_mini​\n开发社区​\n•\n微信公众号：润芯微科技​\n技术支持​\n•\n邮箱：openvela_team@rivotek.com​\n​\n​\n📅 更新日志​\n​\n​\n​\n​\n​\n提示：所有文档和工具会持续更新，建议定期访问本页面获取最新版本。​\n​\n​\n​\n开启您的智能硬件开发之旅，从Gemini-S1开始！​\n​\n​\n评论（0）\n帮助中心\n效率指南\n加载中..."
+}

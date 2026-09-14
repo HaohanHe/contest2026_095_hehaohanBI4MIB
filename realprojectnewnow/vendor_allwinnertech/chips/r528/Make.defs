@@ -1,0 +1,158 @@
+############################################################################
+# chips/r528/Make.defs
+#
+# Chip-level Make.defs for Allwinner R528.
+# This file defines the source files and include paths for the R528 chip.
+############################################################################
+
+#---------------------------------------------------------------------------
+# Section 1: ARM Architecture Base
+#---------------------------------------------------------------------------
+include armv7-a/Make.defs
+
+#---------------------------------------------------------------------------
+# Section 2: Path Definitions
+#---------------------------------------------------------------------------
+AW_SRCDIR     = $(TOPDIR)/$(patsubst "%",%,$(CONFIG_ARCH_CHIP_CUSTOM_DIR))
+AW_VENDOR_DIR = $(TOPDIR)/../vendor/allwinnertech
+
+# Include common definitions
+include $(AW_VENDOR_DIR)/Common.mk
+
+#---------------------------------------------------------------------------
+# Section 3: Common Header Paths (needed for both source and binary modes)
+#---------------------------------------------------------------------------
+# Force include config.h
+CFLAGS   += -include $(TOPDIR)/include/nuttx/config.h
+CPPFLAGS += -include $(TOPDIR)/include/nuttx/config.h
+
+# Chip internal headers
+INCLUDES += ${INCDIR_PREFIX}$(AW_SRCDIR)/internal_inc
+INCLUDES += ${INCDIR_PREFIX}$(AW_SRCDIR)/hardware
+
+# Third-party headers
+INCLUDES += ${INCDIR_PREFIX}$(AW_VENDOR_DIR)/xiaomi/mitee_iot/ca/triad
+
+# RTOS-HAL driver headers
+$(eval $(AW_ADD_HAL_INCLUDES))
+
+# Component headers
+INCLUDES += ${INCDIR_PREFIX}$(AW_VENDOR_DIR)/chips/r528/components/secure_storage
+
+# WiFi headers (needed for r528_wlan.c)
+ifeq ($(CONFIG_IEEE80211_REALTEK_WIFI),y)
+$(eval $(AW_ADD_WIFI_INCLUDES))
+endif
+
+# Architecture headers
+INCLUDES += ${INCDIR_PREFIX}$(TOPDIR)/arch/arm/include/armv7-a
+
+#---------------------------------------------------------------------------
+# Section 4: Library Linking (for Binary-only Mode)
+#---------------------------------------------------------------------------
+ifeq ($(CONFIG_ALLWINNER_BINARY_ONLY),y)
+EXTRA_LIBPATHS += -L$(AW_VENDOR_DIR)/libs/r528
+EXTRA_LIBS     += -larch_allwinner
+
+EXTRA_LIBPATHS += -L$(AW_VENDOR_DIR)/libs/drivers/r528
+EXTRA_LIBS     += -ldrivers_r528
+
+# Missing NAND dependencies in binary-only mode
+ifeq ($(CONFIG_DRIVERS_NAND_FLASH),y)
+EXTRA_LIBPATHS += -L$(AW_HAL_DIR)/hal/source/nand_flash
+ifeq ($(CONFIG_MM_KASAN),y)
+EXTRA_LIBS     += -lnuttx_sun8iw20p1_nandflash_kasan
+else
+EXTRA_LIBS     += -lnuttx_sun8iw20p1_nandflash
+endif
+endif
+
+endif
+
+# Secure library (always linked if enabled)
+ifeq ($(CONFIG_ARCH_TRUSTZONE_SECURE),y)
+EXTRA_LIBPATHS += -L $(AW_SRCDIR)
+EXTRA_LIBS     += -lr528_secure
+endif
+
+#---------------------------------------------------------------------------
+# Section 5: Source File Initialization
+#---------------------------------------------------------------------------
+CHIP_ASRCS =
+CHIP_CSRCS =
+
+#---------------------------------------------------------------------------
+# Section 6: Sub-module Includes (drivers, components, drv)
+#---------------------------------------------------------------------------
+include $(AW_SRCDIR)/drivers/Make.defs
+include $(AW_SRCDIR)/components/Make.defs
+include $(AW_SRCDIR)/drv/Make.defs
+
+#---------------------------------------------------------------------------
+# Section 7: Core Source File Registration (only for Source Mode)
+#---------------------------------------------------------------------------
+ifneq ($(CONFIG_ALLWINNER_BINARY_ONLY),y)
+
+# Idle customization
+ifeq ($(CONFIG_ARCH_IDLE_CUSTOM),y)
+CMN_CSRCS += r528_idle.c
+endif
+
+# Core chip sources
+CHIP_CSRCS += r528_boot.c r528_serial.c r528_irq.c spare_head.c
+CHIP_CSRCS += r528_lowputc.c secondary.c mi_boardctl.c mi_hw_version.c
+
+ifeq ($(CONFIG_BOARD_USBDEV_SERIALSTR),y)
+CHIP_CSRCS += mi_serialstr.c
+endif
+
+ifeq ($(CONFIG_SMP),y)
+CHIP_CSRCS += r528_cpuboot.c
+endif
+
+ifeq ($(CONFIG_SCHED_TICKLESS),y)
+ifneq ($(CONFIG_ONESHOT_AS_TICK),y)
+CHIP_CSRCS += r528_tickless_timer.c
+endif
+else
+CHIP_CSRCS += r528_timerisr.c
+endif
+
+# Watchdog
+ifeq ($(CONFIG_R528_WATCHDOG),y)
+CHIP_CSRCS += r528_wdt.c sunxi_hal_wdt.c
+endif
+
+# Reset
+ifeq ($(CONFIG_R528_RESET),y)
+CHIP_CSRCS += r528_reset.c
+endif
+
+# RPTUN (DSP support)
+ifeq ($(CONFIG_AW_RPTUN),y)
+CHIP_CSRCS += dsp_boot.c r528_rptun.c r528_dsp_wdt.c
+endif
+
+ifeq ($(CONFIG_AW_RPTUN_SECURE),y)
+CHIP_CSRCS += r528_rptun_secure.c
+endif
+
+
+# WiFi
+ifeq ($(CONFIG_IEEE80211_REALTEK_WIFI),y)
+CHIP_CSRCS += r528_wlan.c
+endif
+
+# BROM protection
+ifeq ($(CONFIG_R528_PROTECT_BROM),y)
+CHIP_CSRCS += r528_watchpoint.c
+endif
+
+endif # CONFIG_ALLWINNER_BINARY_ONLY
+
+#---------------------------------------------------------------------------
+# Section 7: Build Path Setup
+#---------------------------------------------------------------------------
+VPATH      += $(ARCH_SRCDIR)
+CHIP_CSRCS := $(patsubst %,chip/%,$(CHIP_CSRCS))
+CHIP_ASRCS := $(patsubst %,chip/%,$(CHIP_ASRCS))

@@ -1,0 +1,5 @@
+config AW_SUNXI_SECURE_STORAGE_TEST
+	bool "Allwinner secure storage test"
+#depends on SND_COMMON_SUNXI_ALG_CFG
+	default y 
+

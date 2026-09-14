@@ -1,0 +1,5 @@
+ifneq ($(CONFIG_HAL_TEST_TWI),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/twi
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/twi
+endif
+

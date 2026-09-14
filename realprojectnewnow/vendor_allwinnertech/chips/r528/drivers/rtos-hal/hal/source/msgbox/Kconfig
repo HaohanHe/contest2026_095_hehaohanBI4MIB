@@ -1,0 +1,11 @@
+menu "Message Box Devices"
+
+config DRIVERS_MSGBOX
+	bool "enable Message Box driver"
+		default n
+
+config HAL_TEST_MSGBOX
+	bool "enable msgbox hal APIs test command"
+		depends on DRIVERS_MSGBOX
+		default n
+endmenu

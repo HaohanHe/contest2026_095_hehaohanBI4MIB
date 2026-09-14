@@ -1,0 +1,5 @@
+HWSPINLOCK_PATH=drivers/rtos-hal/hal/source/hwspinlock
+
+ifeq ($(CONFIG_DRIVERS_HWSPINLOCK), y)
+CHIP_CSRCS += $(HWSPINLOCK_PATH)/hal_hwspinlock.c
+endif

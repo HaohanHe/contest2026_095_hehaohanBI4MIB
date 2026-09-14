@@ -1,0 +1,28 @@
+############################################################################
+# vendor/allwinnertech/Make.defs
+#
+# Top-level Make.defs for Allwinnertech vendor.
+# This file is included by the NuttX apps build system to register
+# Allwinnertech applications.
+############################################################################
+
+# Derive current folder name to check if we are for the correct board
+CUR_FOLDER := $(notdir $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST)))))
+
+# Base paths
+AW_VENDOR_DIR := $(APPDIR)/vendor/allwinnertech
+AW_CHIP_DIR   := $(AW_VENDOR_DIR)/chips/r528
+
+# Only include if this vendor matches the board config
+ifeq ($(findstring $(CUR_FOLDER),$(CONFIG_ARCH_BOARD_CUSTOM_DIR)), $(CUR_FOLDER))
+
+# HAL test applications (optional)
+include $(wildcard $(AW_CHIP_DIR)/drivers/rtos-hal/hal/test/Make.defs)
+
+# Component applications
+include $(wildcard $(AW_CHIP_DIR)/components/Make.defs)
+
+# Vendor applications
+include $(AW_VENDOR_DIR)/apps/Make.defs
+
+endif # CUR_FOLDER check

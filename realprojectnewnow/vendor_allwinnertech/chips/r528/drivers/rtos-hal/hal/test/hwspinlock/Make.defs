@@ -1,0 +1,4 @@
+ifneq ($(CONFIG_HAL_TEST_HWSPINLOCK),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/hwspinlock
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/hwspinlock
+endif

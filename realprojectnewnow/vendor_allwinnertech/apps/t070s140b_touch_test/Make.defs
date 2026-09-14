@@ -1,0 +1,10 @@
+############################################################################
+# apps/examples/t070s140b_touch_test/Make.defs
+#
+# T070S140B LCD IIC Touchscreen Test Application Make.defs
+#
+############################################################################
+
+ifneq ($(CONFIG_EXAMPLES_T070S140B_TOUCH_TEST),)
+CONFIGURED_APPS += $(APPDIR)/vendor/allwinnertech/apps/t070s140b_touch_test
+endif

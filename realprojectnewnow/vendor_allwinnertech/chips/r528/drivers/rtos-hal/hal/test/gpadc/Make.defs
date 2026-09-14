@@ -1,0 +1,5 @@
+ifneq ($(CONFIG_HAL_TEST_GPADC),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/gpadc
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/gpadc
+endif
+

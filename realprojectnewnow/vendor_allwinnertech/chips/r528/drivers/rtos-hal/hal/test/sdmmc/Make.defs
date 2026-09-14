@@ -1,0 +1,5 @@
+ifneq ($(CONFIG_HAL_TEST_SDMMC),)
+CONFIGURED_APPS	+= $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/sdmmc
+CLEANDIRS += $(APPDIR)/vendor/allwinnertech/chips/r528/drivers/rtos-hal/hal/test/sdmmc
+endif
+

@@ -1,0 +1,7 @@
+menu "libuapi"
+
+config LIBUAPI
+    bool "allwinner libuapi support"
+        default n
+
+endmenu

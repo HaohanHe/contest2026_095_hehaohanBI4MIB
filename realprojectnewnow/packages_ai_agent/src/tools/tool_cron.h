@@ -1,0 +1,49 @@
+/*
+ * Copyright (C) 2026 Xiaomi Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * This file contains code derived from MimiClaw (https://github.com/memovai/mimiclaw)
+ * Copyright (c) 2026 Ziboyan Wang, licensed under the MIT License.
+ * See NOTICE file for the original MIT License terms.
+ */
+
+#pragma once
+/**
+ * tool_cron.h — Cron tool handlers for AI Agent (Vela/NuttX port)
+ *
+ */
+
+#include "agent_compat.h"
+#include <stddef.h>
+
+/**
+ * Add a scheduled cron job.
+ * Input JSON: { name, schedule_type ("every"/"at"), interval_s, at_epoch,
+ *               message, channel?, chat_id? }
+ */
+int tool_cron_add_execute(const char *input_json, char *output, size_t output_size);
+
+/**
+ * List all scheduled cron jobs.
+ * Input JSON: {} (no required fields)
+ */
+int tool_cron_list_execute(const char *input_json, char *output, size_t output_size);
+
+/**
+ * Remove a scheduled cron job by ID.
+ * Input JSON: { job_id }
+ */
+int tool_cron_remove_execute(const char *input_json, char *output, size_t output_size);
