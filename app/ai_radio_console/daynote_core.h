@@ -1,0 +1,160 @@
+/****************************************************************************
+ * Copyright (C) 2026 Xiaomi Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ****************************************************************************/
+
+#ifndef __DAYNOTE_CORE_H
+#define __DAYNOTE_CORE_H
+
+/****************************************************************************
+ * Included Files
+ ****************************************************************************/
+
+#include <stdbool.h>
+#include <stdint.h>
+
+/****************************************************************************
+ * Public Types
+ ****************************************************************************/
+
+typedef enum {
+    MEMO_TYPE_MEMO = 0,
+    MEMO_TYPE_TODO = 1,
+    MEMO_TYPE_SCHEDULE = 2,
+} memo_type_t;
+
+typedef struct {
+    uint32_t id;
+    memo_type_t type;
+    char content[200];       /* Display summary */
+    char transcript[500];    /* Full ASR transcript */
+    char summary[200];       /* AI-generated summary */
+    char keywords[128];      /* Comma-separated keywords */
+    int64_t timestamp;
+    int64_t remind_at;
+    int32_t duration_ms;     /* Recording duration */
+    bool is_read;
+} memo_item_t;
+
+/****************************************************************************
+ * Public Function Prototypes
+ ****************************************************************************/
+
+int memo_store_init(const char* data_dir);
+void memo_store_deinit(void);
+int memo_store_load(void);
+int memo_store_save(void);
+void memo_store_flush(void);
+int memo_store_add(const memo_item_t* item);
+int memo_store_delete(uint32_t id);
+int memo_store_mark_read(uint32_t id);
+int memo_store_get_count(memo_type_t type, bool unread_only);
+int memo_store_get_all(memo_item_t* out, int max_items);
+int memo_store_get_recent(memo_item_t* out, int max_items);
+int memo_store_get_due_reminders(int64_t now, memo_item_t* out, int max_out);
+void memo_store_clear_all(void);
+
+/* -- Local Intent Classification ---------------------- */
+
+memo_type_t memo_classify_local(const char* text);
+
+/* -- Voice + AI Integration --------------------------- */
+
+typedef struct {
+    memo_type_t type;
+    char content[200];       /* Display summary */
+    char transcript[500];    /* Full ASR transcript */
+    char summary[200];       /* AI-generated summary */
+    char keywords[128];      /* Comma-separated keywords */
+    int64_t remind_at;
+} classify_result_t;
+
+/**
+ * Initialize VelaClaw client connection.
+ * Must be called before memo_voice_* or memo_ai_classify.
+ */
+int memo_agent_init(void);
+void memo_agent_deinit(void);
+bool memo_agent_is_connected(void);
+
+/**
+ * Start voice recording via voice_channel.
+ * Returns 0 on success, negative errno on failure.
+ */
+int memo_voice_start(void);
+
+/**
+ * Stop recording and get ASR transcription.
+ * text_out: buffer to receive transcribed text.
+ * text_cap: buffer capacity.
+ * Returns 0 on success, negative errno on failure.
+ */
+int memo_voice_stop(char* text_out, size_t text_cap);
+
+/**
+ * Classify text using VelaClaw LLM (async).
+ * Falls back to memo_classify_local if agent unavailable.
+ */
+typedef void (*memo_classify_cb)(int status,
+    const classify_result_t* result, void* cookie);
+int memo_classify_async(const char* text, memo_classify_cb cb, void* cookie);
+
+/**
+ * Classify text synchronously (uses LLM if available, else local).
+ * Returns 0 on success.
+ */
+int memo_classify_sync(const char* text, classify_result_t* result);
+
+/* -- VAD Auto-Recording ------------------------------- */
+
+typedef enum {
+    VAD_STATE_IDLE = 0,
+    VAD_STATE_LISTENING,
+    VAD_STATE_RECORDING,
+    VAD_STATE_PROCESSING
+} vad_state_t;
+
+/**
+ * Start VAD auto-recording background thread.
+ * Continuously monitors microphone, auto-records speech,
+ * sends to ASR + LLM summary, stores as memo.
+ */
+int memo_vad_start(void);
+
+/**
+ * Stop VAD auto-recording.
+ */
+void memo_vad_stop(void);
+
+/**
+ * Check if VAD is running.
+ */
+bool memo_vad_is_active(void);
+
+/**
+ * Get current audio energy level (RMS, 0-32767).
+ */
+int memo_vad_get_energy(void);
+
+/**
+ * Get current VAD state.
+ */
+vad_state_t memo_vad_get_state(void);
+
+/**
+ * Notify VAD that PTT is active (pauses VAD to free microphone).
+ */
+void memo_vad_notify_ptt(bool pressed);
+
+#endif /* __DAYNOTE_CORE_H */

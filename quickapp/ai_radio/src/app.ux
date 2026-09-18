@@ -1,0 +1,8 @@
+export default {
+  onCreate() {
+    console.log('AI Radio Console created')
+  },
+  onDestroy() {
+    console.log('AI Radio Console destroyed')
+  }
+}

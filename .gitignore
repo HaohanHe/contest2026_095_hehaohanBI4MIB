@@ -1,0 +1,26 @@
+# Build outputs
+/build/
+/out/
+cmake_out/
+*.o
+*.a
+*.bin
+*.img
+*.elf
+*.fex
+# IDE / AI tool dirs
+.kilo/
+.mimocode/
+.claude/
+.trae/
+.idea/
+.vscode/
+# Large upstream trees / local dumps that must never be committed
+realprojectnewnow/
+docs-dev/
+simulator/
+web_preview/
+wiki_tokens*.json
+crawl_*.py
+deep_scan*
+log.log
