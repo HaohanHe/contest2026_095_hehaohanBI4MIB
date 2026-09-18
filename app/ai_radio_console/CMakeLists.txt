@@ -1,0 +1,22 @@
+# Contest 2026 team 095 AI Radio Console (DayNote)
+if(CONFIG_LVX_USE_DEMO_CONTEST2026_095_AI_RADIO_CONSOLE)
+  nuttx_add_application(
+    NAME
+      daynote
+    SRCS
+      daynote_main.c
+      daynote_core.c
+      daynote_ui.c
+      daynote_mmdvm.c
+      daynote_asr.c
+    INCLUDE_DIRECTORIES
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${NUTTX_APPS_DIR}/packages/ai_agent/include
+      ${NUTTX_APPS_DIR}/packages/ai_agent/src
+      ${NUTTX_APPS_DIR}/include/netutils
+      ${NUTTX_APPS_DIR}/frameworks/connectivity/bluetooth/framework/include
+    PRIORITY
+      100
+    STACKSIZE
+      40960)
+endif()
