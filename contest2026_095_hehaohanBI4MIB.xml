@@ -9,8 +9,11 @@
   <include name="openvela.xml"/>
 
   <project path="contest2026_095_hehaohanBI4MIB" name="contest2026_095_hehaohanBI4MIB">
-    <linkfile src="app/hello_app" dest="packages/demos/contest2026_095_hello_app"/>
-    <linkfile src="quickapp/hello_quickapp" dest="packages/apps/contest2026_095_hello_quickapp"/>
+    <!-- AI 智能电台主控台 DayNote（NuttX 应用） -->
+    <linkfile src="app/ai_radio_console" dest="packages/demos/contest2026_095_ai_radio_console"/>
+    <!-- 配套快应用（手表/快应用端） -->
+    <linkfile src="quickapp/ai_radio" dest="packages/apps/contest2026_095_ai_radio"/>
+    <!-- Gemini-S1 板级配置（含 NSH defconfig 改动） -->
     <linkfile src="board/contest_board" dest="vendor/openvela/boards/contest2026_095_board"/>
   </project>
 </manifest>

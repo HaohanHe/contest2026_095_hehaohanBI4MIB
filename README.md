@@ -1,36 +1,69 @@
-# contest2026_095_hehaohanBI4MIB
+# DayNote · AI 智能电台主控台
 
-👋 欢迎参加 **2026 首届 openvela AI 硬件开发者大赛**！
+> 参赛队伍：**hehaohanBI4MIB**（何浩瀚 / HaohanHe，呼号 BI4MIB）
+> 赛道：AI 硬件产品创新
+> 平台：openvela（NuttX）on Gemini-S1（Allwinner R528）
 
-这是组委会为你的队伍创建的**专属参赛仓库**（本仓为样例/模板，队伍编号 `095`；你看到的将是你自己的 `contest2026_<编号>_<队伍名>`）。比赛期间，你的全部参赛代码、打包产物与 AI Coding 日志都提交到这里。
+## 一、作品简介
 
-> 本仓既是「代码仓」，又内置了一键拉取整套 openvela 工程的 `repo` 清单（manifest）。你只需跟它打交道，**自始至终只动一个文件夹**。
+在田间、野外架台、电台桌前，双手常常被占着——拧旋钮、握话筒、干农活，腾不出手打字记录。
+**DayNote 是一台"开口就能记、还能替你通联"的 AI 智能电台主控台**：对着设备说话，它自动完成
+**转写 → 理解 → 摘要 → 归档**，把口述沉淀成可检索的笔记；同时通过一块 **AI Radio HAT** 扩展板
+接入业余电台，用语音完成数字模式（MMDVM/DMR）通联与控制。
 
----
+它把三样东西合在了一台 320×240 小屏设备里：
 
-## 一、先读这些官方文档
+1. **全天候语音笔记**：PTT 或 VAD 触发录音，ASR 转写，LLM 自动分类（备忘 / 待办 / 日程）、摘要与关键词，时间线 + 卡片式回看；
+2. **AI Agent 技能体系**：记录、检索、每日回顾三个 Skill，端侧可离线兜底，联网时调用大模型；
+3. **业余电台主控**：MMDVM/DMR 热点逻辑、PTT、CAT 控制，配合 AI Radio HAT 硬件实现音频与控制接口。
 
-**通用（所有赛道必读）：**
+## 二、系统组成
 
-| 文档                                                                                                                                     | 用途                                           |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| [《大赛总览》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/contest_overview.md)                        | 赛道、流程、评分、资源，建议先通读             |
-| [《参赛代码提交指南》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/code_submission_guide.md)           | 仓库获取、提交流程、时间与权限（**以此为准**） |
-| [《AI Coding 日志归集与提交手册》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_coding_log_guide.md) | 如何导出 AI 对话日志并提交到 `logs/`           |
+```text
+┌─────────────────────────── Gemini-S1 (R528, openvela/NuttX) ───────────────────────────┐
+│                                                                                         │
+│   app/ai_radio_console（DayNote 主控，C）                                                │
+│   ├── daynote_main.c   主入口、LVGL/字体、主循环                                         │
+│   ├── daynote_core.c   笔记存储、分类、语音通道（ASR/LLM）                               │
+│   ├── daynote_ui.c     时间线 / 录音 / 回顾 / 卡片 四页 UI（320x240）                    │
+│   ├── daynote_asr.c    语音识别接入（ai_agent 火山 ASR，可切 SiliconFlow SenseVoice）    │
+│   ├── daynote_mmdvm.c  MMDVM/DMR 热点与电台控制逻辑                                      │
+│   └── agent_skills/    daynote-record / daynote-search / daynote-summary 三个 Skill      │
+│                                                                                         │
+│   quickapp/ai_radio（配套快应用：手机/手表端查看与联动）                                  │
+│   board/contest_board（板级配置：NSH defconfig 已开启所需能力）                          │
+│                                                                                         │
+│   ────────────────  AI Radio HAT（hardware/ai_radio_hat，外接）  ────────────────        │
+│   电台音频↔R528 LINEIN/HPOUT · 光耦隔离 PTT · CAT 串口 · I2C 传感器扩展                  │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
-**按你的赛道选读（三选一）：**
+- 基于 openvela 官方 **mini_memo + ai_agent** 框架重构，生产仓库（nuttx / packages / vendor）零改动；
+- 多 LLM 后端：DeepSeek / Kimi / 通义 / GLM / SiliconFlow（OpenAI 兼容）；
+- 断网降级：录音、本地规则分类、端侧检索与聚合均离线可用，恢复网络后补跑。
 
-| 赛道                  | 教程导航                                                                                                                                                 |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 快应用 / 手表应用创新 | [快应用教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/quickapp/quickapp_guide_index.md)                         |
-| AI 硬件产品创新       | [AI 硬件赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_hardware/ai_hardware_guide_index.md)              |
-| 新硬件适配            | [新硬件适配赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/hardware_porting/hardware_porting_guide_index.md) |
+## 三、仓库目录
 
----
+| 路径 | 内容 |
+|---|---|
+| `app/ai_radio_console/` | DayNote 主控应用（源码、构建脚本、Skill、方案文档） |
+| `quickapp/ai_radio/` | 配套快应用（manifest、首页 index.ux、i18n） |
+| `board/contest_board/` | Gemini-S1 板级配置（`configs/nsh/defconfig` 已修改） |
+| `hardware/ai_radio_hat/` | AI Radio HAT：KiCad / 嘉立创 EDA 工程、原理图、BOM |
+| `logs/HaohanHe/` | AI Coding 对话日志与会话清单 |
+| `contest2026_095_hehaohanBI4MIB.xml` | repo manifest，含各目录到编译树的 `<linkfile>` 映射 |
 
-## 二、第一步：拉取完整工程
+## 四、Agent Skills
 
-用组委会提供的命令一键拉取「openvela 全量源码 + 你的专属仓」：
+| Skill | 触发 | 能力 |
+|---|---|---|
+| `daynote-record` | "记录一下" / PTT / VAD 分段 | 录音 → ASR 转写 → LLM 分类摘要关键词 → 写入 `/data/daynote/memos.json`；断网走本地规则兜底 |
+| `daynote-search` | "找一下关于 X 的记录" / 回顾页检索 | 端侧按关键词 / 时间 / 类型检索笔记，卡片展示，结果不离开设备 |
+| `daynote-summary` | "总结一下今天" / 定时回顾 | 聚合当天笔记，输出今日高光、待办与关键词，LLM 生成连贯日报 |
+
+## 五、编译与烧录
+
+按官方方式拉取整套工程（本仓 manifest 会把各目录软链进编译树）：
 
 ```bash
 repo init -u https://github.com/open-vela/contest2026_095_hehaohanBI4MIB \
@@ -38,111 +71,37 @@ repo init -u https://github.com/open-vela/contest2026_095_hehaohanBI4MIB \
 repo sync -c -j8
 ```
 
-同步后，你的整个仓库位于工作区的 `contest2026_095_hehaohanBI4MIB/`，openvela 全量源码在外层（`nuttx/`、`apps/`、`packages/`、`vendor/` 等）。
-
----
-
-## 三、第二步：在哪里写代码
-
-**只在自己的仓目录 `contest2026_095_hehaohanBI4MIB/` 里开发。** 不同作品形态放在对应子目录，manifest 会通过 `<linkfile>` 把它们**软链**到 openvela 编译树该在的位置——你不用手动 copy：
-
-| 作品形态 | 你的代码放这里             | 系统自动映射到                                 |
-| -------- | -------------------------- | ---------------------------------------------- |
-| 应用     | `app/hello_app/`           | `packages/demos/contest2026_095_hello_app`     |
-| 快应用   | `quickapp/hello_quickapp/` | `packages/apps/contest2026_095_hello_quickapp` |
-| 板级适配 | `board/contest_board/`     | `vendor/openvela/boards/contest2026_095_board` |
-
-> 用不到的形态目录可以删掉；新增作品时按同样规则加子目录，并在 `contest2026_095_hehaohanBI4MIB.xml` 里补一条 `<linkfile>` 映射即可。**生产仓库（packages/nuttx/vendor 等）零改动。**
-
-建议仓库目录约定（便于评委定位）：
-
-```text
-app/ | quickapp/ | board/   # 你的作品代码
-logs/                       # AI Coding 日志（主动导出后提交，格式见 logs/README.md）
-README.md                   # 作品说明（提交前请改成你自己的，见第六节）
-```
-
-> 仓内附带了一个 `.gitignore.example`，给出了**编译产物**等不需要进仓的文件示例。如需启用，`cp .gitignore.example .gitignore` 后按需增删即可。**注意 `logs/` 下最终导出的 AI Coding 日志必须提交，不要忽略。**
->
-> `logs/` 的目录结构与提交格式见 [logs/README.md](logs/README.md)。
-
----
-
-## 四、第三步：编译与运行
-
-编译/运行步骤随作品形态不同而不同，请参考你所在赛道的教程导航：
-
-- 快应用 / 手表应用：[快应用教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/quickapp/quickapp_guide_index.md)（含模拟器与开发板部署）。
-- AI 硬件产品创新：[AI 硬件赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_hardware/ai_hardware_guide_index.md)（环境搭建、编译烧录、Skill 开发）。
-- 新硬件适配：[新硬件适配赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/hardware_porting/hardware_porting_guide_index.md)（BSP 移植、最小 NSH 基线）。
-
-子目录已通过 manifest 中的 `<linkfile>` 软链进 openvela 编译树，因此构建在 openvela 工作区**根目录**（即你这个仓的上一级）进行。openvela 使用 `build.sh` 作为统一入口，接收一个 **board config 路径**作为参数：
+在 openvela 工作区根目录（本仓的上一级）构建 Gemini-S1 固件：
 
 ```bash
-# 进入 openvela 工作区根目录（你的仓的上一级）
-cd ..
-
-# 通用语法：第一个参数是 board config 路径，第二个参数可以是 menuconfig / distclean 等
-./build.sh <board-config-path> [menuconfig|distclean] [-j8]
+./build.sh vendor/allwinnertech/boards/r528/r528s3-gemini-s1/configs/nsh_minidisplay -j8
+cd vendor/allwinnertech/lichee && source envsetup.sh && lunch_nuttx && pack
 ```
 
-> 具体的 board config 路径、目标产物、模拟器/真机部署方式请以你所在赛道的教程导航为准。本仓 `app/` `quickapp/` `board/` 三个示例骨架对应的 Kconfig 选项可通过 `menuconfig` 启用。
+> 板级能力开关见 `board/contest_board/configs/nsh/defconfig`；官方音频修复脚本
+> `fix_gemini_s1.sh`（媒体图 + DMA IRQ + ffmpeg）已应用。
 
----
+## 六、运行配置
 
-## 五、第四步：提交作品
+- **LLM**：NSH 中 `set_llm deepseek sk-xxx`（或 `set_llm openai sk-xxx` 走 SiliconFlow 兼容接口）；
+- **中文字体**：将 TTF（建议 < 5MB，如思源黑体 / 阿里巴巴普惠体）放到 `/data/daynote/font.ttf`，启动时 FreeType 运行时加载；
+- **数据**：`/data/daynote/memos.json`，每条含 id/type/content/transcript/summary/keywords/timestamp/duration_ms，上限 100 条自动淘汰；
+- **硬件接线**：见 `hardware/ai_radio_hat/README.md`（LINEIN / HPOUT / CAT / GPADC0 / TWI2）。
 
-1. **fork** 你的专属仓 → 开发 → `git commit` 并推送 → 向专属仓发起 **Pull Request**，可**自行 review 并合入**（无需等组委会）。
-2. **AI Coding 日志**：与 AI 工具的对话会自动记录到本机 staging（不会自动上传），需你**主动导出/打包**选定会话到仓内 `logs/` 目录后一并提交。详见[《AI Coding 日志归集与提交手册》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_coding_log_guide.md)。
-3. 若需改动 **nuttx 等公共仓库**，不在本仓改，而是 fork 对应公共仓、以 PR 提交到 `dev-ai-contest-2026` 分支，由组委会 review 后合入。
+## 七、AI Radio HAT 硬件
 
-> ⏰ **提交作品截止：9 月 20 日**。截止后统一收回 push 权限，仍可查看 / clone。
->
-> 获奖后再按要求将作品 PR 至 openvela 上游对应仓库（走标准 PR + CI 流程）。
+为 Gemini-S1 设计的 80mm×50mm 双层业余无线电扩展板（KiCad 7 + 嘉立创 EDA 双工程）：
+电台音频进 LINEIN 供 ASR、R528 音频出至电台 MIC 做 TTS 数字语音、光耦隔离 PTT、CAT 串口、I2C 传感器扩展。
+工程文件、ASCII 原理图与物料清单见 `hardware/ai_radio_hat/`。
 
-### 关于 PR 与 CLA
+## 八、AI Coding 日志
 
-- 本仓所有改动通过 **Pull Request** 合入（分支保护强制，可自行合入自己的 PR）。
-- 首次贡献需在[**官网签署 CLA**](https://openvela.com/#/community/cla)；PR 上会自动跑 `cla/signature` 检查，在官网签署成功后，在 PR 评论 `/check-cla` 复检即可通过。
+开发过程与 AI 工具的对话记录见 `logs/HaohanHe/`（含会话清单 `manifest.json`）。
+本次主要在 Trae / MiMo-V2.5 中开发，无法导出官方 JSONL，故提交 Markdown 原始全文，详见该目录说明。
 
----
+## 九、已知限制与后续
 
-## 六、提交前：把本 README 改成你的作品说明
-
-本文件目前是组委会给的**使用说明书**。**作品提交前，请把它替换成你自己作品的说明**，方便评委快速了解你做了什么、怎么跑起来。建议至少包含以下内容：
-
-```markdown
-# <你的作品名>
-
-## 一、作品简介
-<一句话/一段话说明这个作品是什么、解决什么问题、亮点在哪>
-
-## 二、选题方向
-<快应用 / 手表应用创新 ｜ AI 硬件产品创新 ｜ 新硬件适配 ｜ 自定方向，并简述理由>
-
-## 三、目录结构
-<列出你这个仓里各目录/文件的作用，例如：>
-- `app/xxx/`        — <说明>
-- `board/xxx/`      — <说明>
-- `quickapp/xxx/`   — <说明>
-- `logs/`           — AI Coding 日志
-- `docs/` 或其他    — <说明>
-
-## 四、运行方式
-<拉取工程后，如何编译、烧录/部署、运行的完整步骤；最好能让评委照着一步步复现>
-
-## 五、AI Coding 使用说明
-<说明本作品如何借助 AI 辅助开发：
-- 在需求拆解 / 方案设计 / 编码 / 调试 / 文档等环节如何与 AI 协作；
-- AI 对开发效率或质量带来的实际帮助。
-完整对话日志见 logs/ 目录>
-```
-
-> 提示：将会根据「作品本身 + 你的 README 说明 + `logs/` 里的 AI Coding 日志」来理解和评估你的作品，README 写清楚很重要。
-
----
-
-## 附：仓库命名规范
-
-`contest2026_<编号>_<队伍名>` — 编号三位零填充；队名 slug（全小写、英文/拼音、连字符）。例：`contest2026_095_hehaohanBI4MIB`。
-（仓库由组委会统一创建，**每队仅一个仓**，无需自行命名。）
+1. VAD 自动录音当前以 PTT 为主，真正的能量检测 + 静音分段需扩展 ai_agent voice_channel；
+2. 电阻屏触控坐标需实机校准；
+3. AI Radio HAT 的 PCB 已完成板框与原理，布局布线与打样为下一步；
+4. 获奖后按要求将作品 PR 至 openvela 上游对应仓库，走标准 PR + CI 流程。

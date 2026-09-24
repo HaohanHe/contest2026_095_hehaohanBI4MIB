@@ -1,0 +1,34 @@
+{
+  "github_login": "HaohanHe",
+  "team": "hehaohanBI4MIB",
+  "contest_repo": "open-vela/contest2026_095_hehaohanBI4MIB",
+  "format_note": "以下为开发期间与 AI 工具（Trae IDE / MiMo-V2.5 等）对话的原始记录，以 Markdown 导出件形式提交；所用工具不在组委会 JSONL 归集工具的支持列表内，无法生成官方 JSONL，故按原样提交 Markdown 全文，内容未做删改。",
+  "sessions": [
+    {
+      "file": "session-ses_0b54.md",
+      "title": "项目编译与屏幕不亮调试",
+      "session_id": "ses_0b54e150fffeHl57uz1RlmrJNH",
+      "tool": "Trae / MiMo-V2.5",
+      "created": "2026-07-10",
+      "updated": "2026-07-13"
+    },
+    {
+      "file": "克隆并编译 OpenVela 项目.md",
+      "title": "克隆并编译 OpenVela 项目",
+      "tool": "Trae / MiMo-V2.5",
+      "workspace": "/home/bi4mib/比赛代码是否包含 (1)"
+    },
+    {
+      "file": "分析项目架构与文档.md",
+      "title": "分析项目架构与文档",
+      "tool": "Trae / MiMo-V2.5",
+      "workspace": "/run/media/bi4mib/新加卷/ontest2026_095_hehaohanBI4MIB"
+    },
+    {
+      "file": "分析项目架构与文档6.md",
+      "title": "分析项目架构与文档（续）",
+      "tool": "Trae / MiMo-V2.5",
+      "workspace": "/home/bi4mib/比赛代码是否包含 (1)"
+    }
+  ]
+}
